@@ -1,0 +1,9 @@
+# iCloud
+.DS_Store
+*.icloud
+
+# AppGenius
+.appgenius_temp/
+
+# OS
+Thumbs.db
