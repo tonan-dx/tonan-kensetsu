@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
-import type { Estimate, EstimateStatus } from '../types'
+import type { Estimate, EstimateStatus, Assignee } from '../types'
+
+const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '佐野']
 
 const STATUS_COLOR: Record<string, string> = {
   '見積書作成前': '#9ca3af',
@@ -21,6 +23,7 @@ export default function Estimates() {
   const [loading, setLoading] = useState(true)
   const [showAll, setShowAll] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>('')
+  const [filterAssignee, setFilterAssignee] = useState<string>('')
 
   useEffect(() => {
     setLoading(true)
@@ -29,7 +32,9 @@ export default function Estimates() {
       .then(data => { setEstimates(data); setLoading(false) })
   }, [showAll])
 
-  const filtered = filterStatus ? estimates.filter(e => e.status === filterStatus) : estimates
+  const filtered = estimates
+    .filter(e => !filterStatus || e.status === filterStatus)
+    .filter(e => !filterAssignee || e.assignee === filterAssignee)
 
   return (
     <div className="page">
@@ -58,6 +63,20 @@ export default function Estimates() {
           onClick={() => { setShowAll(v => !v); setFilterStatus('') }}
           style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}
         >{showAll ? 'ボツを隠す' : 'ボツも表示'}</button>
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+        <button
+          className={filterAssignee === '' ? 'filter-btn active' : 'filter-btn'}
+          onClick={() => setFilterAssignee('')}
+        >全員</button>
+        {ASSIGNEES.map(a => (
+          <button
+            key={a}
+            className={filterAssignee === a ? 'filter-btn active' : 'filter-btn'}
+            onClick={() => setFilterAssignee(a)}
+          >{a}</button>
+        ))}
       </div>
 
       {loading ? (
