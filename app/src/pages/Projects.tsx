@@ -37,8 +37,8 @@ export default function Projects() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">工事一覧</h1>
-        <Link to="/timeline" className="btn-icon" title="タイムライン">
-          <GanttChart size={18} />
+        <Link to="/timeline" className="btn-sm">
+          <GanttChart size={15} /> 工程
         </Link>
         <Link to="/projects/new" className="btn-primary">
           <Plus size={18} /> 新規
