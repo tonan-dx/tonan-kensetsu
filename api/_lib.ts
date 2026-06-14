@@ -17,6 +17,9 @@ export function getText(prop: any): string {
 export function getSelect(prop: any): string {
   return prop?.select?.name ?? ''
 }
+export function getMultiSelect(prop: any): string[] {
+  return prop?.multi_select?.map((s: any) => s.name) ?? []
+}
 export function getPerson(prop: any): string {
   return prop?.people?.[0]?.name ?? ''
 }
@@ -124,6 +127,7 @@ export function toSafety(page: any, projectMap: Record<string, any> = {}) {
     recorder: getPerson(p['記入者']) || null,
     reviewer: getPerson(p['確認者']) || null,
     confirmed: p['確認済みチェック']?.checkbox ?? false,
+    confirmed_by: getMultiSelect(p['確認者リスト']),
     created_at: page.created_time,
     notion_url: page.url,
   }

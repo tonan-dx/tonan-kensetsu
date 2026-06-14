@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, CheckCircle, Circle } from 'lucide-react'
+import { Plus, CheckCircle, Circle, Users } from 'lucide-react'
 import type { SafetyRecord } from '../types'
+
+const TOTAL_MEMBERS = 11
 
 export default function Safety() {
   const [records, setRecords] = useState<SafetyRecord[]>([])
@@ -63,6 +65,18 @@ export default function Safety() {
                 {r.recorder && <span>記入: {r.recorder}</span>}
                 {r.near_miss && <span className="safety-nearmiss-tag">ヒヤリハット</span>}
                 {r.hazard && <span className="safety-hazard-tag">危険箇所</span>}
+              </div>
+              <div className="card-circulation">
+                <Users size={12} />
+                <span className={`circulation-mini${(r.confirmed_by?.length ?? 0) === TOTAL_MEMBERS ? ' done' : ''}`}>
+                  {r.confirmed_by?.length ?? 0}/{TOTAL_MEMBERS} 人確認
+                </span>
+                <div className="circulation-mini-bar">
+                  <div
+                    className="circulation-mini-fill"
+                    style={{ width: `${((r.confirmed_by?.length ?? 0) / TOTAL_MEMBERS) * 100}%` }}
+                  />
+                </div>
               </div>
             </Link>
           ))}

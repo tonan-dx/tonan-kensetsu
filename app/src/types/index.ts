@@ -60,6 +60,7 @@ export interface SafetyRecord {
   recorder: string | null
   reviewer: string | null
   confirmed: boolean
+  confirmed_by: string[]
   created_at: string
   notion_url: string
 }

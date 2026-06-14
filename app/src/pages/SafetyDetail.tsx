@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2, ExternalLink, CheckCircle, Circle } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2, ExternalLink, CheckCircle, Circle, Users } from 'lucide-react'
 import type { SafetyRecord } from '../types'
+
+const ALL_MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '佐野']
 
 export default function SafetyDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [record, setRecord] = useState<SafetyRecord | null>(null)
   const [loading, setLoading] = useState(true)
+  const [toggling, setToggling] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -23,18 +26,28 @@ export default function SafetyDetail() {
     navigate('/safety')
   }
 
-  const toggleConfirmed = async () => {
-    if (!record) return
+  const toggleMember = async (name: string) => {
+    if (!record || toggling) return
+    setToggling(true)
+    const current = record.confirmed_by ?? []
+    const next = current.includes(name)
+      ? current.filter(n => n !== name)
+      : [...current, name]
     const updated = await fetch(`/api/safety/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ confirmed: !record.confirmed }),
-    }).then(r => r.json())
-    setRecord(updated)
+      body: JSON.stringify({ confirmed_by: next }),
+    }).then(r => r.json()).catch(() => null)
+    if (updated) setRecord(updated)
+    setToggling(false)
   }
 
   if (loading) return <div className="loading">読み込み中...</div>
   if (!record) return <div className="loading">記録が見つかりません</div>
+
+  const confirmedList = record.confirmed_by ?? []
+  const confirmedCount = confirmedList.length
+  const total = ALL_MEMBERS.length
 
   const fields = [
     { label: 'KY活動記録', value: record.ky_activity },
@@ -56,13 +69,6 @@ export default function SafetyDetail() {
       </div>
 
       <div className="detail-card">
-        <div className="detail-row">
-          <span className="detail-label">確認状況</span>
-          <button onClick={toggleConfirmed} style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 14, color: record.confirmed ? '#16a34a' : '#94a3b8' }}>
-            {record.confirmed ? <CheckCircle size={18} /> : <Circle size={18} />}
-            {record.confirmed ? '確認済み' : '未確認'}
-          </button>
-        </div>
         {record.date && (
           <div className="detail-row">
             <span className="detail-label">日付</span>
@@ -92,6 +98,40 @@ export default function SafetyDetail() {
           <a href={record.notion_url} target="_blank" rel="noreferrer" className="notion-link">
             Notionで開く <ExternalLink size={12} />
           </a>
+        </div>
+      </div>
+
+      <div className="detail-section-card">
+        <div className="circulation-header">
+          <div className="circulation-title">
+            <Users size={16} />
+            回覧確認
+          </div>
+          <div className={`circulation-count${confirmedCount === total ? ' done' : ''}`}>
+            {confirmedCount}/{total} 人確認済み
+          </div>
+        </div>
+        <div className="circulation-progress">
+          <div
+            className="circulation-progress-bar"
+            style={{ width: `${(confirmedCount / total) * 100}%` }}
+          />
+        </div>
+        <div className="circulation-grid">
+          {ALL_MEMBERS.map(name => {
+            const isConfirmed = confirmedList.includes(name)
+            return (
+              <button
+                key={name}
+                className={`circulation-btn${isConfirmed ? ' confirmed' : ''}`}
+                onClick={() => toggleMember(name)}
+                disabled={toggling}
+              >
+                {isConfirmed ? <CheckCircle size={15} /> : <Circle size={15} />}
+                {name}
+              </button>
+            )
+          })}
         </div>
       </div>
 

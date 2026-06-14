@@ -18,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (req.method === 'PATCH') {
-      const { title, date, project_id, ky_activity, near_miss, safety_log, hazard, corrective_action, confirmed } = req.body
+      const { title, date, project_id, ky_activity, near_miss, safety_log, hazard, corrective_action, confirmed, confirmed_by } = req.body
       const props: any = {}
       if (title != null) props['安全記録タイトル'] = { title: [{ text: { content: title } }] }
       if (date !== undefined) props['日付'] = { date: { start: date } }
@@ -29,6 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (hazard != null) props['危険箇所'] = { rich_text: [{ text: { content: hazard } }] }
       if (corrective_action != null) props['是正対応'] = { rich_text: [{ text: { content: corrective_action } }] }
       if (confirmed != null) props['確認済みチェック'] = { checkbox: confirmed }
+      if (confirmed_by != null) props['確認者リスト'] = { multi_select: confirmed_by.map((name: string) => ({ name })) }
       const page = await notion.pages.update({ page_id: id, properties: props })
       return res.json(toSafety(page))
     }
