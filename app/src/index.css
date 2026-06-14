@@ -835,6 +835,189 @@ input, select, textarea { font: inherit; }
   color: var(--text-sub);
 }
 
+/* ── Gantt / Timeline ── */
+.gantt-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px 16px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 600;
+}
+.gantt-nav button {
+  display: flex;
+  align-items: center;
+  color: var(--text-sub);
+}
+
+.gantt-wrapper {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.gantt-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border);
+}
+
+.gantt-header-row {
+  background: var(--gray-light);
+  min-height: 26px;
+}
+
+.gantt-label-col {
+  flex-shrink: 0;
+  width: 112px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 2px solid var(--border);
+  overflow: hidden;
+}
+
+.gantt-process-label-col {
+  background: #fafafa;
+  padding-left: 12px;
+}
+
+.gantt-project-name {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.gantt-project-sub {
+  font-size: 11px;
+  color: var(--text-sub);
+  margin-top: 1px;
+}
+
+.gantt-process-name {
+  font-size: 11px;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gantt-bars-col {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.gantt-month-header {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-sub);
+  border-right: 1px solid var(--border);
+}
+
+.gantt-grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+
+.gantt-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ef4444;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.gantt-bar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.gantt-bar-project {
+  height: 22px;
+  min-height: 22px;
+}
+
+.gantt-bar-process {
+  height: 13px;
+  min-height: 13px;
+  opacity: 0.85;
+}
+
+.gantt-bar-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  padding: 0 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gantt-project-row {
+  display: flex;
+  min-height: 44px;
+  background: var(--white);
+  transition: background 0.1s;
+}
+
+.gantt-project-row:active { background: var(--gray-light); }
+
+.gantt-process-row {
+  display: flex;
+  min-height: 36px;
+  background: #fafafa;
+}
+
+.gantt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--white);
+}
+
+.gantt-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.gantt-legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
 /* ── Checkbox form row ── */
 .form-checkbox-row {
   flex-direction: row;

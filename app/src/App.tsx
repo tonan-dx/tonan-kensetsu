@@ -10,6 +10,7 @@ import ReportForm from './pages/ReportForm'
 import Estimates from './pages/Estimates'
 import EstimateDetail from './pages/EstimateDetail'
 import EstimateForm from './pages/EstimateForm'
+import Timeline from './pages/Timeline'
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/projects/new" element={<ProjectForm />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/projects/:id/edit" element={<ProjectForm />} />
+          <Route path="/timeline" element={<Timeline />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/reports/new" element={<ReportForm />} />
           <Route path="/reports/:id" element={<ReportDetail />} />

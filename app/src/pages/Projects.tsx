@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, GanttChart } from 'lucide-react'
 import type { Project, ProjectStatus } from '../types'
 
 const STATUS_COLORS: Record<string, string> = {
@@ -37,6 +37,9 @@ export default function Projects() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">工事一覧</h1>
+        <Link to="/timeline" className="btn-icon" title="タイムライン">
+          <GanttChart size={18} />
+        </Link>
         <Link to="/projects/new" className="btn-primary">
           <Plus size={18} /> 新規
         </Link>

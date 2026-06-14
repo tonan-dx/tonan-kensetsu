@@ -2,9 +2,10 @@ import { Client, isFullPage } from '@notionhq/client'
 
 export const notion = new Client({ auth: process.env.NOTION_TOKEN })
 
-export const PROJECTS_DB  = '4e8426e7a4d1480f8efa956b3643cdb2'
-export const REPORTS_DB   = 'a5f67b8bb359497c989cf397d8eb345a'
-export const ESTIMATES_DB = '9d7c1e35-7039-4452-acb0-c83a5d2fd799'
+export const PROJECTS_DB   = '4e8426e7a4d1480f8efa956b3643cdb2'
+export const REPORTS_DB    = 'a5f67b8bb359497c989cf397d8eb345a'
+export const ESTIMATES_DB  = '9d7c1e35-7039-4452-acb0-c83a5d2fd799'
+export const PROCESSES_DB  = '79dcabf6-0b5a-495e-8e4a-7a2e859f4245'
 
 export function getTitle(prop: any): string {
   return prop?.title?.map((t: any) => t.plain_text).join('') ?? ''
@@ -98,6 +99,24 @@ export function toEstimate(page: any) {
     related_project_id: p['関連工事']?.relation?.[0]?.id ?? null,
     created_at: page.created_time,
     notion_url: page.url,
+  }
+}
+
+export function toProcess(page: any) {
+  if (!isFullPage(page)) return null
+  const p = page.properties as any
+  return {
+    id: page.id,
+    name: getTitle(p['工程名']),
+    planned_start: p['予定開始日']?.date?.start ?? null,
+    planned_end: p['予定終了日']?.date?.start ?? null,
+    actual_start: p['実績開始日']?.date?.start ?? null,
+    actual_end: p['実績終了日']?.date?.start ?? null,
+    status: getStatus(p['工程ステータス']) || null,
+    assignee: getSelect(p['担当者']) || null,
+    done: p['完了チェック']?.checkbox ?? false,
+    related_project_id: p['関連工事']?.relation?.[0]?.id ?? null,
+    created_at: page.created_time,
   }
 }
 
