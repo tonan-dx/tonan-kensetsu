@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2, ExternalLink, CheckCircle, Circle, Users } from 'lucide-react'
 import type { SafetyRecord } from '../types'
+import TaskList from '../components/TaskList'
 
 const ALL_MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '佐野']
 
@@ -100,6 +101,8 @@ export default function SafetyDetail() {
           </a>
         </div>
       </div>
+
+      {id && <TaskList refId={id} refType="safety" />}
 
       <div className="detail-section-card">
         <div className="circulation-header">

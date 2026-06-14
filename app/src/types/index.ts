@@ -65,6 +65,18 @@ export interface SafetyRecord {
   notion_url: string
 }
 
+export interface Task {
+  id: string
+  name: string
+  assignee: string | null
+  done: boolean
+  due_date: string | null
+  notes: string | null
+  ref_id: string | null
+  ref_type: 'project' | 'estimate' | 'safety' | null
+  created_at: string
+}
+
 export interface Process {
   id: string
   name: string

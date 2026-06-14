@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2, ExternalLink, ChevronRight } from 'lucide-react'
 import type { Estimate, EstimateStatus } from '../types'
+import TaskList from '../components/TaskList'
 
 const STATUS_COLOR: Record<string, string> = {
   '見積書作成前': '#9ca3af',
@@ -134,6 +135,8 @@ export default function EstimateDetail() {
           <p style={{ marginTop: 4 }}>{estimate.rejection_reason}</p>
         </div>
       )}
+
+      {id && <TaskList refId={id} refType="estimate" />}
 
       {estimate.notion_url && (
         <a href={estimate.notion_url} target="_blank" rel="noreferrer" className="notion-link">

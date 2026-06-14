@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2, Plus, ExternalLink } from 'lucide-react'
 import type { Project, DailyReport } from '../types'
+import TaskList from '../components/TaskList'
 
 const STATUS_COLORS: Record<string, string> = {
   '着工前': 'badge-gray',
@@ -99,6 +100,8 @@ export default function ProjectDetail() {
           </a>
         </div>
       </div>
+
+      {id && <TaskList refId={id} refType="project" />}
 
       <section className="section">
         <div className="section-header">
