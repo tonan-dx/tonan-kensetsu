@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Building2, ClipboardList, LayoutDashboard, FileText } from 'lucide-react'
+import { Building2, ClipboardList, LayoutDashboard, FileText, HardHat } from 'lucide-react'
 
 export default function Layout() {
   return (
@@ -33,6 +33,10 @@ export default function Layout() {
         <NavLink to="/estimates" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
           <FileText size={22} />
           <span>見積</span>
+        </NavLink>
+        <NavLink to="/safety" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+          <HardHat size={22} />
+          <span>安全</span>
         </NavLink>
       </nav>
     </div>

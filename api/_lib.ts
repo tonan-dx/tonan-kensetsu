@@ -6,6 +6,7 @@ export const PROJECTS_DB   = '4e8426e7a4d1480f8efa956b3643cdb2'
 export const REPORTS_DB    = 'a5f67b8bb359497c989cf397d8eb345a'
 export const ESTIMATES_DB  = '9d7c1e35-7039-4452-acb0-c83a5d2fd799'
 export const PROCESSES_DB  = '79dcabf6-0b5a-495e-8e4a-7a2e859f4245'
+export const SAFETY_DB     = 'fb4eba9c-9688-4f21-ae6b-16c194f71dd7'
 
 export function getTitle(prop: any): string {
   return prop?.title?.map((t: any) => t.plain_text).join('') ?? ''
@@ -15,6 +16,9 @@ export function getText(prop: any): string {
 }
 export function getSelect(prop: any): string {
   return prop?.select?.name ?? ''
+}
+export function getPerson(prop: any): string {
+  return prop?.people?.[0]?.name ?? ''
 }
 export function getStatus(prop: any): string {
   return prop?.status?.name ?? ''
@@ -97,6 +101,29 @@ export function toEstimate(page: any) {
     request_content: getText(p['依頼内容']) || null,
     notes: getText(p['メモ']) || null,
     related_project_id: p['関連工事']?.relation?.[0]?.id ?? null,
+    created_at: page.created_time,
+    notion_url: page.url,
+  }
+}
+
+export function toSafety(page: any, projectMap: Record<string, any> = {}) {
+  if (!isFullPage(page)) return null
+  const p = page.properties as any
+  const projectId = p['関連工事']?.relation?.[0]?.id ?? null
+  return {
+    id: page.id,
+    title: getTitle(p['安全記録タイトル']),
+    date: p['日付']?.date?.start ?? null,
+    project_id: projectId,
+    project: projectId ? (projectMap[projectId] ?? null) : null,
+    ky_activity: getText(p['KY活動記録']) || null,
+    near_miss: getText(p['ヒヤリハット']) || null,
+    safety_log: getText(p['安全日誌']) || null,
+    hazard: getText(p['危険箇所']) || null,
+    corrective_action: getText(p['是正対応']) || null,
+    recorder: getPerson(p['記入者']) || null,
+    reviewer: getPerson(p['確認者']) || null,
+    confirmed: p['確認済みチェック']?.checkbox ?? false,
     created_at: page.created_time,
     notion_url: page.url,
   }

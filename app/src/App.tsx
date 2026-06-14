@@ -11,6 +11,9 @@ import Estimates from './pages/Estimates'
 import EstimateDetail from './pages/EstimateDetail'
 import EstimateForm from './pages/EstimateForm'
 import Timeline from './pages/Timeline'
+import Safety from './pages/Safety'
+import SafetyDetail from './pages/SafetyDetail'
+import SafetyForm from './pages/SafetyForm'
 
 export default function App() {
   return (
@@ -23,6 +26,10 @@ export default function App() {
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/projects/:id/edit" element={<ProjectForm />} />
           <Route path="/timeline" element={<Timeline />} />
+          <Route path="/safety" element={<Safety />} />
+          <Route path="/safety/new" element={<SafetyForm />} />
+          <Route path="/safety/:id" element={<SafetyDetail />} />
+          <Route path="/safety/:id/edit" element={<SafetyForm />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/reports/new" element={<ReportForm />} />
           <Route path="/reports/:id" element={<ReportDetail />} />

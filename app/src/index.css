@@ -714,6 +714,7 @@ input, select, textarea { font: inherit; }
 .home-tile-icon.blue   { background: var(--blue-light);   color: var(--blue); }
 .home-tile-icon.green  { background: var(--green-light);  color: var(--green); }
 .home-tile-icon.purple { background: #f3e8ff; color: #7c3aed; }
+.home-tile-icon.orange { background: #fff7ed; color: #ea580c; }
 
 .home-tile-title {
   font-size: 17px;
@@ -773,6 +774,18 @@ input, select, textarea { font: inherit; }
 
 .notif-badge.red    { background: var(--red); }
 .notif-badge.purple { background: #7c3aed; }
+.notif-badge.orange { background: #ea580c; }
+
+.safety-nearmiss-tag {
+  background: #fef9c3; color: #854d0e;
+  font-size: 11px; font-weight: 600;
+  padding: 1px 6px; border-radius: 4px;
+}
+.safety-hazard-tag {
+  background: #fee2e2; color: var(--red);
+  font-size: 11px; font-weight: 600;
+  padding: 1px 6px; border-radius: 4px;
+}
 
 /* ── Status badge ── */
 .status-badge {

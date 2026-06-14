@@ -46,6 +46,24 @@ export interface Estimate {
   notion_url: string
 }
 
+export interface SafetyRecord {
+  id: string
+  title: string
+  date: string | null
+  project_id: string | null
+  project: { id: string; name: string } | null
+  ky_activity: string | null
+  near_miss: string | null
+  safety_log: string | null
+  hazard: string | null
+  corrective_action: string | null
+  recorder: string | null
+  reviewer: string | null
+  confirmed: boolean
+  created_at: string
+  notion_url: string
+}
+
 export interface Process {
   id: string
   name: string
