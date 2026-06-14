@@ -1,0 +1,36 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { notion, toProject, cors } from '../_lib'
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  cors(res)
+  if (req.method === 'OPTIONS') return res.status(200).end()
+
+  const id = req.query.id as string
+
+  if (req.method === 'GET') {
+    const page = await notion.pages.retrieve({ page_id: id })
+    return res.json(toProject(page))
+  }
+
+  if (req.method === 'PATCH') {
+    const { name, client_name, location, status, start_date, end_date, contract_amount, type, assignee } = req.body
+    const props: any = {}
+    if (name) props['工事名'] = { title: [{ text: { content: name } }] }
+    if (client_name != null) props['お客様名'] = { rich_text: [{ text: { content: client_name } }] }
+    if (location != null) props['現場住所'] = { rich_text: [{ text: { content: location } }] }
+    if (status) props['工事ステータス'] = { status: { name: status } }
+    if (start_date !== undefined) props['工期'] = { date: { start: start_date, end: end_date ?? null } }
+    if (contract_amount != null) props['契約金額'] = { number: contract_amount }
+    if (type) props['工事種別'] = { select: { name: type } }
+    if (assignee) props['担当者'] = { select: { name: assignee } }
+    const page = await notion.pages.update({ page_id: id, properties: props })
+    return res.json(toProject(page))
+  }
+
+  if (req.method === 'DELETE') {
+    await notion.pages.update({ page_id: id, archived: true })
+    return res.json({ ok: true })
+  }
+
+  res.status(405).end()
+}

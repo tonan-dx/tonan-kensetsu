@@ -7,3 +7,17 @@
 
 # OS
 Thumbs.db
+
+# Node
+node_modules/
+app/node_modules/
+server/node_modules/
+
+# Build
+app/dist/
+app/.vite/
+
+# Env
+.env
+.env.local
+server/.env
