@@ -7,6 +7,9 @@ import ProjectForm from './pages/ProjectForm'
 import Reports from './pages/Reports'
 import ReportDetail from './pages/ReportDetail'
 import ReportForm from './pages/ReportForm'
+import Estimates from './pages/Estimates'
+import EstimateDetail from './pages/EstimateDetail'
+import EstimateForm from './pages/EstimateForm'
 
 export default function App() {
   return (
@@ -22,6 +25,10 @@ export default function App() {
           <Route path="/reports/new" element={<ReportForm />} />
           <Route path="/reports/:id" element={<ReportDetail />} />
           <Route path="/reports/:id/edit" element={<ReportForm />} />
+          <Route path="/estimates" element={<Estimates />} />
+          <Route path="/estimates/new" element={<EstimateForm />} />
+          <Route path="/estimates/:id" element={<EstimateDetail />} />
+          <Route path="/estimates/:id/edit" element={<EstimateForm />} />
         </Route>
       </Routes>
     </BrowserRouter>

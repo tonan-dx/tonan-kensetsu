@@ -2,8 +2,9 @@ import { Client, isFullPage } from '@notionhq/client'
 
 export const notion = new Client({ auth: process.env.NOTION_TOKEN })
 
-export const PROJECTS_DB = '4e8426e7a4d1480f8efa956b3643cdb2'
-export const REPORTS_DB  = 'a5f67b8bb359497c989cf397d8eb345a'
+export const PROJECTS_DB  = '4e8426e7a4d1480f8efa956b3643cdb2'
+export const REPORTS_DB   = 'a5f67b8bb359497c989cf397d8eb345a'
+export const ESTIMATES_DB = '9d7c1e35-7039-4452-acb0-c83a5d2fd799'
 
 export function getTitle(prop: any): string {
   return prop?.title?.map((t: any) => t.plain_text).join('') ?? ''
@@ -68,6 +69,33 @@ export function toReport(page: any, projectMap: Record<string, any> = {}) {
     trouble: p['トラブル']?.checkbox ?? false,
     check_status: getStatus(p['確認ステータス']),
     assignee: getSelect(p['担当者']),
+    created_at: page.created_time,
+    notion_url: page.url,
+  }
+}
+
+export function toEstimate(page: any) {
+  if (!isFullPage(page)) return null
+  const p = page.properties as any
+  return {
+    id: page.id,
+    title: getTitle(p['案件名']),
+    customer_name: getText(p['お客様名']) || null,
+    address: getText(p['現場住所']) || null,
+    assignee: getSelect(p['担当者']) || null,
+    estimate_deadline: p['見積期限']?.date?.start ?? null,
+    estimate_amount: p['見積金額']?.number ?? null,
+    cost_estimate: p['原価予定']?.number ?? null,
+    gross_profit: p['粗利予定']?.number ?? null,
+    status: getStatus(p['ステータス']) || null,
+    president_check: getStatus(p['社長チェック状況']) || null,
+    result: getSelect(p['結果']) || null,
+    submission_date: p['提出日']?.date?.start ?? null,
+    decision_date: p['着工決定日']?.date?.start ?? null,
+    rejection_reason: getText(p['ボツ理由']) || null,
+    request_content: getText(p['依頼内容']) || null,
+    notes: getText(p['メモ']) || null,
+    related_project_id: p['関連工事']?.relation?.[0]?.id ?? null,
     created_at: page.created_time,
     notion_url: page.url,
   }
