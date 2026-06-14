@@ -8,7 +8,7 @@ const STATUS_COLORS: Record<string, string> = {
   '進行中': 'badge-blue',
   '確認待ち': 'badge-gray',
   '完了': 'badge-green',
-  '請求待ち': 'badge-gray',
+  '請求': 'badge-gray',
   '入金済み': 'badge-green',
 }
 

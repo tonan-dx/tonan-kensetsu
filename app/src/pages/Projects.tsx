@@ -8,11 +8,11 @@ const STATUS_COLORS: Record<string, string> = {
   '進行中': 'badge-blue',
   '確認待ち': 'badge-gray',
   '完了': 'badge-green',
-  '請求待ち': 'badge-gray',
+  '請求': 'badge-gray',
   '入金済み': 'badge-green',
 }
 
-const STATUSES: Array<ProjectStatus | 'すべて'> = ['すべて', '着工前', '進行中', '確認待ち', '完了', '請求待ち', '入金済み']
+const STATUSES: Array<ProjectStatus | 'すべて'> = ['すべて', '着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])

@@ -1,4 +1,4 @@
-export type ProjectStatus = '着工前' | '進行中' | '確認待ち' | '完了' | '請求待ち' | '入金済み'
+export type ProjectStatus = '着工前' | '進行中' | '確認待ち' | '完了' | '請求' | '入金済み'
 export type EstimateStatus = '見積書作成前' | '見積書作成中' | '社長チェック' | 'お客様へ提出' | '着工決定' | 'ボツ／失注'
 export type PresidentCheckStatus = '未依頼' | '依頼済' | '確認中' | '確認済'
 export type EstimateResult = '未確定' | '着工決定' | '失注'

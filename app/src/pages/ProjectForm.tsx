@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import type { ProjectStatus, WorkType, Assignee } from '../types'
 
-const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求待ち', '入金済み']
+const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
 const TYPES: WorkType[] = ['新築', 'リフォーム・改修', '修繕', '解体', '土木・外構', 'その他']
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '佐野']
 
