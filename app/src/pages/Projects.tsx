@@ -72,20 +72,15 @@ export default function Projects() {
           {filtered.length === 0 ? (
             <p className="empty-text">工事がありません</p>
           ) : filtered.map(p => (
-            <Link to={`/projects/${p.id}`} key={p.id} className="card">
-              <div className="card-row">
-                <div className="card-title">{p.name}</div>
+            <Link to={`/projects/${p.id}`} key={p.id} className="card project-row-card">
+              <div className="project-row-main">
                 <span className={`badge ${STATUS_COLORS[p.status] ?? 'badge-gray'}`}>{p.status}</span>
+                <span className="project-row-name">{p.name}</span>
               </div>
-              {p.client_name && <div className="card-sub">{p.client_name}</div>}
-              {p.location && <div className="card-sub">{p.location}</div>}
-              {p.assignee && <div className="card-sub">担当: {p.assignee}</div>}
-              {(p.start_date || p.end_date) && (
-                <div className="card-dates">{p.start_date ?? '未定'} → {p.end_date ?? '未定'}</div>
-              )}
-              {p.contract_amount != null && (
-                <div className="card-amount">¥{p.contract_amount.toLocaleString()}</div>
-              )}
+              <div className="project-row-sub">
+                {p.assignee && <span>{p.assignee}</span>}
+                {p.contract_amount != null && <span className="project-row-amount">¥{p.contract_amount.toLocaleString()}</span>}
+              </div>
             </Link>
           ))}
         </div>
