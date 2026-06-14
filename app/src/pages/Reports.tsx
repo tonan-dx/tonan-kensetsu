@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
-import { DailyReport } from '../types'
+import type { DailyReport } from '../types'
 
 const STATUS_COLORS: Record<string, string> = {
   '未確認': 'badge-red',

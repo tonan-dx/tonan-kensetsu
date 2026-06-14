@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Building2, ClipboardList, AlertCircle } from 'lucide-react'
-import { Project, DailyReport } from '../types'
+import type { Project, DailyReport } from '../types'
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([])

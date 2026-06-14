@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2, ExternalLink } from 'lucide-react'
-import { DailyReport } from '../types'
+import type { DailyReport } from '../types'
 
 export default function ReportDetail() {
   const { id } = useParams()

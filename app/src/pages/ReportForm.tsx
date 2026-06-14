@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import { Project, Weather, Assignee } from '../types'
+import type { Project, Weather, Assignee } from '../types'
 
 const WEATHERS: Weather[] = ['晴れ', 'くもり', '雨', '雪']
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '佐野']

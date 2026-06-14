@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import { ProjectStatus, WorkType, Assignee } from '../types'
+import type { ProjectStatus, WorkType, Assignee } from '../types'
 
 const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求待ち', '入金済み']
 const TYPES: WorkType[] = ['新築', 'リフォーム・改修', '修繕', '解体', '土木・外構', 'その他']

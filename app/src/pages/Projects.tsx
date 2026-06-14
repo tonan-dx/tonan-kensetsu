@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search } from 'lucide-react'
-import { Project, ProjectStatus } from '../types'
+import type { Project, ProjectStatus } from '../types'
 
 const STATUS_COLORS: Record<string, string> = {
   '着工前': 'badge-gray',
