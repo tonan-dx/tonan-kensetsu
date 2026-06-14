@@ -1,101 +1,120 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Building2, ClipboardList, AlertCircle } from 'lucide-react'
-import type { Project, DailyReport } from '../types'
+import { Building2, ClipboardList, FileText, ChevronRight, AlertTriangle, Bell } from 'lucide-react'
+import type { Project, DailyReport, Estimate } from '../types'
+
+const today = new Date().toISOString().slice(0, 10)
+const todayJP = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([])
-  const [recentReports, setRecentReports] = useState<DailyReport[]>([])
+  const [reports, setReports] = useState<DailyReport[]>([])
+  const [estimates, setEstimates] = useState<Estimate[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/projects').then(r => r.json()),
-      fetch('/api/reports').then(r => r.json()),
-    ]).then(([p, r]) => {
+      fetch('/api/projects').then(r => r.json()).catch(() => []),
+      fetch('/api/reports').then(r => r.json()).catch(() => []),
+      fetch('/api/estimates').then(r => r.json()).catch(() => []),
+    ]).then(([p, r, e]) => {
       setProjects(Array.isArray(p) ? p : [])
-      setRecentReports(Array.isArray(r) ? r.slice(0, 3) : [])
+      setReports(Array.isArray(r) ? r : [])
+      setEstimates(Array.isArray(e) ? e : [])
       setLoading(false)
     })
   }, [])
 
-  const active = projects.filter(p => p.status === '進行中').length
-  const total = projects.length
+  const activeProjects = projects.filter(p => p.status === '進行中').length
+  const pendingProjects = projects.filter(p => p.status === '確認待ち').length
+  const troubleReports = reports.filter(r => r.trouble).length
+  const todayReports = reports.filter(r => r.report_date === today).length
+  const newEstimates = estimates.filter(e => e.status === '見積書作成前').length
+  const activeEstimates = estimates.filter(e => e.status !== '着工決定' && e.status !== 'ボツ／失注').length
 
   if (loading) return <div className="loading">読み込み中...</div>
 
   return (
-    <div className="page">
-      <h1 className="page-title">ダッシュボード</h1>
+    <div className="page home-page">
+      <div className="home-date">{todayJP}</div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <Building2 size={28} className="stat-icon blue" />
-          <div>
-            <p className="stat-label">進行中の工事</p>
-            <p className="stat-value">{active}<span className="stat-unit">件</span></p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <ClipboardList size={28} className="stat-icon green" />
-          <div>
-            <p className="stat-label">総工事数</p>
-            <p className="stat-value">{total}<span className="stat-unit">件</span></p>
-          </div>
-        </div>
-      </div>
+      <div className="home-tiles">
 
-      <section className="section">
-        <div className="section-header">
-          <h2 className="section-title">進行中の工事</h2>
-          <Link to="/projects" className="link-more">すべて見る</Link>
-        </div>
-        {projects.filter(p => p.status === '進行中').length === 0 ? (
-          <div className="empty-state">
-            <AlertCircle size={32} />
-            <p>進行中の工事はありません</p>
-          </div>
-        ) : (
-          <div className="card-list">
-            {projects.filter(p => p.status === '進行中').map(p => (
-              <Link to={`/projects/${p.id}`} key={p.id} className="card">
-                <div className="card-title">{p.name}</div>
-                <div className="card-sub">{p.client_name} {p.location && `· ${p.location}`}</div>
-                {(p.start_date || p.end_date) && (
-                  <div className="card-dates">{p.start_date ?? '未定'} → {p.end_date ?? '未定'}</div>
-                )}
-                {p.assignee && <div className="card-sub">担当: {p.assignee}</div>}
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="section">
-        <div className="section-header">
-          <h2 className="section-title">最近の日報</h2>
-          <Link to="/reports" className="link-more">すべて見る</Link>
-        </div>
-        {recentReports.length === 0 ? (
-          <div className="empty-state">
-            <AlertCircle size={32} />
-            <p>日報がありません</p>
-          </div>
-        ) : (
-          <div className="card-list">
-            {recentReports.map(r => (
-              <Link to={`/reports/${r.id}`} key={r.id} className="card">
-                <div className="card-row">
-                  <div className="card-title">{r.title || r.report_date}</div>
-                  {r.trouble && <span className="badge badge-red">トラブル</span>}
+        <Link to="/projects" className="home-tile">
+          <div className="home-tile-left">
+            <div className="home-tile-icon blue">
+              <Building2 size={26} />
+            </div>
+            <div>
+              <div className="home-tile-title">工事管理</div>
+              <div className="home-tile-stats">
+                <span>進行中 <strong>{activeProjects}</strong>件</span>
+                <span>全 {projects.length}件</span>
+              </div>
+              {pendingProjects > 0 && (
+                <div className="home-tile-alert">
+                  <AlertTriangle size={13} />
+                  確認待ち {pendingProjects}件
                 </div>
-                <div className="card-sub">{r.project?.name} {r.report_date && `· ${r.report_date}`}</div>
-                {r.work_content && <div className="card-text">{r.work_content}</div>}
-              </Link>
-            ))}
+              )}
+            </div>
           </div>
-        )}
-      </section>
+          <div className="home-tile-right">
+            {pendingProjects > 0 && <span className="notif-badge">{pendingProjects}</span>}
+            <ChevronRight size={20} className="home-tile-arrow" />
+          </div>
+        </Link>
+
+        <Link to="/reports" className="home-tile">
+          <div className="home-tile-left">
+            <div className="home-tile-icon green">
+              <ClipboardList size={26} />
+            </div>
+            <div>
+              <div className="home-tile-title">日報</div>
+              <div className="home-tile-stats">
+                <span>今日 <strong>{todayReports}</strong>件</span>
+                <span>全 {reports.length}件</span>
+              </div>
+              {troubleReports > 0 && (
+                <div className="home-tile-alert red">
+                  <AlertTriangle size={13} />
+                  トラブル報告 {troubleReports}件
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="home-tile-right">
+            {troubleReports > 0 && <span className="notif-badge red">{troubleReports}</span>}
+            <ChevronRight size={20} className="home-tile-arrow" />
+          </div>
+        </Link>
+
+        <Link to="/estimates" className="home-tile">
+          <div className="home-tile-left">
+            <div className="home-tile-icon purple">
+              <FileText size={26} />
+            </div>
+            <div>
+              <div className="home-tile-title">見積管理</div>
+              <div className="home-tile-stats">
+                <span>進行中 <strong>{activeEstimates}</strong>件</span>
+              </div>
+              {newEstimates > 0 && (
+                <div className="home-tile-alert purple">
+                  <Bell size={13} />
+                  新規依頼 {newEstimates}件
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="home-tile-right">
+            {newEstimates > 0 && <span className="notif-badge purple">{newEstimates}</span>}
+            <ChevronRight size={20} className="home-tile-arrow" />
+          </div>
+        </Link>
+
+      </div>
     </div>
   )
 }

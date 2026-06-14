@@ -660,6 +660,181 @@ input, select, textarea { font: inherit; }
   flex-shrink: 0;
 }
 
+/* ── Home screen ── */
+.home-page {
+  padding: 20px 16px;
+}
+
+.home-date {
+  font-size: 13px;
+  color: var(--text-sub);
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.home-tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-tile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 16px;
+  box-shadow: var(--shadow);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.home-tile:active {
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
+.home-tile-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.home-tile-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.home-tile-icon.blue   { background: var(--blue-light);   color: var(--blue); }
+.home-tile-icon.green  { background: var(--green-light);  color: var(--green); }
+.home-tile-icon.purple { background: #f3e8ff; color: #7c3aed; }
+
+.home-tile-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.home-tile-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.home-tile-stats strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.home-tile-alert {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d97706;
+  margin-top: 6px;
+}
+
+.home-tile-alert.red    { color: var(--red); }
+.home-tile-alert.purple { color: #7c3aed; }
+
+.home-tile-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.home-tile-arrow {
+  color: var(--text-sub);
+}
+
+.notif-badge {
+  background: var(--red);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.notif-badge.red    { background: var(--red); }
+.notif-badge.purple { background: #7c3aed; }
+
+/* ── Status badge ── */
+.status-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 100px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+/* ── Filter button ── */
+.filter-btn {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 11px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text-sub);
+  transition: all 0.15s;
+}
+
+.filter-btn.active {
+  background: var(--blue);
+  color: var(--white);
+  border-color: var(--blue);
+}
+
+/* ── Danger button ── */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--red-light);
+  color: var(--red);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+.btn-danger:disabled { opacity: 0.6; }
+
+/* ── Card header/meta ── */
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
 /* ── Checkbox form row ── */
 .form-checkbox-row {
   flex-direction: row;
