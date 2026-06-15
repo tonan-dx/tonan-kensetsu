@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2, ExternalLink } from 'lucide-react'
 import type { DailyReport } from '../types'
+import PhotoUpload from '../components/PhotoUpload'
 
 export default function ReportDetail() {
   const { id } = useParams()
@@ -101,6 +102,8 @@ export default function ReportDetail() {
           <p className="detail-body issues-text">{report.notes}</p>
         </div>
       )}
+
+      {id && <PhotoUpload refId={id} refType="report" />}
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2, Plus, ExternalLink } from 'lucide-react'
 import type { Project, DailyReport } from '../types'
 import TaskList from '../components/TaskList'
+import PhotoUpload from '../components/PhotoUpload'
 
 const STATUS_COLORS: Record<string, string> = {
   '着工前': 'badge-gray',
@@ -101,6 +102,7 @@ export default function ProjectDetail() {
         </div>
       </div>
 
+      {id && <PhotoUpload refId={id} refType="project" />}
       {id && <TaskList refId={id} refType="project" />}
 
       <section className="section">
