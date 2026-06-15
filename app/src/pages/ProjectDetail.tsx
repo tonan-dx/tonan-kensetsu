@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2, Plus, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2, Plus } from 'lucide-react'
 import type { Project, DailyReport } from '../types'
 import TaskList from '../components/TaskList'
 import PhotoUpload from '../components/PhotoUpload'
@@ -94,12 +94,6 @@ export default function ProjectDetail() {
             <span>¥{project.contract_amount.toLocaleString()}</span>
           </div>
         )}
-        <div className="detail-row">
-          <span className="detail-label">Notion</span>
-          <a href={project.notion_url} target="_blank" rel="noreferrer" className="notion-link">
-            Notionで開く <ExternalLink size={12} />
-          </a>
-        </div>
       </div>
 
       {id && <PhotoUpload refId={id} refType="project" />}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2, ExternalLink, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2, ChevronRight } from 'lucide-react'
 import type { Estimate, EstimateStatus } from '../types'
 import TaskList from '../components/TaskList'
 
@@ -138,11 +138,6 @@ export default function EstimateDetail() {
 
       {id && <TaskList refId={id} refType="estimate" />}
 
-      {estimate.notion_url && (
-        <a href={estimate.notion_url} target="_blank" rel="noreferrer" className="notion-link">
-          <ExternalLink size={14} /> Notionで開く
-        </a>
-      )}
     </div>
   )
 }

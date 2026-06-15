@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
 import type { DailyReport } from '../types'
 import PhotoUpload from '../components/PhotoUpload'
 
@@ -76,12 +76,6 @@ export default function ReportDetail() {
             <span className="badge badge-red">あり</span>
           </div>
         )}
-        <div className="detail-row">
-          <span className="detail-label">Notion</span>
-          <a href={report.notion_url} target="_blank" rel="noreferrer" className="notion-link">
-            Notionで開く <ExternalLink size={12} />
-          </a>
-        </div>
       </div>
 
       {report.work_content && (
