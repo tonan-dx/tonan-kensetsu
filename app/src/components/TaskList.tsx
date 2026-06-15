@@ -20,14 +20,14 @@ export default function TaskList({ refId, refType }: Props) {
   const [showDone, setShowDone] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/tasks?ref_id=${encodeURIComponent(refId)}&ref_type=${refType}`)
+    fetch(`/api/checklist?ref_id=${encodeURIComponent(refId)}&ref_type=${refType}`)
       .then(r => r.json())
       .then(data => { setTasks(Array.isArray(data) ? data : []); setLoading(false) })
       .catch(() => setLoading(false))
   }, [refId, refType])
 
   const toggleDone = async (task: Task) => {
-    const updated = await fetch(`/api/tasks/${task.id}`, {
+    const updated = await fetch(`/api/checklist/${task.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ done: !task.done }),
@@ -36,14 +36,14 @@ export default function TaskList({ refId, refType }: Props) {
   }
 
   const deleteTask = async (task: Task) => {
-    await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' })
+    await fetch(`/api/checklist/${task.id}`, { method: 'DELETE' })
     setTasks(prev => prev.filter(t => t.id !== task.id))
   }
 
   const addTask = async () => {
     if (!newName.trim() || saving) return
     setSaving(true)
-    const created = await fetch('/api/tasks', {
+    const created = await fetch('/api/checklist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

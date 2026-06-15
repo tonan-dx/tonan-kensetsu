@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { notion, toTask, TASKS_DB, cors } from '../_lib'
+import { notion, toTask, TASKS_DB, cors } from './_lib'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   cors(res)
