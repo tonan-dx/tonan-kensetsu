@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2, ChevronRight, Send } from 'lucide-react'
 import type { Estimate, EstimateStatus } from '../types'
 import TaskList from '../components/TaskList'
 
@@ -88,6 +88,11 @@ export default function EstimateDetail() {
           {nextStatus && (
             <button className="btn-primary" style={{ fontSize: 13 }} onClick={() => advanceStatus(nextStatus)} disabled={updating}>
               {nextStatus}へ進める <ChevronRight size={14} />
+            </button>
+          )}
+          {estimate.status !== 'ボツ／失注' && estimate.status !== '着工決定' && estimate.status !== '社長チェック' && (
+            <button className="btn-president" style={{ fontSize: 13 }} onClick={() => advanceStatus('社長チェック')} disabled={updating}>
+              <Send size={13} /> 社長チェックへ送る
             </button>
           )}
           {estimate.status !== 'ボツ／失注' && estimate.status !== '着工決定' && (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2, Send } from 'lucide-react'
 import type { DailyReport } from '../types'
 import PhotoUpload from '../components/PhotoUpload'
 
@@ -9,6 +9,7 @@ export default function ReportDetail() {
   const navigate = useNavigate()
   const [report, setReport] = useState<DailyReport | null>(null)
   const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState(false)
 
   useEffect(() => {
     fetch(`/api/reports/${id}`).then(r => r.json()).then(data => {
@@ -23,6 +24,19 @@ export default function ReportDetail() {
     navigate('/reports')
   }
 
+  const sendToPresident = async () => {
+    if (!report || sending) return
+    setSending(true)
+    const res = await fetch(`/api/reports/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ check_status: '確認中' }),
+    })
+    const updated = await res.json()
+    setReport(updated)
+    setSending(false)
+  }
+
   if (loading) return <div className="loading">読み込み中...</div>
   if (!report) return <div className="loading">日報が見つかりません</div>
 
@@ -35,6 +49,16 @@ export default function ReportDetail() {
           <Link to={`/reports/${id}/edit`} className="btn-icon"><Pencil size={18} /></Link>
           <button className="btn-icon danger" onClick={handleDelete}><Trash2 size={18} /></button>
         </div>
+      </div>
+
+      <div className="president-check-bar">
+        {report.check_status === '確認中' ? (
+          <span className="president-check-active">社長確認一覧に表示中</span>
+        ) : (
+          <button className="btn-president" onClick={sendToPresident} disabled={sending}>
+            <Send size={14} /> 社長チェックへ送る
+          </button>
+        )}
       </div>
 
       <div className="detail-card">

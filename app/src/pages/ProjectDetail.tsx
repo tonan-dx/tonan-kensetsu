@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2, Plus } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2, Plus, Send } from 'lucide-react'
 import type { Project, DailyReport } from '../types'
 import TaskList from '../components/TaskList'
 import PhotoUpload from '../components/PhotoUpload'
@@ -20,6 +20,7 @@ export default function ProjectDetail() {
   const [project, setProject] = useState<Project | null>(null)
   const [reports, setReports] = useState<DailyReport[]>([])
   const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -39,6 +40,19 @@ export default function ProjectDetail() {
     navigate('/projects')
   }
 
+  const sendToPresident = async () => {
+    if (!project || sending) return
+    setSending(true)
+    const res = await fetch(`/api/projects/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: '確認待ち' }),
+    })
+    const updated = await res.json()
+    setProject(updated)
+    setSending(false)
+  }
+
   if (loading) return <div className="loading">読み込み中...</div>
   if (!project) return <div className="loading">工事が見つかりません</div>
 
@@ -51,6 +65,16 @@ export default function ProjectDetail() {
           <Link to={`/projects/${id}/edit`} className="btn-icon"><Pencil size={18} /></Link>
           <button className="btn-icon danger" onClick={handleDelete}><Trash2 size={18} /></button>
         </div>
+      </div>
+
+      <div className="president-check-bar">
+        {project.status === '確認待ち' ? (
+          <span className="president-check-active">社長確認一覧に表示中</span>
+        ) : (
+          <button className="btn-president" onClick={sendToPresident} disabled={sending}>
+            <Send size={14} /> 社長確認へ送る
+          </button>
+        )}
       </div>
 
       <div className="detail-card">

@@ -17,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'PATCH') {
-    const { title, project_id, report_date, weather, workers_count, work_content, tomorrow, notes, trouble, assignee } = req.body
+    const { title, project_id, report_date, weather, workers_count, work_content, tomorrow, notes, trouble, assignee, check_status } = req.body
     const props: any = {}
     if (title != null) props['日報タイトル'] = { title: [{ text: { content: title } }] }
     if (report_date !== undefined) props['日付'] = { date: { start: report_date } }
@@ -28,6 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (notes != null) props['社長・担当者への確認事項'] = { rich_text: [{ text: { content: notes } }] }
     if (trouble != null) props['トラブル'] = { checkbox: trouble }
     if (assignee) props['担当者'] = { select: { name: assignee } }
+    if (check_status) props['確認ステータス'] = { status: { name: check_status } }
     if (project_id !== undefined) props['関連工事'] = project_id ? { relation: [{ id: project_id }] } : { relation: [] }
     const page = await notion.pages.update({ page_id: id, properties: props })
     return res.json(toReport(page))

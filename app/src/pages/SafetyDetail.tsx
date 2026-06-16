@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2, CheckCircle, Circle, Users } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2, CheckCircle, Circle, Users, Send } from 'lucide-react'
 import type { SafetyRecord } from '../types'
 import TaskList from '../components/TaskList'
 import PhotoUpload from '../components/PhotoUpload'
@@ -13,6 +13,7 @@ export default function SafetyDetail() {
   const [record, setRecord] = useState<SafetyRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState(false)
+  const [sending, setSending] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -26,6 +27,19 @@ export default function SafetyDetail() {
     if (!confirm('この安全記録を削除しますか？')) return
     await fetch(`/api/safety/${id}`, { method: 'DELETE' })
     navigate('/safety')
+  }
+
+  const sendToPresident = async () => {
+    if (!record || sending) return
+    setSending(true)
+    const res = await fetch(`/api/safety/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirmed: false }),
+    })
+    const updated = await res.json()
+    if (updated) setRecord(updated)
+    setSending(false)
   }
 
   const toggleMember = async (name: string) => {
@@ -68,6 +82,16 @@ export default function SafetyDetail() {
           <Link to={`/safety/${id}/edit`} className="btn-icon"><Pencil size={18} /></Link>
           <button className="btn-icon danger" onClick={handleDelete}><Trash2 size={18} /></button>
         </div>
+      </div>
+
+      <div className="president-check-bar">
+        {!record.confirmed ? (
+          <span className="president-check-active">社長確認一覧に表示中</span>
+        ) : (
+          <button className="btn-president" onClick={sendToPresident} disabled={sending}>
+            <Send size={14} /> 社長確認へ再送する
+          </button>
+        )}
       </div>
 
       <div className="detail-card">

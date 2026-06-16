@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FileText, Building2, ShieldAlert, ChevronRight } from 'lucide-react'
-import type { Estimate, Project, SafetyRecord } from '../types'
+import { FileText, Building2, ShieldAlert, ChevronRight, ClipboardList } from 'lucide-react'
+import type { Estimate, Project, SafetyRecord, DailyReport } from '../types'
 
 export default function PresidentApproval() {
   const [estimates, setEstimates] = useState<Estimate[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [safety, setSafety] = useState<SafetyRecord[]>([])
+  const [reports, setReports] = useState<DailyReport[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -14,15 +15,17 @@ export default function PresidentApproval() {
       fetch('/api/estimates').then(r => r.json()).catch(() => []),
       fetch('/api/projects').then(r => r.json()).catch(() => []),
       fetch('/api/safety').then(r => r.json()).catch(() => []),
-    ]).then(([e, p, s]) => {
+      fetch('/api/reports').then(r => r.json()).catch(() => []),
+    ]).then(([e, p, s, r]) => {
       setEstimates(Array.isArray(e) ? e.filter((x: Estimate) => x.status === '社長チェック') : [])
       setProjects(Array.isArray(p) ? p.filter((x: Project) => x.status === '確認待ち') : [])
       setSafety(Array.isArray(s) ? s.filter((x: SafetyRecord) => !x.confirmed) : [])
+      setReports(Array.isArray(r) ? r.filter((x: DailyReport) => x.check_status === '確認中') : [])
       setLoading(false)
     })
   }, [])
 
-  const total = estimates.length + projects.length + safety.length
+  const total = estimates.length + projects.length + safety.length + reports.length
 
   if (loading) return <div className="loading">読み込み中...</div>
 
@@ -107,6 +110,30 @@ export default function PresidentApproval() {
                     </div>
                     <div className="approval-card-right">
                       {s.project?.name && <span className="approval-card-sub">{s.project.name}</span>}
+                      <ChevronRight size={16} className="chevron" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {reports.length > 0 && (
+            <section className="approval-section">
+              <div className="approval-section-header">
+                <ClipboardList size={16} />
+                <span>日報 — 社長確認中</span>
+                <span className="approval-count">{reports.length}件</span>
+              </div>
+              <div className="card-list">
+                {reports.map(r => (
+                  <Link to={`/reports/${r.id}`} key={r.id} className="card approval-card">
+                    <div className="approval-card-main">
+                      <span className="approval-card-title">{r.title || r.report_date}</span>
+                      {r.report_date && <span className="approval-card-sub">{r.report_date}</span>}
+                    </div>
+                    <div className="approval-card-right">
+                      {r.assignee && <span className="approval-card-sub">{r.assignee}</span>}
                       <ChevronRight size={16} className="chevron" />
                     </div>
                   </Link>
