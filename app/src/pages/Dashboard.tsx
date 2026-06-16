@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Building2, ClipboardList, FileText, HardHat, ChevronRight, AlertTriangle, Bell, ShieldAlert } from 'lucide-react'
-import type { Project, DailyReport, Estimate, SafetyRecord } from '../types'
+import type { Project, DailyReport, Estimate, SafetyRecord, Notice } from '../types'
 
 const today = new Date().toISOString().slice(0, 10)
 const todayJP = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [reports, setReports] = useState<DailyReport[]>([])
   const [estimates, setEstimates] = useState<Estimate[]>([])
   const [safetyRecords, setSafetyRecords] = useState<SafetyRecord[]>([])
+  const [notices, setNotices] = useState<Notice[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -19,11 +20,13 @@ export default function Dashboard() {
       fetch('/api/reports').then(r => r.json()).catch(() => []),
       fetch('/api/estimates').then(r => r.json()).catch(() => []),
       fetch('/api/safety').then(r => r.json()).catch(() => []),
-    ]).then(([p, r, e, s]) => {
+      fetch('/api/notices').then(r => r.json()).catch(() => []),
+    ]).then(([p, r, e, s, n]) => {
       setProjects(Array.isArray(p) ? p : [])
       setReports(Array.isArray(r) ? r : [])
       setEstimates(Array.isArray(e) ? e : [])
       setSafetyRecords(Array.isArray(s) ? s : [])
+      setNotices(Array.isArray(n) ? n.slice(0, 3) : [])
       setLoading(false)
     })
   }, [])
@@ -150,6 +153,28 @@ export default function Dashboard() {
         </Link>
 
       </div>
+
+      {notices.length > 0 && (
+        <section className="home-notices">
+          <div className="home-notices-header">
+            <Bell size={16} />
+            <span>お知らせ</span>
+            <Link to="/notices" className="home-notices-more">すべて見る</Link>
+          </div>
+          <div className="card-list">
+            {notices.map(n => (
+              <Link to={`/notices/${n.id}`} key={n.id} className="card notice-card">
+                <div className="notice-card-header">
+                  {n.date && <span className="notice-date">{n.date}</span>}
+                  {n.poster && <span className="notice-poster">{n.poster}</span>}
+                </div>
+                <div className="notice-card-title">{n.title}</div>
+                {n.content && <div className="notice-card-preview">{n.content}</div>}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

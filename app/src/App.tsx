@@ -15,6 +15,9 @@ import Safety from './pages/Safety'
 import SafetyDetail from './pages/SafetyDetail'
 import SafetyForm from './pages/SafetyForm'
 import PresidentApproval from './pages/PresidentApproval'
+import Notices from './pages/Notices'
+import NoticeDetail from './pages/NoticeDetail'
+import NoticeForm from './pages/NoticeForm'
 
 export default function App() {
   return (
@@ -40,6 +43,10 @@ export default function App() {
           <Route path="/estimates/:id" element={<EstimateDetail />} />
           <Route path="/estimates/:id/edit" element={<EstimateForm />} />
           <Route path="/approval" element={<PresidentApproval />} />
+          <Route path="/notices" element={<Notices />} />
+          <Route path="/notices/new" element={<NoticeForm />} />
+          <Route path="/notices/:id" element={<NoticeDetail />} />
+          <Route path="/notices/:id/edit" element={<NoticeForm />} />
         </Route>
       </Routes>
     </BrowserRouter>

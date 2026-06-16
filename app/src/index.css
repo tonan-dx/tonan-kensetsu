@@ -1502,6 +1502,98 @@ input, select, textarea { font: inherit; }
   border-radius: 2px;
 }
 
+/* お知らせ */
+.notice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notice-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notice-date {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.notice-poster {
+  font-size: 12px;
+  color: var(--text-sub);
+  background: var(--gray-light);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.notice-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.notice-card-preview {
+  font-size: 13px;
+  color: var(--text-sub);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: pre-wrap;
+}
+
+.notice-body-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+
+.notice-body {
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  color: var(--text);
+}
+
+.notice-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 0;
+  color: var(--text-sub);
+}
+
+.notice-empty-icon {
+  opacity: 0.3;
+}
+
+.home-notices {
+  margin-top: 20px;
+}
+
+.home-notices-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-sub);
+  margin-bottom: 8px;
+}
+
+.home-notices-more {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--blue);
+  font-weight: 500;
+  text-decoration: none;
+}
+
 /* 社長チェックバー（詳細ページ共通） */
 .president-check-bar {
   margin-bottom: 12px;

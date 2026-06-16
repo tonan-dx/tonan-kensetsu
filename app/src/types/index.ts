@@ -1,3 +1,12 @@
+export interface Notice {
+  id: string
+  title: string
+  content: string | null
+  date: string | null
+  poster: string | null
+  created_at: string
+}
+
 export type ProjectStatus = '着工前' | '進行中' | '確認待ち' | '完了' | '請求' | '入金済み'
 export type ProcessStatus = '未着手' | '準備中' | '作業中' | '確認待ち' | '遅延' | '完了' | '中止'
 export type EstimateStatus = '見積書作成前' | '見積書作成中' | '社長チェック' | 'お客様へ提出' | '着工決定' | 'ボツ／失注'
