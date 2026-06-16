@@ -43,7 +43,6 @@ export function toProject(page: any) {
     assignee: getSelect(p['担当者']),
     type: getSelect(p['工事種別']),
     created_at: page.created_time,
-    notion_url: page.url,
   }
 }
 
@@ -79,7 +78,6 @@ export function toReport(page: any, projectMap: Record<string, any> = {}) {
     check_status: getStatus(p['確認ステータス']),
     assignee: getSelect(p['担当者']),
     created_at: page.created_time,
-    notion_url: page.url,
   }
 }
 
@@ -106,7 +104,6 @@ export function toEstimate(page: any) {
     notes: getText(p['メモ']) || null,
     related_project_id: p['関連工事']?.relation?.[0]?.id ?? null,
     created_at: page.created_time,
-    notion_url: page.url,
   }
 }
 
@@ -130,7 +127,6 @@ export function toSafety(page: any, projectMap: Record<string, any> = {}) {
     confirmed: p['確認済みチェック']?.checkbox ?? false,
     confirmed_by: getMultiSelect(p['確認者リスト']),
     created_at: page.created_time,
-    notion_url: page.url,
   }
 }
 

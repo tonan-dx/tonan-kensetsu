@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Building2, ClipboardList, LayoutDashboard, FileText, HardHat } from 'lucide-react'
+import { Building2, ClipboardList, LayoutDashboard, FileText, HardHat, CheckSquare } from 'lucide-react'
 
 export default function Layout() {
   return (
@@ -37,6 +37,10 @@ export default function Layout() {
         <NavLink to="/safety" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
           <HardHat size={22} />
           <span>安全</span>
+        </NavLink>
+        <NavLink to="/approval" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+          <CheckSquare size={22} />
+          <span>確認</span>
         </NavLink>
       </nav>
     </div>

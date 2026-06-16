@@ -14,6 +14,7 @@ import Timeline from './pages/Timeline'
 import Safety from './pages/Safety'
 import SafetyDetail from './pages/SafetyDetail'
 import SafetyForm from './pages/SafetyForm'
+import PresidentApproval from './pages/PresidentApproval'
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/estimates/new" element={<EstimateForm />} />
           <Route path="/estimates/:id" element={<EstimateDetail />} />
           <Route path="/estimates/:id/edit" element={<EstimateForm />} />
+          <Route path="/approval" element={<PresidentApproval />} />
         </Route>
       </Routes>
     </BrowserRouter>

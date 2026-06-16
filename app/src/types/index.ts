@@ -20,7 +20,6 @@ export interface Project {
   assignee: string | null
   type: string | null
   created_at: string
-  notion_url: string
 }
 
 export interface Estimate {
@@ -43,7 +42,6 @@ export interface Estimate {
   notes: string | null
   related_project_id: string | null
   created_at: string
-  notion_url: string
 }
 
 export interface SafetyRecord {
@@ -62,7 +60,6 @@ export interface SafetyRecord {
   confirmed: boolean
   confirmed_by: string[]
   created_at: string
-  notion_url: string
 }
 
 export interface Task {
@@ -106,5 +103,4 @@ export interface DailyReport {
   check_status: CheckStatus
   assignee: string | null
   created_at: string
-  notion_url: string
 }

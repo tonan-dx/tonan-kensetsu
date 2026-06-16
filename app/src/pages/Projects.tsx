@@ -14,11 +14,25 @@ const STATUS_COLORS: Record<string, string> = {
 
 const STATUSES: Array<ProjectStatus | 'すべて'> = ['すべて', '着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
 
+// 7月始まりの年度を返す（例: 2024年7月〜2025年6月 → 2024）
+function getFiscalYear(dateStr: string | null): number | null {
+  if (!dateStr) return null
+  const d = new Date(dateStr)
+  const y = d.getFullYear()
+  const m = d.getMonth() + 1
+  return m >= 7 ? y : y - 1
+}
+
+function fiscalYearLabel(fy: number): string {
+  return `${fy}年度`
+}
+
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'すべて'>('すべて')
+  const [filterYear, setFilterYear] = useState<number | 'すべて'>('すべて')
 
   useEffect(() => {
     fetch('/api/projects').then(r => r.json()).then(data => {
@@ -27,10 +41,16 @@ export default function Projects() {
     })
   }, [])
 
+  // 存在する年度を降順で列挙
+  const fiscalYears = Array.from(
+    new Set(projects.map(p => getFiscalYear(p.start_date ?? p.created_at)).filter((y): y is number => y !== null))
+  ).sort((a, b) => b - a)
+
   const filtered = projects.filter(p => {
     const matchSearch = p.name.includes(search) || p.client_name.includes(search) || p.location.includes(search)
     const matchStatus = filterStatus === 'すべて' || p.status === filterStatus
-    return matchSearch && matchStatus
+    const matchYear = filterYear === 'すべて' || getFiscalYear(p.start_date ?? p.created_at) === filterYear
+    return matchSearch && matchStatus && matchYear
   })
 
   return (
@@ -55,6 +75,28 @@ export default function Projects() {
         />
       </div>
 
+      {/* 年度タブ */}
+      {fiscalYears.length > 0 && (
+        <div className="filter-tabs">
+          <button
+            className={`filter-tab ${filterYear === 'すべて' ? 'active' : ''}`}
+            onClick={() => setFilterYear('すべて')}
+          >
+            すべて
+          </button>
+          {fiscalYears.map(fy => (
+            <button
+              key={fy}
+              className={`filter-tab ${filterYear === fy ? 'active' : ''}`}
+              onClick={() => setFilterYear(fy)}
+            >
+              {fiscalYearLabel(fy)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ステータスタブ */}
       <div className="filter-tabs">
         {STATUSES.map(s => (
           <button
