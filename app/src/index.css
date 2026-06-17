@@ -1594,6 +1594,56 @@ input, select, textarea { font: inherit; }
   text-decoration: none;
 }
 
+/* 確認済みボタン（社長確認一覧） */
+.approval-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.approval-card-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.approval-card-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.btn-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  padding: 7px;
+  background: #dcfce7;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-confirm:disabled {
+  opacity: 0.5;
+}
+
+/* teal カラー（お知らせ） */
+.home-tile-icon.teal { background: #e0f2fe; color: #0284c7; }
+.notif-badge.teal { background: #0284c7; }
+.home-tile-alert.teal { color: #0284c7; }
+
 /* 社長チェックバー（詳細ページ共通） */
 .president-check-bar {
   margin-bottom: 12px;

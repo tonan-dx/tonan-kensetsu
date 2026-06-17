@@ -6,6 +6,14 @@ import type { Project, DailyReport, Estimate, SafetyRecord, Notice } from '../ty
 const today = new Date().toISOString().slice(0, 10)
 const todayJP = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
 
+function isRecent(dateStr: string | null, days = 7): boolean {
+  if (!dateStr) return false
+  const d = new Date(dateStr)
+  const threshold = new Date()
+  threshold.setDate(threshold.getDate() - days)
+  return d >= threshold
+}
+
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([])
   const [reports, setReports] = useState<DailyReport[]>([])
@@ -26,19 +34,31 @@ export default function Dashboard() {
       setReports(Array.isArray(r) ? r : [])
       setEstimates(Array.isArray(e) ? e : [])
       setSafetyRecords(Array.isArray(s) ? s : [])
-      setNotices(Array.isArray(n) ? n.slice(0, 3) : [])
+      setNotices(Array.isArray(n) ? n : [])
       setLoading(false)
     })
   }, [])
 
-  const activeProjects = projects.filter(p => p.status === '進行中').length
-  const pendingProjects = projects.filter(p => p.status === '確認待ち').length
-  const troubleReports = reports.filter(r => r.trouble).length
-  const todayReports = reports.filter(r => r.report_date === today).length
+  // 見積
   const newEstimates = estimates.filter(e => e.status === '見積書作成前').length
   const activeEstimates = estimates.filter(e => e.status !== '着工決定' && e.status !== 'ボツ／失注').length
+  const presidentEstimates = estimates.filter(e => e.status === '社長チェック').length
+
+  // 工事
+  const activeProjects = projects.filter(p => p.status === '進行中').length
+  const pendingProjects = projects.filter(p => p.status === '確認待ち').length
+
+  // 日報
+  const troubleReports = reports.filter(r => r.trouble).length
+  const todayReports = reports.filter(r => r.report_date === today).length
+
+  // 安全
   const unconfirmedSafety = safetyRecords.filter(s => !s.confirmed).length
   const hazardSafety = safetyRecords.filter(s => s.near_miss || s.hazard).length
+
+  // お知らせ
+  const recentNotices = notices.filter(n => isRecent(n.date ?? n.created_at)).length
+  const todayNotices = notices.filter(n => (n.date ?? n.created_at?.slice(0, 10)) === today).length
 
   if (loading) return <div className="loading">読み込み中...</div>
 
@@ -48,6 +68,38 @@ export default function Dashboard() {
 
       <div className="home-tiles">
 
+        {/* 見積管理 */}
+        <Link to="/estimates" className="home-tile">
+          <div className="home-tile-left">
+            <div className="home-tile-icon purple">
+              <FileText size={26} />
+            </div>
+            <div>
+              <div className="home-tile-title">見積管理</div>
+              <div className="home-tile-stats">
+                <span>進行中 <strong>{activeEstimates}</strong>件</span>
+              </div>
+              {newEstimates > 0 && (
+                <div className="home-tile-alert purple">
+                  <Bell size={13} />
+                  新規依頼 {newEstimates}件
+                </div>
+              )}
+              {presidentEstimates > 0 && (
+                <div className="home-tile-alert orange">
+                  <AlertTriangle size={13} />
+                  社長チェック待ち {presidentEstimates}件
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="home-tile-right">
+            {(newEstimates + presidentEstimates) > 0 && <span className="notif-badge purple">{newEstimates + presidentEstimates}</span>}
+            <ChevronRight size={20} className="home-tile-arrow" />
+          </div>
+        </Link>
+
+        {/* 工事管理 */}
         <Link to="/projects" className="home-tile">
           <div className="home-tile-left">
             <div className="home-tile-icon blue">
@@ -73,6 +125,7 @@ export default function Dashboard() {
           </div>
         </Link>
 
+        {/* 日報 */}
         <Link to="/reports" className="home-tile">
           <div className="home-tile-left">
             <div className="home-tile-icon green">
@@ -98,30 +151,7 @@ export default function Dashboard() {
           </div>
         </Link>
 
-        <Link to="/estimates" className="home-tile">
-          <div className="home-tile-left">
-            <div className="home-tile-icon purple">
-              <FileText size={26} />
-            </div>
-            <div>
-              <div className="home-tile-title">見積管理</div>
-              <div className="home-tile-stats">
-                <span>進行中 <strong>{activeEstimates}</strong>件</span>
-              </div>
-              {newEstimates > 0 && (
-                <div className="home-tile-alert purple">
-                  <Bell size={13} />
-                  新規依頼 {newEstimates}件
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="home-tile-right">
-            {newEstimates > 0 && <span className="notif-badge purple">{newEstimates}</span>}
-            <ChevronRight size={20} className="home-tile-arrow" />
-          </div>
-        </Link>
-
+        {/* 安全管理 */}
         <Link to="/safety" className="home-tile">
           <div className="home-tile-left">
             <div className="home-tile-icon orange">
@@ -152,29 +182,38 @@ export default function Dashboard() {
           </div>
         </Link>
 
-      </div>
-
-      {notices.length > 0 && (
-        <section className="home-notices">
-          <div className="home-notices-header">
-            <Bell size={16} />
-            <span>お知らせ</span>
-            <Link to="/notices" className="home-notices-more">すべて見る</Link>
-          </div>
-          <div className="card-list">
-            {notices.map(n => (
-              <Link to={`/notices/${n.id}`} key={n.id} className="card notice-card">
-                <div className="notice-card-header">
-                  {n.date && <span className="notice-date">{n.date}</span>}
-                  {n.poster && <span className="notice-poster">{n.poster}</span>}
+        {/* お知らせ */}
+        <Link to="/notices" className="home-tile">
+          <div className="home-tile-left">
+            <div className="home-tile-icon teal">
+              <Bell size={26} />
+            </div>
+            <div>
+              <div className="home-tile-title">お知らせ</div>
+              <div className="home-tile-stats">
+                <span>全 {notices.length}件</span>
+              </div>
+              {todayNotices > 0 && (
+                <div className="home-tile-alert teal">
+                  <Bell size={13} />
+                  本日 {todayNotices}件
                 </div>
-                <div className="notice-card-title">{n.title}</div>
-                {n.content && <div className="notice-card-preview">{n.content}</div>}
-              </Link>
-            ))}
+              )}
+              {todayNotices === 0 && recentNotices > 0 && (
+                <div className="home-tile-alert teal">
+                  <Bell size={13} />
+                  新着 {recentNotices}件（7日以内）
+                </div>
+              )}
+            </div>
           </div>
-        </section>
-      )}
+          <div className="home-tile-right">
+            {recentNotices > 0 && <span className="notif-badge teal">{recentNotices}</span>}
+            <ChevronRight size={20} className="home-tile-arrow" />
+          </div>
+        </Link>
+
+      </div>
     </div>
   )
 }

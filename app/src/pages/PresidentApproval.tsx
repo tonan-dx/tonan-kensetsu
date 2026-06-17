@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FileText, Building2, ShieldAlert, ChevronRight, ClipboardList } from 'lucide-react'
+import { FileText, Building2, ShieldAlert, ChevronRight, ClipboardList, CheckCircle2 } from 'lucide-react'
 import type { Estimate, Project, SafetyRecord, DailyReport } from '../types'
+
+async function patchJson(url: string, body: object) {
+  return fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+}
 
 export default function PresidentApproval() {
   const [estimates, setEstimates] = useState<Estimate[]>([])
@@ -9,6 +13,7 @@ export default function PresidentApproval() {
   const [safety, setSafety] = useState<SafetyRecord[]>([])
   const [reports, setReports] = useState<DailyReport[]>([])
   const [loading, setLoading] = useState(true)
+  const [confirming, setConfirming] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -24,6 +29,34 @@ export default function PresidentApproval() {
       setLoading(false)
     })
   }, [])
+
+  const confirmProject = async (id: string) => {
+    setConfirming(id)
+    await patchJson(`/api/projects/${id}`, { status: '進行中' })
+    setProjects(prev => prev.filter(p => p.id !== id))
+    setConfirming(null)
+  }
+
+  const confirmEstimate = async (id: string) => {
+    setConfirming(id)
+    await patchJson(`/api/estimates/${id}`, { status: 'お客様へ提出' })
+    setEstimates(prev => prev.filter(e => e.id !== id))
+    setConfirming(null)
+  }
+
+  const confirmSafety = async (id: string) => {
+    setConfirming(id)
+    await patchJson(`/api/safety/${id}`, { confirmed: true })
+    setSafety(prev => prev.filter(s => s.id !== id))
+    setConfirming(null)
+  }
+
+  const confirmReport = async (id: string) => {
+    setConfirming(id)
+    await patchJson(`/api/reports/${id}`, { check_status: '確認済み' })
+    setReports(prev => prev.filter(r => r.id !== id))
+    setConfirming(null)
+  }
 
   const total = estimates.length + projects.length + safety.length + reports.length
 
@@ -49,19 +82,26 @@ export default function PresidentApproval() {
               </div>
               <div className="card-list">
                 {estimates.map(e => (
-                  <Link to={`/estimates/${e.id}`} key={e.id} className="card approval-card">
-                    <div className="approval-card-main">
-                      <span className="approval-card-title">{e.title}</span>
-                      {e.customer_name && <span className="approval-card-sub">{e.customer_name}</span>}
-                    </div>
-                    <div className="approval-card-right">
-                      {e.estimate_amount != null && (
-                        <span className="approval-card-amount">¥{e.estimate_amount.toLocaleString()}</span>
-                      )}
-                      {e.assignee && <span className="approval-card-sub">{e.assignee}</span>}
-                      <ChevronRight size={16} className="chevron" />
-                    </div>
-                  </Link>
+                  <div key={e.id} className="card approval-card">
+                    <Link to={`/estimates/${e.id}`} className="approval-card-link">
+                      <div className="approval-card-main">
+                        <span className="approval-card-title">{e.title}</span>
+                        {e.customer_name && <span className="approval-card-sub">{e.customer_name}</span>}
+                      </div>
+                      <div className="approval-card-info">
+                        {e.estimate_amount != null && <span className="approval-card-amount">¥{e.estimate_amount.toLocaleString()}</span>}
+                        {e.assignee && <span className="approval-card-sub">{e.assignee}</span>}
+                        <ChevronRight size={14} className="chevron" />
+                      </div>
+                    </Link>
+                    <button
+                      className="btn-confirm"
+                      onClick={() => confirmEstimate(e.id)}
+                      disabled={confirming === e.id}
+                    >
+                      <CheckCircle2 size={15} /> 確認済み
+                    </button>
+                  </div>
                 ))}
               </div>
             </section>
@@ -76,19 +116,26 @@ export default function PresidentApproval() {
               </div>
               <div className="card-list">
                 {projects.map(p => (
-                  <Link to={`/projects/${p.id}`} key={p.id} className="card approval-card">
-                    <div className="approval-card-main">
-                      <span className="approval-card-title">{p.name}</span>
-                      {p.client_name && <span className="approval-card-sub">{p.client_name}</span>}
-                    </div>
-                    <div className="approval-card-right">
-                      {p.contract_amount != null && (
-                        <span className="approval-card-amount">¥{p.contract_amount.toLocaleString()}</span>
-                      )}
-                      {p.assignee && <span className="approval-card-sub">{p.assignee}</span>}
-                      <ChevronRight size={16} className="chevron" />
-                    </div>
-                  </Link>
+                  <div key={p.id} className="card approval-card">
+                    <Link to={`/projects/${p.id}`} className="approval-card-link">
+                      <div className="approval-card-main">
+                        <span className="approval-card-title">{p.name}</span>
+                        {p.client_name && <span className="approval-card-sub">{p.client_name}</span>}
+                      </div>
+                      <div className="approval-card-info">
+                        {p.contract_amount != null && <span className="approval-card-amount">¥{p.contract_amount.toLocaleString()}</span>}
+                        {p.assignee && <span className="approval-card-sub">{p.assignee}</span>}
+                        <ChevronRight size={14} className="chevron" />
+                      </div>
+                    </Link>
+                    <button
+                      className="btn-confirm"
+                      onClick={() => confirmProject(p.id)}
+                      disabled={confirming === p.id}
+                    >
+                      <CheckCircle2 size={15} /> 確認済み
+                    </button>
+                  </div>
                 ))}
               </div>
             </section>
@@ -103,16 +150,25 @@ export default function PresidentApproval() {
               </div>
               <div className="card-list">
                 {safety.map(s => (
-                  <Link to={`/safety/${s.id}`} key={s.id} className="card approval-card">
-                    <div className="approval-card-main">
-                      <span className="approval-card-title">{s.title}</span>
-                      {s.date && <span className="approval-card-sub">{s.date}</span>}
-                    </div>
-                    <div className="approval-card-right">
-                      {s.project?.name && <span className="approval-card-sub">{s.project.name}</span>}
-                      <ChevronRight size={16} className="chevron" />
-                    </div>
-                  </Link>
+                  <div key={s.id} className="card approval-card">
+                    <Link to={`/safety/${s.id}`} className="approval-card-link">
+                      <div className="approval-card-main">
+                        <span className="approval-card-title">{s.title}</span>
+                        {s.date && <span className="approval-card-sub">{s.date}</span>}
+                      </div>
+                      <div className="approval-card-info">
+                        {s.project?.name && <span className="approval-card-sub">{s.project.name}</span>}
+                        <ChevronRight size={14} className="chevron" />
+                      </div>
+                    </Link>
+                    <button
+                      className="btn-confirm"
+                      onClick={() => confirmSafety(s.id)}
+                      disabled={confirming === s.id}
+                    >
+                      <CheckCircle2 size={15} /> 確認済み
+                    </button>
+                  </div>
                 ))}
               </div>
             </section>
@@ -127,16 +183,25 @@ export default function PresidentApproval() {
               </div>
               <div className="card-list">
                 {reports.map(r => (
-                  <Link to={`/reports/${r.id}`} key={r.id} className="card approval-card">
-                    <div className="approval-card-main">
-                      <span className="approval-card-title">{r.title || r.report_date}</span>
-                      {r.report_date && <span className="approval-card-sub">{r.report_date}</span>}
-                    </div>
-                    <div className="approval-card-right">
-                      {r.assignee && <span className="approval-card-sub">{r.assignee}</span>}
-                      <ChevronRight size={16} className="chevron" />
-                    </div>
-                  </Link>
+                  <div key={r.id} className="card approval-card">
+                    <Link to={`/reports/${r.id}`} className="approval-card-link">
+                      <div className="approval-card-main">
+                        <span className="approval-card-title">{r.title || r.report_date}</span>
+                        {r.report_date && <span className="approval-card-sub">{r.report_date}</span>}
+                      </div>
+                      <div className="approval-card-info">
+                        {r.assignee && <span className="approval-card-sub">{r.assignee}</span>}
+                        <ChevronRight size={14} className="chevron" />
+                      </div>
+                    </Link>
+                    <button
+                      className="btn-confirm"
+                      onClick={() => confirmReport(r.id)}
+                      disabled={confirming === r.id}
+                    >
+                      <CheckCircle2 size={15} /> 確認済み
+                    </button>
+                  </div>
                 ))}
               </div>
             </section>
