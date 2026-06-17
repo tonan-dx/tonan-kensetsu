@@ -45,6 +45,27 @@ export default function EstimateDetail() {
     })
     const updated = await res.json()
     setEstimate(updated)
+
+    if (newStatus === '着工決定') {
+      const projectRes = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: estimate.title,
+          client_name: estimate.customer_name ?? '',
+          location: estimate.address ?? '',
+          assignee: estimate.assignee ?? '',
+          status: '着工前',
+          contract_amount: estimate.estimate_amount ?? null,
+        }),
+      })
+      const newProject = await projectRes.json()
+      if (newProject?.id) {
+        const go = confirm(`工事管理に「${estimate.title}」を追加しました。工事ページへ移動しますか？`)
+        if (go) navigate(`/projects/${newProject.id}`)
+      }
+    }
+
     setUpdating(false)
   }
 
