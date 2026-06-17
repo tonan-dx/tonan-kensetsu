@@ -6,7 +6,7 @@ export const PROJECTS_DB   = '4e8426e7a4d1480f8efa956b3643cdb2'
 export const REPORTS_DB    = 'a5f67b8bb359497c989cf397d8eb345a'
 export const ESTIMATES_DB  = '9d7c1e35-7039-4452-acb0-c83a5d2fd799'
 export const PROCESSES_DB  = '79dcabf6-0b5a-495e-8e4a-7a2e859f4245'
-export const SAFETY_DB     = 'fb4eba9c-9688-4f21-ae6b-16c194f71dd7'
+export const SAFETY_DB     = '8c6634ec-9ec7-41a5-a796-c5b13c6ceac4'
 export const TASKS_DB      = '9b42effe-3601-46e1-978c-9ebb8fc6fc0d'
 export const NOTICES_DB    = '5e990df0-0082-4d72-9b02-e75615bf76e9'
 
