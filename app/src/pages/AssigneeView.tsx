@@ -28,8 +28,6 @@ export default function AssigneeView() {
     })
   }, [name])
 
-  const activeProjects = projects.filter(p => p.status === '進行中' || p.status === '着工前')
-
   if (loading) return <div className="page"><div className="loading">読み込み中...</div></div>
 
   return (
