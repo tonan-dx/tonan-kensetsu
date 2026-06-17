@@ -1681,9 +1681,64 @@ input, select, textarea { font: inherit; }
   font-size: 13px;
   font-weight: 500;
   color: var(--text);
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  cursor: pointer;
 }
 .assignee-chip:active { background: var(--gray-light); }
+.assignee-chip.selected {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+/* 担当者インライン一覧 */
+.assignee-inline {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-top: 12px;
+  overflow: hidden;
+}
+.assignee-inline-title {
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--blue);
+  color: #fff;
+}
+.assignee-inline-group { border-bottom: 1px solid var(--border); }
+.assignee-inline-group:last-child { border-bottom: none; }
+.assignee-inline-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.assignee-inline-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 16px;
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+  gap: 8px;
+}
+.assignee-inline-status {
+  font-size: 11px;
+  color: var(--text-sub);
+  flex-shrink: 0;
+}
+.assignee-inline-empty {
+  padding: 16px;
+  font-size: 13px;
+  color: var(--text-sub);
+  text-align: center;
+}
 
 /* ── 担当者別ページ ── */
 .assignee-section-block {

@@ -23,6 +23,7 @@ export default function Dashboard() {
   const [safetyRecords, setSafetyRecords] = useState<SafetyRecord[]>([])
   const [notices, setNotices] = useState<Notice[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedAssignee, setSelectedAssignee] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -222,10 +223,72 @@ export default function Dashboard() {
         <div className="assignee-bar-label">担当者別</div>
         <div className="assignee-bar-buttons">
           {ASSIGNEES.map(a => (
-            <Link to={`/assignee/${a}`} key={a} className="assignee-chip">{a}</Link>
+            <button
+              key={a}
+              className={`assignee-chip${selectedAssignee === a ? ' selected' : ''}`}
+              onClick={() => setSelectedAssignee(selectedAssignee === a ? null : a)}
+            >{a}</button>
           ))}
         </div>
       </div>
+
+      {/* 担当者別一覧（インライン） */}
+      {selectedAssignee && (
+        <div className="assignee-inline">
+          <div className="assignee-inline-title">{selectedAssignee} の担当</div>
+
+          {/* 工事 */}
+          {projects.filter(p => p.assignee === selectedAssignee).length > 0 && (
+            <div className="assignee-inline-group">
+              <div className="assignee-inline-label">
+                <Building2 size={13} /> 工事
+              </div>
+              {projects.filter(p => p.assignee === selectedAssignee).map(p => (
+                <Link to={`/projects/${p.id}`} key={p.id} className="assignee-inline-item">
+                  <span>{p.name}</span>
+                  <span className="assignee-inline-status">{p.status}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* 見積 */}
+          {estimates.filter(e => e.assignee === selectedAssignee && e.status !== 'ボツ／失注').length > 0 && (
+            <div className="assignee-inline-group">
+              <div className="assignee-inline-label">
+                <FileText size={13} /> 見積
+              </div>
+              {estimates.filter(e => e.assignee === selectedAssignee && e.status !== 'ボツ／失注').map(e => (
+                <Link to={`/estimates/${e.id}`} key={e.id} className="assignee-inline-item">
+                  <span>{e.title}</span>
+                  <span className="assignee-inline-status">{e.status}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* 日報（直近5件） */}
+          {reports.filter(r => r.assignee === selectedAssignee).length > 0 && (
+            <div className="assignee-inline-group">
+              <div className="assignee-inline-label">
+                <ClipboardList size={13} /> 日報
+              </div>
+              {reports.filter(r => r.assignee === selectedAssignee).slice(0, 5).map(r => (
+                <Link to={`/reports/${r.id}`} key={r.id} className="assignee-inline-item">
+                  <span>{r.report_date ?? r.title}</span>
+                  <span className="assignee-inline-status">{r.project?.name ?? ''}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {projects.filter(p => p.assignee === selectedAssignee).length === 0 &&
+           estimates.filter(e => e.assignee === selectedAssignee && e.status !== 'ボツ／失注').length === 0 &&
+           reports.filter(r => r.assignee === selectedAssignee).length === 0 && (
+            <p className="assignee-inline-empty">担当データなし</p>
+          )}
+        </div>
+      )}
 
     </div>
   )
