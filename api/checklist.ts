@@ -1,16 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { notion, toTask, TASKS_DB, cors } from '../_lib'
+import { notion, toTask, TASKS_DB, cors } from './_lib'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   cors(res)
   if (req.method === 'OPTIONS') return res.status(200).end()
 
-  const params = req.query.params
-  const id = Array.isArray(params) ? params[0] : undefined
+  const id = req.query.id as string | undefined
 
   try {
-    // /api/checklist — list & create
     if (!id) {
+      // /api/checklist — list & create
       if (req.method === 'GET') {
         const { ref_id, ref_type } = req.query
         const filters: any[] = []
@@ -23,7 +22,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         })
         return res.json(response.results.map(p => toTask(p)).filter(Boolean))
       }
-
       if (req.method === 'POST') {
         const { name, assignee, due_date, notes, ref_id, ref_type } = req.body
         const props: any = { 'タスク名': { title: [{ text: { content: name || '' } }] } }
@@ -35,11 +33,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const page = await notion.pages.create({ parent: { database_id: TASKS_DB }, properties: props })
         return res.status(201).json(toTask(page))
       }
-
       return res.status(405).end()
     }
 
-    // /api/checklist/[id] — detail
+    // /api/checklist/:id — detail
     if (req.method === 'PATCH') {
       const { name, assignee, done, due_date, notes } = req.body
       const props: any = {}
@@ -51,12 +48,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const page = await notion.pages.update({ page_id: id, properties: props })
       return res.json(toTask(page))
     }
-
     if (req.method === 'DELETE') {
       await notion.pages.update({ page_id: id, archived: true })
       return res.json({ ok: true })
     }
-
     res.status(405).end()
   } catch (e) {
     console.error(e)
