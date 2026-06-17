@@ -8,7 +8,7 @@ export const ESTIMATES_DB  = '9d7c1e35-7039-4452-acb0-c83a5d2fd799'
 export const PROCESSES_DB  = '79dcabf6-0b5a-495e-8e4a-7a2e859f4245'
 export const SAFETY_DB     = 'fb4eba9c-9688-4f21-ae6b-16c194f71dd7'
 export const TASKS_DB      = '9b42effe-3601-46e1-978c-9ebb8fc6fc0d'
-export const NOTICES_DB    = '9d4a76bd-c257-42f0-b97f-0305a1cbf98c'
+export const NOTICES_DB    = '0556d604-9d54-43a2-bea0-5a64439c7080'
 
 export function getTitle(prop: any): string {
   return prop?.title?.map((t: any) => t.plain_text).join('') ?? ''
