@@ -497,6 +497,15 @@ input, select, textarea { font: inherit; }
 
 .form-textarea { resize: vertical; }
 
+.form-error {
+  background: var(--red-light);
+  color: var(--red);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
 /* ── Photo ── */
 .photo-grid {
   display: grid;

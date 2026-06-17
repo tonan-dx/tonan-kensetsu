@@ -17,6 +17,7 @@ export default function NoticeForm() {
     poster: '' as string,
   })
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isEdit) return
@@ -36,19 +37,27 @@ export default function NoticeForm() {
     e.preventDefault()
     if (!form.title.trim()) return
     setSaving(true)
+    setError(null)
     const body = {
       title: form.title,
       content: form.content || null,
       date: form.date || null,
       poster: form.poster || null,
     }
-    if (isEdit) {
-      await fetch(`/api/notices/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      navigate(`/notices/${id}`)
-    } else {
-      const res = await fetch('/api/notices', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      const created = await res.json()
-      navigate(`/notices/${created.id}`)
+    try {
+      if (isEdit) {
+        const res = await fetch(`/api/notices/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error || `HTTP ${res.status}`) }
+        navigate(`/notices/${id}`)
+      } else {
+        const res = await fetch('/api/notices', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error || `HTTP ${res.status}`) }
+        const created = await res.json()
+        navigate(`/notices/${created.id}`)
+      }
+    } catch (e) {
+      setError(String(e))
+      setSaving(false)
     }
   }
 
@@ -82,6 +91,8 @@ export default function NoticeForm() {
             {ASSIGNEES.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
         </div>
+
+        {error && <div className="form-error">{error}</div>}
 
         <button type="submit" className="btn-primary btn-full" disabled={saving}>
           {saving ? '保存中...' : (isEdit ? '更新する' : '投稿する')}
