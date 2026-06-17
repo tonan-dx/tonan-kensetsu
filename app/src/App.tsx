@@ -18,6 +18,7 @@ import PresidentApproval from './pages/PresidentApproval'
 import Notices from './pages/Notices'
 import NoticeDetail from './pages/NoticeDetail'
 import NoticeForm from './pages/NoticeForm'
+import AssigneeView from './pages/AssigneeView'
 
 export default function App() {
   return (
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/notices/new" element={<NoticeForm />} />
           <Route path="/notices/:id" element={<NoticeDetail />} />
           <Route path="/notices/:id/edit" element={<NoticeForm />} />
+          <Route path="/assignee/:name" element={<AssigneeView />} />
         </Route>
       </Routes>
     </BrowserRouter>

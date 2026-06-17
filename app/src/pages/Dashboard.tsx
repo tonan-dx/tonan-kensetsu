@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Building2, ClipboardList, FileText, HardHat, ChevronRight, AlertTriangle, Bell, ShieldAlert } from 'lucide-react'
-import type { Project, DailyReport, Estimate, SafetyRecord, Notice } from '../types'
+import type { Project, DailyReport, Estimate, SafetyRecord, Notice, Assignee } from '../types'
+
+const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '佐野']
 
 const today = new Date().toISOString().slice(0, 10)
 const todayJP = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
@@ -214,6 +216,17 @@ export default function Dashboard() {
         </Link>
 
       </div>
+
+      {/* 担当者ボタン */}
+      <div className="assignee-bar">
+        <div className="assignee-bar-label">担当者別</div>
+        <div className="assignee-bar-buttons">
+          {ASSIGNEES.map(a => (
+            <Link to={`/assignee/${a}`} key={a} className="assignee-chip">{a}</Link>
+          ))}
+        </div>
+      </div>
+
     </div>
   )
 }
