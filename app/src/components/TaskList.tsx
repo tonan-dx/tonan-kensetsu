@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { CheckSquare, Square, Trash2, Plus, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Task } from '../types'
 
-const MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '佐野']
+const MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
 interface Props {
   refId: string
