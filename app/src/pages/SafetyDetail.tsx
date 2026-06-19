@@ -109,6 +109,13 @@ export default function SafetyDetail() {
         )}
       </div>
 
+      {fields.filter(f => f.value).map(f => (
+        <div key={f.label} className="detail-section-card">
+          <div className="detail-section-label">{f.label}</div>
+          <div className="detail-body">{f.value}</div>
+        </div>
+      ))}
+
       {id && <PhotoUpload refId={id} refType="safety" />}
       {id && <TaskList refId={id} refType="safety" />}
 
@@ -145,13 +152,6 @@ export default function SafetyDetail() {
           })}
         </div>
       </div>
-
-      {fields.filter(f => f.value).map(f => (
-        <div key={f.label} className="detail-section-card">
-          <div className="detail-section-label">{f.label}</div>
-          <div className="detail-body">{f.value}</div>
-        </div>
-      ))}
     </div>
   )
 }
