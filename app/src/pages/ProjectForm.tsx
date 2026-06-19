@@ -5,7 +5,7 @@ import type { ProjectStatus, WorkType, Assignee } from '../types'
 
 const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
 const TYPES: WorkType[] = ['新築', 'リフォーム・改修', '修繕', '解体', '土木・外構', 'その他']
-const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '佐野', '上野', '岩洞', '小笠原']
+const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
 export default function ProjectForm() {
   const { id } = useParams()

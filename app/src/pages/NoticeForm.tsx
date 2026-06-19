@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import type { Assignee } from '../types'
 
-const ASSIGNEES: Array<Assignee | '管理者'> = ['管理者', '長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '佐野', '上野', '岩洞', '小笠原']
+const ASSIGNEES: Array<Assignee | '管理者'> = ['管理者', '長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
 export default function NoticeForm() {
   const navigate = useNavigate()

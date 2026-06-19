@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import type { Estimate, EstimateStatus, Assignee } from '../types'
 
-const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '佐野', '上野', '岩洞', '小笠原']
+const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
 const STATUS_COLOR: Record<string, string> = {
   '見積書作成前': '#9ca3af',

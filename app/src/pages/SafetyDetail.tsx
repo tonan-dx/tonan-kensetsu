@@ -113,12 +113,6 @@ export default function SafetyDetail() {
             <span>{record.recorder}</span>
           </div>
         )}
-        {record.reviewer && (
-          <div className="detail-row">
-            <span className="detail-label">確認者</span>
-            <span>{record.reviewer}</span>
-          </div>
-        )}
       </div>
 
       {id && <PhotoUpload refId={id} refType="safety" />}
