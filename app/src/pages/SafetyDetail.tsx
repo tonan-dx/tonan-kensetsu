@@ -65,7 +65,7 @@ export default function SafetyDetail() {
   const confirmedCount = confirmedList.length
   const total = ALL_MEMBERS.length
 
-  const fields = [
+  const textFields = [
     { label: 'KY活動記録', value: record.ky_activity },
     { label: '安全日誌', value: record.safety_log },
     { label: 'ヒヤリハット', value: record.near_miss },
@@ -107,14 +107,13 @@ export default function SafetyDetail() {
             <Link to={`/projects/${record.project_id}`} style={{ color: 'var(--blue)' }}>{record.project.name}</Link>
           </div>
         )}
+        {textFields.filter(f => f.value).map(f => (
+          <div key={f.label} className="detail-row detail-row-block">
+            <span className="detail-label">{f.label}</span>
+            <span className="detail-text-value">{f.value}</span>
+          </div>
+        ))}
       </div>
-
-      {fields.filter(f => f.value).map(f => (
-        <div key={f.label} className="detail-section-card">
-          <div className="detail-section-label">{f.label}</div>
-          <div className="detail-body">{f.value}</div>
-        </div>
-      ))}
 
       {id && <PhotoUpload refId={id} refType="safety" />}
       {id && <TaskList refId={id} refType="safety" />}
