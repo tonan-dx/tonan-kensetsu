@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Building2, ClipboardList, FileText, HardHat, ChevronRight, AlertTriangle, Bell, ShieldAlert } from 'lucide-react'
 import type { Project, DailyReport, Estimate, SafetyRecord, Notice, Assignee } from '../types'
 
-const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
+const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '佐野', '上野', '岩洞', '小笠原']
 
 const today = new Date().toISOString().slice(0, 10)
 const todayJP = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
