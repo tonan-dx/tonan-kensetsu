@@ -174,6 +174,7 @@ export function toNotice(page: any) {
     content: getText(p['内容']) || null,
     date: p['日付']?.date?.start ?? null,
     poster: getSelect(p['投稿者']) || null,
+    confirmed_by: getMultiSelect(p['確認者リスト']),
     created_at: page.created_time,
   }
 }

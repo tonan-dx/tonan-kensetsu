@@ -4,6 +4,7 @@ export interface Notice {
   content: string | null
   date: string | null
   poster: string | null
+  confirmed_by: string[]
   created_at: string
 }
 

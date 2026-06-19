@@ -37,12 +37,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.json(toNotice(page))
     }
     if (req.method === 'PATCH') {
-      const { title, content, date, poster } = req.body
+      const { title, content, date, poster, confirmed_by } = req.body
       const props: any = {}
       if (title != null) props['タイトル'] = { title: [{ text: { content: title } }] }
       if (content != null) props['内容'] = { rich_text: [{ text: { content } }] }
       if (date !== undefined) props['日付'] = date ? { date: { start: date } } : { date: null }
       if (poster) props['投稿者'] = { select: { name: poster } }
+      if (confirmed_by != null) props['確認者リスト'] = { multi_select: confirmed_by.map((name: string) => ({ name })) }
       const page = await notion.pages.update({ page_id: id, properties: props })
       return res.json(toNotice(page))
     }

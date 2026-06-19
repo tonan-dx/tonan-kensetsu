@@ -5,7 +5,7 @@ import type { SafetyRecord } from '../types'
 import TaskList from '../components/TaskList'
 import PhotoUpload from '../components/PhotoUpload'
 
-const ALL_MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '佐野', '上野', '岩洞', '小笠原']
+const ALL_MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
 export default function SafetyDetail() {
   const { id } = useParams()
@@ -105,12 +105,6 @@ export default function SafetyDetail() {
           <div className="detail-row">
             <span className="detail-label">関連工事</span>
             <Link to={`/projects/${record.project_id}`} style={{ color: 'var(--blue)' }}>{record.project.name}</Link>
-          </div>
-        )}
-        {record.recorder && (
-          <div className="detail-row">
-            <span className="detail-label">記入者</span>
-            <span>{record.recorder}</span>
           </div>
         )}
       </div>

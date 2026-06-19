@@ -19,7 +19,6 @@ export default function SafetyForm() {
     safety_log: '',
     hazard: '',
     corrective_action: '',
-    confirmed: false,
   })
   const [saving, setSaving] = useState(false)
 
@@ -36,7 +35,6 @@ export default function SafetyForm() {
         safety_log: data.safety_log ?? '',
         hazard: data.hazard ?? '',
         corrective_action: data.corrective_action ?? '',
-        confirmed: data.confirmed ?? false,
       })
     }).catch(() => {})
   }, [id, isEdit])
@@ -53,7 +51,6 @@ export default function SafetyForm() {
       safety_log: form.safety_log || undefined,
       hazard: form.hazard || undefined,
       corrective_action: form.corrective_action || undefined,
-      confirmed: form.confirmed,
     }
     const url = isEdit ? `/api/safety/${id}` : '/api/safety'
     const method = isEdit ? 'PATCH' : 'POST'
@@ -108,10 +105,6 @@ export default function SafetyForm() {
         <div className="form-group">
           <label className="form-label">是正対応</label>
           <textarea className="form-textarea" rows={2} value={form.corrective_action} onChange={e => set('corrective_action', e.target.value)} />
-        </div>
-        <div className="form-group form-checkbox-row">
-          <input type="checkbox" id="confirmed" checked={form.confirmed} onChange={e => set('confirmed', e.target.checked)} />
-          <label htmlFor="confirmed" className="form-label" style={{ marginBottom: 0 }}>確認済み</label>
         </div>
         <button type="submit" className="btn-submit" disabled={saving}>
           {saving ? '保存中...' : '保存する'}

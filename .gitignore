@@ -22,3 +22,4 @@ app/.vite/
 .env.local
 server/.env
 .vercel
+.env*
