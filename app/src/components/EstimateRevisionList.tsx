@@ -21,7 +21,8 @@ export default function EstimateRevisionList({ estimateId }: Props) {
   useEffect(() => {
     fetch(`/api/estimate-revisions?estimate_id=${estimateId}`)
       .then(r => r.json())
-      .then(data => { setRevisions(data); setLoading(false) })
+      .then(data => { setRevisions(Array.isArray(data) ? data : []); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [estimateId])
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -45,7 +46,14 @@ export default function EstimateRevisionList({ estimateId }: Props) {
     setRevisions(prev => prev.filter(r => r.id !== id))
   }
 
-  if (loading) return null
+  if (loading) return (
+    <div className="detail-section">
+      <p className="detail-label" style={{ margin: 0 }}>
+        <FileText size={14} style={{ display: 'inline', marginRight: 4 }} />
+        見積書リビジョン
+      </p>
+    </div>
+  )
 
   return (
     <div className="detail-section">
