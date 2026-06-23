@@ -76,14 +76,18 @@ export default function EstimateRevisionList({ estimateId }: Props) {
           <div style={{ display: 'flex', gap: 8 }}>
             <div style={{ flex: '0 0 100px' }}>
               <label className="form-label" style={{ fontSize: 11 }}>版名 *</label>
-              <input
-                className="form-input"
+              <select
+                className="form-select"
                 style={{ fontSize: 13 }}
                 required
-                placeholder="第2版"
                 value={form.version_name}
                 onChange={e => setForm(f => ({ ...f, version_name: e.target.value }))}
-              />
+              >
+                <option value="">選択</option>
+                <option value="第1版">第1版</option>
+                <option value="第2版">第2版</option>
+                <option value="第3版">第3版</option>
+              </select>
             </div>
             <div style={{ flex: 1 }}>
               <label className="form-label" style={{ fontSize: 11 }}>登録日</label>
