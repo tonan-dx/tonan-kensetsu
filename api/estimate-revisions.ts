@@ -5,6 +5,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   cors(res)
   if (req.method === 'OPTIONS') return res.status(200).end()
 
+  const id = req.query.id as string | undefined
+
+  // DELETE /api/estimate-revisions/:id
+  if (req.method === 'DELETE' && id) {
+    await notion.pages.update({ page_id: id, archived: true })
+    return res.json({ ok: true })
+  }
+
+  // GET /api/estimate-revisions?estimate_id=xxx
   if (req.method === 'GET') {
     const estimate_id = req.query.estimate_id as string
     if (!estimate_id) return res.status(400).json({ error: 'estimate_id required' })
@@ -19,6 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.json(response.results.map(toEstimateRevision).filter(Boolean))
   }
 
+  // POST /api/estimate-revisions
   if (req.method === 'POST') {
     const { estimate_id, version_name, drive_url, registered_date, memo } = req.body
     if (!estimate_id || !version_name || !drive_url) {

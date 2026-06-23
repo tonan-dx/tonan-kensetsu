@@ -6,6 +6,7 @@
   "rewrites": [
     { "source": "/api/notices/:id", "destination": "/api/notices?id=:id" },
     { "source": "/api/checklist/:id", "destination": "/api/checklist?id=:id" },
+    { "source": "/api/estimate-revisions/:id", "destination": "/api/estimate-revisions?id=:id" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
