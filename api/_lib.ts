@@ -2,13 +2,14 @@ import { Client, isFullPage } from '@notionhq/client'
 
 export const notion = new Client({ auth: process.env.NOTION_TOKEN })
 
-export const PROJECTS_DB   = '4e8426e7a4d1480f8efa956b3643cdb2'
-export const REPORTS_DB    = 'a5f67b8bb359497c989cf397d8eb345a'
-export const ESTIMATES_DB  = '9d7c1e35-7039-4452-acb0-c83a5d2fd799'
-export const PROCESSES_DB  = '79dcabf6-0b5a-495e-8e4a-7a2e859f4245'
-export const SAFETY_DB     = '8c6634ec-9ec7-41a5-a796-c5b13c6ceac4'
-export const TASKS_DB      = '9b42effe-3601-46e1-978c-9ebb8fc6fc0d'
-export const NOTICES_DB    = '5e990df0-0082-4d72-9b02-e75615bf76e9'
+export const PROJECTS_DB          = '4e8426e7a4d1480f8efa956b3643cdb2'
+export const REPORTS_DB           = 'a5f67b8bb359497c989cf397d8eb345a'
+export const ESTIMATES_DB         = '9d7c1e35-7039-4452-acb0-c83a5d2fd799'
+export const PROCESSES_DB         = '79dcabf6-0b5a-495e-8e4a-7a2e859f4245'
+export const SAFETY_DB            = '8c6634ec-9ec7-41a5-a796-c5b13c6ceac4'
+export const TASKS_DB             = '9b42effe-3601-46e1-978c-9ebb8fc6fc0d'
+export const NOTICES_DB           = '5e990df0-0082-4d72-9b02-e75615bf76e9'
+export const ESTIMATE_REVISIONS_DB = 'b024cd6dd0354eb98eb6dac2ca2ae80e'
 
 export function getTitle(prop: any): string {
   return prop?.title?.map((t: any) => t.plain_text).join('') ?? ''
@@ -175,6 +176,20 @@ export function toNotice(page: any) {
     date: p['日付']?.date?.start ?? null,
     poster: getSelect(p['投稿者']) || null,
     confirmed_by: getMultiSelect(p['確認者リスト']),
+    created_at: page.created_time,
+  }
+}
+
+export function toEstimateRevision(page: any) {
+  if (!isFullPage(page)) return null
+  const p = page.properties as any
+  return {
+    id: page.id,
+    version_name: getTitle(p['版名']),
+    estimate_id: getText(p['見積ID']) || null,
+    drive_url: p['Google Drive URL']?.url ?? null,
+    registered_date: p['登録日']?.date?.start ?? null,
+    memo: getText(p['メモ']) || null,
     created_at: page.created_time,
   }
 }

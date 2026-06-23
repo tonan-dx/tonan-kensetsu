@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2, ChevronRight, Send } from 'lucide-react'
 import type { Estimate, EstimateStatus } from '../types'
 import TaskList from '../components/TaskList'
+import EstimateRevisionList from '../components/EstimateRevisionList'
 
 const STATUS_COLOR: Record<string, string> = {
   '見積書作成前': '#9ca3af',
@@ -161,6 +162,8 @@ export default function EstimateDetail() {
           <p style={{ marginTop: 4 }}>{estimate.rejection_reason}</p>
         </div>
       )}
+
+      {id && <EstimateRevisionList estimateId={id} />}
 
       {id && <TaskList refId={id} refType="estimate" />}
 

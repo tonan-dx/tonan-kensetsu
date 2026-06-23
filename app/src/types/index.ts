@@ -98,6 +98,16 @@ export interface Process {
   created_at: string
 }
 
+export interface EstimateRevision {
+  id: string
+  version_name: string
+  estimate_id: string | null
+  drive_url: string | null
+  registered_date: string | null
+  memo: string | null
+  created_at: string
+}
+
 export interface DailyReport {
   id: string
   title: string
