@@ -120,6 +120,7 @@ export default function Projects() {
                 <span className="project-row-name">{p.name}</span>
               </div>
               <div className="project-row-sub">
+                {p.client_name && <span>{p.client_name}</span>}
                 {p.assignee && <span>{p.assignee}</span>}
                 {p.contract_amount != null && <span className="project-row-amount">¥{p.contract_amount.toLocaleString()}</span>}
               </div>
