@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search, GanttChart } from 'lucide-react'
-import type { Project, ProjectStatus } from '../types'
+import type { Project, ProjectStatus, ProjectCategory } from '../types'
 
 const STATUS_COLORS: Record<string, string> = {
   '着工前': 'badge-gray',
@@ -13,6 +13,7 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 const STATUSES: Array<ProjectStatus | 'すべて'> = ['すべて', '着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
+const CATEGORIES: ProjectCategory[] = ['民間', '公共', '下請', '修繕', '積水ハウス建設']
 
 // 7月始まりの年度を返す（例: 2024年7月〜2025年6月 → 2024）
 function getFiscalYear(dateStr: string | null): number | null {
@@ -33,6 +34,7 @@ export default function Projects() {
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'すべて'>('すべて')
   const [filterYear, setFilterYear] = useState<number | 'すべて'>('すべて')
+  const [filterCategory, setFilterCategory] = useState<ProjectCategory | null>(null)
 
   useEffect(() => {
     fetch('/api/projects').then(r => r.json()).then(data => {
@@ -50,7 +52,8 @@ export default function Projects() {
     const matchSearch = p.name.includes(search) || p.client_name.includes(search) || p.location.includes(search)
     const matchStatus = filterStatus === 'すべて' || p.status === filterStatus
     const matchYear = filterYear === 'すべて' || getFiscalYear(p.start_date ?? p.created_at) === filterYear
-    return matchSearch && matchStatus && matchYear
+    const matchCategory = !filterCategory || (p.category === filterCategory && p.status !== '入金済み')
+    return matchSearch && matchStatus && matchYear && matchCategory
   })
 
   return (
@@ -73,6 +76,22 @@ export default function Projects() {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
+      </div>
+
+      {/* 工事分類タグ（クリックで未入金のみ表示） */}
+      <div className="filter-tabs">
+        {CATEGORIES.map(cat => (
+          <button
+            key={cat}
+            className={`filter-tab ${filterCategory === cat ? 'active' : ''}`}
+            onClick={() => {
+              setFilterCategory(filterCategory === cat ? null : cat)
+              if (filterCategory !== cat) setFilterStatus('すべて')
+            }}
+          >
+            {cat}
+          </button>
+        ))}
       </div>
 
       {/* 年度タブ */}
@@ -109,6 +128,12 @@ export default function Projects() {
         ))}
       </div>
 
+      {filterCategory && (
+        <p className="filter-notice">
+          「{filterCategory}」の未入金工事を表示中 — {filtered.length}件
+        </p>
+      )}
+
       {loading ? <div className="loading">読み込み中...</div> : (
         <div className="card-list">
           {filtered.length === 0 ? (
@@ -118,6 +143,7 @@ export default function Projects() {
               <div className="project-row-main">
                 <span className={`badge ${STATUS_COLORS[p.status] ?? 'badge-gray'}`}>{p.status}</span>
                 <span className="project-row-name">{p.name}</span>
+                {p.category && <span className="badge badge-category">{p.category}</span>}
               </div>
               <div className="project-row-sub">
                 {p.client_name && <span>{p.client_name}</span>}

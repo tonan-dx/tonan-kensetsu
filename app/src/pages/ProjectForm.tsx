@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import type { ProjectStatus, WorkType, Assignee } from '../types'
+import type { ProjectStatus, WorkType, ProjectCategory, Assignee } from '../types'
 
 const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
 const TYPES: WorkType[] = ['新築', 'リフォーム・改修', '修繕', '解体', '土木・外構', 'その他']
+const CATEGORIES: ProjectCategory[] = ['民間', '公共', '下請', '修繕', '積水ハウス建設']
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
 export default function ProjectForm() {
@@ -18,6 +19,7 @@ export default function ProjectForm() {
     location: '',
     status: '着工前' as ProjectStatus,
     type: '' as WorkType | '',
+    category: '' as ProjectCategory | '',
     assignee: '' as Assignee | '',
     start_date: '',
     end_date: '',
@@ -34,6 +36,7 @@ export default function ProjectForm() {
         location: data.location ?? '',
         status: data.status ?? '着工前',
         type: data.type ?? '',
+        category: data.category ?? '',
         assignee: data.assignee ?? '',
         start_date: data.start_date ?? '',
         end_date: data.end_date ?? '',
@@ -51,6 +54,7 @@ export default function ProjectForm() {
       location: form.location || undefined,
       status: form.status,
       type: form.type || undefined,
+      category: form.category || undefined,
       assignee: form.assignee || undefined,
       start_date: form.start_date || undefined,
       end_date: form.end_date || undefined,
@@ -102,6 +106,14 @@ export default function ProjectForm() {
               {TYPES.map(t => <option key={t}>{t}</option>)}
             </select>
           </div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">工事分類</label>
+          <select className="form-select" value={form.category}
+            onChange={e => setForm({ ...form, category: e.target.value as ProjectCategory })}>
+            <option value="">未選択</option>
+            {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+          </select>
         </div>
         <div className="form-group">
           <label className="form-label">担当者</label>

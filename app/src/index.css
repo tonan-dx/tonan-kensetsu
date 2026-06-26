@@ -284,6 +284,7 @@ input, select, textarea { font: inherit; }
 .badge-green { background: var(--green-light); color: var(--green); }
 .badge-red { background: var(--red-light); color: var(--red); }
 .badge-gray { background: var(--gray-light); color: var(--gray); }
+.badge-category { background: #f0f4ff; color: #4a6cf7; border: 1px solid #c7d4fd; font-size: 11px; }
 
 /* ── Search & Filters ── */
 .search-bar {
@@ -341,6 +342,13 @@ input, select, textarea { font: inherit; }
   background: var(--blue);
   color: var(--white);
   border-color: var(--blue);
+}
+
+.filter-notice {
+  font-size: 13px;
+  color: var(--blue);
+  margin: -6px 0 10px;
+  font-weight: 500;
 }
 
 /* ── Stats ── */

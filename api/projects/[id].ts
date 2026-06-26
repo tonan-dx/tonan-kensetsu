@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'PATCH') {
-    const { name, client_name, location, status, start_date, end_date, contract_amount, type, assignee } = req.body
+    const { name, client_name, location, status, start_date, end_date, contract_amount, type, assignee, category } = req.body
     const props: any = {}
     if (name) props['工事名'] = { title: [{ text: { content: name } }] }
     if (client_name != null) props['お客様名'] = { rich_text: [{ text: { content: client_name } }] }
@@ -23,6 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (contract_amount != null) props['契約金額'] = { number: contract_amount }
     if (type) props['工事種別'] = { select: { name: type } }
     if (assignee) props['担当者'] = { select: { name: assignee } }
+    if (category !== undefined) props['工事分類'] = category ? { select: { name: category } } : { select: null }
     const page = await notion.pages.update({ page_id: id, properties: props })
     return res.json(toProject(page))
   }

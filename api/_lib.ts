@@ -44,6 +44,7 @@ export function toProject(page: any) {
     contract_amount: p['契約金額']?.number ?? null,
     assignee: getSelect(p['担当者']),
     type: getSelect(p['工事種別']),
+    category: getSelect(p['工事分類']) || null,
     created_at: page.created_time,
   }
 }
