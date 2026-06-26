@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CheckSquare, Square, Trash2, Plus, ChevronDown, ChevronUp } from 'lucide-react'
+import { CheckSquare, Square, Trash2, Plus, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
 import type { Task } from '../types'
 
 const MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
@@ -31,6 +31,15 @@ export default function TaskList({ refId, refType }: Props) {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ done: !task.done }),
+    }).then(r => r.json()).catch(() => null)
+    if (updated) setTasks(prev => prev.map(t => t.id === task.id ? updated : t))
+  }
+
+  const updateTask = async (task: Task, fields: Partial<Pick<Task, 'name' | 'assignee' | 'due_date'>>) => {
+    const updated = await fetch(`/api/checklist/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fields),
     }).then(r => r.json()).catch(() => null)
     if (updated) setTasks(prev => prev.map(t => t.id === task.id ? updated : t))
   }
@@ -85,7 +94,6 @@ export default function TaskList({ refId, refType }: Props) {
             placeholder="タスク名を入力..."
             value={newName}
             onChange={e => setNewName(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && addTask()}
             autoFocus
           />
           <div className="task-add-row">
@@ -125,7 +133,7 @@ export default function TaskList({ refId, refType }: Props) {
 
           <div className="task-items">
             {pending.map(task => (
-              <TaskItem key={task.id} task={task} onToggle={toggleDone} onDelete={deleteTask} />
+              <TaskItem key={task.id} task={task} onToggle={toggleDone} onDelete={deleteTask} onUpdate={updateTask} />
             ))}
           </div>
 
@@ -141,7 +149,7 @@ export default function TaskList({ refId, refType }: Props) {
               {showDone && (
                 <div className="task-items done">
                   {done.map(task => (
-                    <TaskItem key={task.id} task={task} onToggle={toggleDone} onDelete={deleteTask} />
+                    <TaskItem key={task.id} task={task} onToggle={toggleDone} onDelete={deleteTask} onUpdate={updateTask} />
                   ))}
                 </div>
               )}
@@ -153,19 +161,78 @@ export default function TaskList({ refId, refType }: Props) {
   )
 }
 
-function TaskItem({ task, onToggle, onDelete }: {
+function TaskItem({ task, onToggle, onDelete, onUpdate }: {
   task: Task
   onToggle: (t: Task) => void
   onDelete: (t: Task) => void
+  onUpdate: (t: Task, fields: Partial<Pick<Task, 'name' | 'assignee' | 'due_date'>>) => Promise<void>
 }) {
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState(task.name)
+  const [editAssignee, setEditAssignee] = useState(task.assignee ?? '')
+  const [editDue, setEditDue] = useState(task.due_date ?? '')
+  const [saving, setSaving] = useState(false)
+
   const isOverdue = !task.done && task.due_date && task.due_date < new Date().toISOString().slice(0, 10)
+
+  const handleSave = async () => {
+    if (!editName.trim()) return
+    setSaving(true)
+    await onUpdate(task, {
+      name: editName.trim(),
+      assignee: editAssignee || null,
+      due_date: editDue || null,
+    } as any)
+    setSaving(false)
+    setEditing(false)
+  }
+
+  const handleCancel = () => {
+    setEditName(task.name)
+    setEditAssignee(task.assignee ?? '')
+    setEditDue(task.due_date ?? '')
+    setEditing(false)
+  }
+
+  if (editing) {
+    return (
+      <div className="task-item editing">
+        <input
+          className="task-input"
+          value={editName}
+          onChange={e => setEditName(e.target.value)}
+          autoFocus
+        />
+        <div className="task-add-row">
+          <select
+            className="task-select"
+            value={editAssignee}
+            onChange={e => setEditAssignee(e.target.value)}
+          >
+            <option value="">担当者</option>
+            {MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <input
+            type="date"
+            className="task-date"
+            value={editDue}
+            onChange={e => setEditDue(e.target.value)}
+          />
+          <button className="task-save-btn" onClick={handleSave} disabled={!editName.trim() || saving}>
+            {saving ? '...' : '保存'}
+          </button>
+          <button className="task-cancel-btn" onClick={handleCancel}>×</button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={`task-item${task.done ? ' done' : ''}`}>
       <button className="task-check" onClick={() => onToggle(task)}>
         {task.done ? <CheckSquare size={18} color="#16a34a" /> : <Square size={18} color="#94a3b8" />}
       </button>
-      <div className="task-info">
+      <div className="task-info" onClick={() => setEditing(true)} style={{ cursor: 'pointer', flex: 1 }}>
         <span className="task-name">{task.name}</span>
         <div className="task-meta">
           {task.assignee && <span className="task-assignee">{task.assignee}</span>}
@@ -176,6 +243,9 @@ function TaskItem({ task, onToggle, onDelete }: {
           )}
         </div>
       </div>
+      <button className="task-edit" onClick={() => setEditing(true)} title="編集">
+        <Pencil size={13} />
+      </button>
       <button className="task-delete" onClick={() => onDelete(task)}>
         <Trash2 size={14} />
       </button>

@@ -94,7 +94,8 @@ export default function ProjectForm() {
         <h1 className="page-title">{isEdit ? '工事を編集' : '新規工事'}</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="form">
+      <form onSubmit={handleSubmit} className="form"
+        onKeyDown={e => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}>
 
         {/* 担当者 */}
         <div className="form-group">

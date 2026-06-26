@@ -1419,6 +1419,21 @@ input, select, textarea { font: inherit; }
 }
 .task-delete:hover { color: var(--red); }
 
+.task-edit {
+  color: #cbd5e1;
+  flex-shrink: 0;
+  padding: 4px;
+  margin-right: 2px;
+}
+.task-edit:hover { color: var(--blue); }
+
+.task-item.editing {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 10px 12px;
+}
+
 .task-done-section { margin-top: 8px; }
 
 .task-done-toggle {

@@ -84,7 +84,8 @@ export default function EstimateForm() {
         <h1 className="page-title">{isEdit ? '見積編集' : '見積新規登録'}</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="form">
+      <form onSubmit={handleSubmit} className="form"
+        onKeyDown={e => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}>
         <div className="form-group">
           <label className="form-label">案件名 *</label>
           <input className="form-input" required value={form.title} onChange={e => set('title', e.target.value)} placeholder="例：田中様邸 外壁塗装工事" />
