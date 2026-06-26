@@ -45,6 +45,7 @@ export function toProject(page: any) {
     assignee: getSelect(p['担当者']),
     type: getSelect(p['工事種別']),
     category: getSelect(p['工事分類']) || null,
+    contract_date: p['契約日']?.date?.start ?? null,
     created_at: page.created_time,
   }
 }

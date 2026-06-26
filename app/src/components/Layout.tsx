@@ -22,6 +22,10 @@ export default function Layout() {
           <LayoutDashboard size={22} />
           <span>ホーム</span>
         </NavLink>
+        <NavLink to="/estimates" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+          <FileText size={22} />
+          <span>見積</span>
+        </NavLink>
         <NavLink to="/projects" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
           <Building2 size={22} />
           <span>工事</span>
@@ -29,10 +33,6 @@ export default function Layout() {
         <NavLink to="/reports" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
           <ClipboardList size={22} />
           <span>日報</span>
-        </NavLink>
-        <NavLink to="/estimates" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
-          <FileText size={22} />
-          <span>見積</span>
         </NavLink>
         <NavLink to="/safety" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
           <HardHat size={22} />

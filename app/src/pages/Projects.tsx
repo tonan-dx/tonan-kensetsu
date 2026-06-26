@@ -13,7 +13,7 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 const STATUSES: Array<ProjectStatus | 'すべて'> = ['すべて', '着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
-const CATEGORIES: ProjectCategory[] = ['民間', '公共', '下請', '修繕', '積水ハウス建設']
+const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
 
 // 7月始まりの年度を返す（例: 2024年7月〜2025年6月 → 2024）
 function getFiscalYear(dateStr: string | null): number | null {
@@ -149,6 +149,7 @@ export default function Projects() {
               </div>
               <div className="project-row-sub">
                 {p.client_name && <span>{p.client_name}</span>}
+                {p.contract_date && <span className="project-row-date">契約 {p.contract_date.replace(/-/g, '/').slice(0, 10)}</span>}
                 {p.assignee && <span>{p.assignee}</span>}
                 {p.contract_amount != null && <span className="project-row-amount">¥{p.contract_amount.toLocaleString()}</span>}
               </div>

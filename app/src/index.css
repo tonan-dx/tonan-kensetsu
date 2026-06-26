@@ -899,6 +899,11 @@ input, select, textarea { font: inherit; }
   color: var(--blue);
 }
 
+.project-row-date {
+  color: var(--text-sub);
+  font-size: 12px;
+}
+
 /* ── Gantt / Timeline ── */
 .gantt-nav {
   display: flex;

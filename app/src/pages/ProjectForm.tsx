@@ -5,7 +5,7 @@ import type { ProjectStatus, WorkType, ProjectCategory, Assignee } from '../type
 
 const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
 const TYPES: WorkType[] = ['新築', 'リフォーム・改修', '修繕', '解体', '土木・外構', 'その他']
-const CATEGORIES: ProjectCategory[] = ['民間', '公共', '下請', '修繕', '積水ハウス建設']
+const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
 export default function ProjectForm() {
@@ -20,6 +20,7 @@ export default function ProjectForm() {
     status: '着工前' as ProjectStatus,
     type: '' as WorkType | '',
     category: '' as ProjectCategory | '',
+    contract_date: '',
     assignee: '' as Assignee | '',
     start_date: '',
     end_date: '',
@@ -37,6 +38,7 @@ export default function ProjectForm() {
         status: data.status ?? '着工前',
         type: data.type ?? '',
         category: data.category ?? '',
+        contract_date: data.contract_date ?? '',
         assignee: data.assignee ?? '',
         start_date: data.start_date ?? '',
         end_date: data.end_date ?? '',
@@ -55,6 +57,7 @@ export default function ProjectForm() {
       status: form.status,
       type: form.type || undefined,
       category: form.category || undefined,
+      contract_date: form.contract_date || undefined,
       assignee: form.assignee || undefined,
       start_date: form.start_date || undefined,
       end_date: form.end_date || undefined,
@@ -122,6 +125,11 @@ export default function ProjectForm() {
             <option value="">未選択</option>
             {ASSIGNEES.map(a => <option key={a}>{a}</option>)}
           </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">契約日</label>
+          <input type="date" className="form-input" value={form.contract_date}
+            onChange={e => setForm({ ...form, contract_date: e.target.value })} />
         </div>
         <div className="form-row">
           <div className="form-group">
