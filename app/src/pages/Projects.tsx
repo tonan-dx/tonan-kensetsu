@@ -115,18 +115,20 @@ export default function Projects() {
         </div>
       )}
 
-      {/* ステータスタブ */}
-      <div className="filter-tabs">
-        {STATUSES.map(s => (
-          <button
-            key={s}
-            className={`filter-tab ${filterStatus === s ? 'active' : ''}`}
-            onClick={() => setFilterStatus(s)}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
+      {/* ステータスタブ（分類タグ選択中は無効化） */}
+      {!filterCategory && (
+        <div className="filter-tabs">
+          {STATUSES.map(s => (
+            <button
+              key={s}
+              className={`filter-tab ${filterStatus === s ? 'active' : ''}`}
+              onClick={() => setFilterStatus(s)}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
 
       {filterCategory && (
         <p className="filter-notice">
