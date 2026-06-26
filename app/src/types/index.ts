@@ -32,6 +32,11 @@ export interface Project {
   type: string | null
   category: string | null
   contract_date: string | null
+  contact: string | null
+  change_amount: number | null
+  billing_date: string | null
+  payment_date: string | null
+  notes: string | null
   created_at: string
 }
 
@@ -52,6 +57,8 @@ export interface Estimate {
   decision_date: string | null
   rejection_reason: string | null
   request_content: string | null
+  contact: string | null
+  category: string | null
   notes: string | null
   related_project_id: string | null
   created_at: string

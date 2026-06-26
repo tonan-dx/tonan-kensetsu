@@ -29,6 +29,9 @@ export function getPerson(prop: any): string {
 export function getStatus(prop: any): string {
   return prop?.status?.name ?? ''
 }
+export function getPhone(prop: any): string | null {
+  return prop?.phone_number ?? null
+}
 
 export function toProject(page: any) {
   if (!isFullPage(page)) return null
@@ -46,6 +49,11 @@ export function toProject(page: any) {
     type: getSelect(p['工事種別']),
     category: getSelect(p['工事分類']) || null,
     contract_date: p['契約日']?.date?.start ?? null,
+    contact: getPhone(p['連絡先']),
+    change_amount: p['増減金額']?.number ?? null,
+    billing_date: p['請求日']?.date?.start ?? null,
+    payment_date: p['入金日']?.date?.start ?? null,
+    notes: getText(p['備考']) || null,
     created_at: page.created_time,
   }
 }
@@ -105,6 +113,8 @@ export function toEstimate(page: any) {
     decision_date: p['着工決定日']?.date?.start ?? null,
     rejection_reason: getText(p['ボツ理由']) || null,
     request_content: getText(p['依頼内容']) || null,
+    contact: getPhone(p['連絡先']),
+    category: getSelect(p['工事分類']) || null,
     notes: getText(p['メモ']) || null,
     related_project_id: p['関連工事']?.relation?.[0]?.id ?? null,
     created_at: page.created_time,

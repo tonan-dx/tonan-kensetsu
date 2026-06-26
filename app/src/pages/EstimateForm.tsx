@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import type { Assignee, EstimateStatus } from '../types'
+import type { Assignee, EstimateStatus, ProjectCategory } from '../types'
 
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 const STATUSES: EstimateStatus[] = ['見積書作成前', '見積書作成中', '社長チェック', 'お客様へ提出', '着工決定', 'ボツ／失注']
+const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
 
 export default function EstimateForm() {
   const navigate = useNavigate()
@@ -23,6 +24,8 @@ export default function EstimateForm() {
     status: '見積書作成前' as EstimateStatus,
     request_content: '',
     notes: '',
+    contact: '',
+    category: '' as ProjectCategory | '',
   })
   const [saving, setSaving] = useState(false)
 
@@ -42,6 +45,8 @@ export default function EstimateForm() {
         status: data.status ?? '見積書作成前',
         request_content: data.request_content ?? '',
         notes: data.notes ?? '',
+        contact: data.contact ?? '',
+        category: data.category ?? '',
       }))
   }, [id, isEdit])
 
@@ -62,6 +67,8 @@ export default function EstimateForm() {
       status: form.status,
       request_content: form.request_content || null,
       notes: form.notes || null,
+      contact: form.contact || null,
+      category: form.category || null,
     }
     const url = isEdit ? `/api/estimates/${id}` : '/api/estimates'
     const method = isEdit ? 'PATCH' : 'POST'
@@ -91,6 +98,19 @@ export default function EstimateForm() {
         <div className="form-group">
           <label className="form-label">現場住所</label>
           <input className="form-input" value={form.address} onChange={e => set('address', e.target.value)} placeholder="例：盛岡市○○1-1-1" />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">連絡先</label>
+          <input type="tel" className="form-input" value={form.contact} onChange={e => set('contact', e.target.value)} placeholder="例：019-XXX-XXXX" />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">工事分類</label>
+          <select className="form-select" value={form.category} onChange={e => set('category', e.target.value)}>
+            <option value="">未選択</option>
+            {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+          </select>
         </div>
 
         <div className="form-row">

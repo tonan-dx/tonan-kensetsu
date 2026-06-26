@@ -904,6 +904,16 @@ input, select, textarea { font: inherit; }
   font-size: 12px;
 }
 
+.form-calculated {
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
 /* ── Gantt / Timeline ── */
 .gantt-nav {
   display: flex;

@@ -22,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'POST') {
-    const { title, customer_name, address, assignee, estimate_deadline, estimate_amount, cost_estimate, gross_profit, status, request_content, notes } = req.body
+    const { title, customer_name, address, assignee, estimate_deadline, estimate_amount, cost_estimate, gross_profit, status, request_content, notes, contact, category } = req.body
     const props: any = {
       '案件名': { title: [{ text: { content: title ?? '' } }] },
     }
@@ -36,6 +36,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (status) props['ステータス'] = { status: { name: status } }
     if (request_content) props['依頼内容'] = { rich_text: [{ text: { content: request_content } }] }
     if (notes) props['メモ'] = { rich_text: [{ text: { content: notes } }] }
+    if (contact) props['連絡先'] = { phone_number: contact }
+    if (category) props['工事分類'] = { select: { name: category } }
     const page = await notion.pages.create({ parent: { database_id: ESTIMATES_DB }, properties: props })
     return res.json(toEstimate(page))
   }

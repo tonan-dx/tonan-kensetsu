@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'POST') {
-    const { name, client_name, location, status, start_date, end_date, contract_amount, type, assignee, category, contract_date } = req.body
+    const { name, client_name, location, status, start_date, end_date, contract_amount, type, assignee, category, contract_date, contact, change_amount, billing_date, payment_date, notes } = req.body
     const props: any = {
       '工事名': { title: [{ text: { content: name ?? '' } }] },
     }
@@ -27,6 +27,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (assignee) props['担当者'] = { select: { name: assignee } }
     if (category) props['工事分類'] = { select: { name: category } }
     if (contract_date) props['契約日'] = { date: { start: contract_date } }
+    if (contact) props['連絡先'] = { phone_number: contact }
+    if (change_amount != null) props['増減金額'] = { number: change_amount }
+    if (billing_date) props['請求日'] = { date: { start: billing_date } }
+    if (payment_date) props['入金日'] = { date: { start: payment_date } }
+    if (notes) props['備考'] = { rich_text: [{ text: { content: notes } }] }
     const page = await notion.pages.create({ parent: { database_id: PROJECTS_DB }, properties: props })
     return res.json(toProject(page))
   }
