@@ -23,3 +23,6 @@ app/.vite/
 server/.env
 .vercel
 .env*
+
+# Playwright一時ファイル
+.playwright-mcp/
