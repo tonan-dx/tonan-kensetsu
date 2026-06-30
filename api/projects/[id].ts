@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (client_name != null) props['お客様名'] = { rich_text: [{ text: { content: client_name } }] }
     if (location != null) props['現場住所'] = { rich_text: [{ text: { content: location } }] }
     if (status) props['工事ステータス'] = { status: { name: status } }
-    if (start_date !== undefined) props['工期'] = { date: { start: start_date, end: end_date ?? null } }
+    if (start_date !== undefined) props['工期'] = start_date ? { date: { start: start_date, end: end_date || null } } : { date: null }
     if (contract_amount != null) props['契約金額'] = { number: contract_amount }
     if (type) props['工事種別'] = { select: { name: type } }
     if (assignee) props['担当者'] = { select: { name: assignee } }
