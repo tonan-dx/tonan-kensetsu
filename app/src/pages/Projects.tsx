@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search, GanttChart } from 'lucide-react'
 import type { Project, ProjectStatus, ProjectCategory } from '../types'
@@ -48,10 +48,19 @@ export default function Projects() {
   const [filterDivision, setFilterDivision] = useState<string | null>(null)
   const { loc } = useOfficeFilter()
 
+  const yearInit = useRef(false)
   const load = () => {
     fetch('/api/projects').then(r => r.json()).then(data => {
-      setProjects(Array.isArray(data) ? data : [])
+      const arr: Project[] = Array.isArray(data) ? data : []
+      setProjects(arr)
       setLoading(false)
+      // 初回のみ：現在の年度に工事が無ければ、直近の年度を初期表示にする
+      if (!yearInit.current) {
+        yearInit.current = true
+        const cfy = currentFiscalYear()
+        const fys = arr.map(p => getFiscalYear(p.start_date ?? p.created_at)).filter((y): y is number => y !== null)
+        if (!fys.includes(cfy) && fys.length > 0) setFilterYear(Math.max(...fys))
+      }
     })
   }
   useEffect(() => { load() }, [])
