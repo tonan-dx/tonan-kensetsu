@@ -48,6 +48,7 @@ export function toProject(page: any) {
     assignee: getSelect(p['担当者']),
     type: getSelect(p['工事種別']),
     category: getSelect(p['工事分類']) || null,
+    division: getSelect(p['工事区分']) || null,
     contract_date: p['契約日']?.date?.start ?? null,
     contact: getPhone(p['連絡先']),
     change_amount: p['増減金額']?.number ?? null,

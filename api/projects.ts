@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'POST') {
-    const { name, client_name, location, status, start_date, end_date, contract_amount, type, assignee, category, contract_date, contact, change_amount, billing_date, payment_date, notes, office } = req.body
+    const { name, client_name, location, status, start_date, end_date, contract_amount, type, assignee, category, division, contract_date, contact, change_amount, billing_date, payment_date, notes, office } = req.body
     const props: any = {
       '工事名': { title: [{ text: { content: name ?? '' } }] },
     }
@@ -26,6 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (type) props['工事種別'] = { select: { name: type } }
     if (assignee) props['担当者'] = { select: { name: assignee } }
     if (category) props['工事分類'] = { select: { name: category } }
+    if (division) props['工事区分'] = { select: { name: division } }
     if (contract_date) props['契約日'] = { date: { start: contract_date } }
     if (contact) props['連絡先'] = { phone_number: contact }
     if (change_amount != null) props['増減金額'] = { number: change_amount }

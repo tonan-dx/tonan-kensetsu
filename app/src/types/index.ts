@@ -47,6 +47,7 @@ export interface Project {
   assignee: string | null
   type: string | null
   category: string | null
+  division: string | null
   contract_date: string | null
   contact: string | null
   change_amount: number | null

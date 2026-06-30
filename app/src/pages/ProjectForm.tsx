@@ -6,6 +6,7 @@ import { useOfficeFilter } from '../lib/office'
 
 const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
 const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
+const DIVISIONS = ['民間', '公共', '下請', '積水ハウス', '修繕']
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
 export default function ProjectForm() {
@@ -19,6 +20,7 @@ export default function ProjectForm() {
     office: loc === 'all' ? '' : loc,
     contract_date: '',
     category: '' as ProjectCategory | '',
+    division: '',
     status: '着工前' as ProjectStatus,
     start_date: '',
     end_date: '',
@@ -44,6 +46,7 @@ export default function ProjectForm() {
         office: d.office ?? '',
         contract_date: d.contract_date ?? '',
         category: d.category ?? '',
+        division: d.division ?? '',
         status: d.status ?? '着工前',
         start_date: d.start_date ?? '',
         end_date: d.end_date ?? '',
@@ -74,6 +77,7 @@ export default function ProjectForm() {
       location: form.location || undefined,
       status: form.status,
       category: form.category || undefined,
+      division: form.division || undefined,
       assignee: form.assignee || undefined,
       contract_date: form.contract_date || undefined,
       start_date: form.start_date || undefined,
@@ -134,6 +138,15 @@ export default function ProjectForm() {
           <select className="form-select" value={form.category} onChange={e => set('category', e.target.value as ProjectCategory)}>
             <option value="">未選択</option>
             {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+          </select>
+        </div>
+
+        {/* 工事区分（民間/公共/下請/積水ハウス/修繕） */}
+        <div className="form-group">
+          <label className="form-label">工事区分</label>
+          <select className="form-select" value={form.division} onChange={e => set('division', e.target.value)}>
+            <option value="">未選択</option>
+            {DIVISIONS.map(d => <option key={d}>{d}</option>)}
           </select>
         </div>
 
