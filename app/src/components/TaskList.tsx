@@ -5,6 +5,12 @@ import { useOfficeFilter } from '../lib/office'
 
 const MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
+// ローカル時間の今日（YYYY-MM-DD）
+function todayLocal(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 interface Props {
   refId: string
   refType: 'project' | 'estimate' | 'safety'
@@ -17,7 +23,7 @@ export default function TaskList({ refId, refType }: Props) {
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const [newAssignee, setNewAssignee] = useState('')
-  const [newDue, setNewDue] = useState('')
+  const [newDue, setNewDue] = useState(todayLocal())
   const [saving, setSaving] = useState(false)
   const [showDone, setShowDone] = useState(false)
 
@@ -69,7 +75,7 @@ export default function TaskList({ refId, refType }: Props) {
     if (created) setTasks(prev => [...prev, created])
     setNewName('')
     setNewAssignee('')
-    setNewDue('')
+    setNewDue(todayLocal())
     setAdding(false)
     setSaving(false)
   }
