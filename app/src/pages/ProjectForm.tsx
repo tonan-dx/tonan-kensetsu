@@ -70,12 +70,14 @@ export default function ProjectForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
+    // 「完了」を選んだら自動的に「請求待ち」へ進める（完了＝請求待ちにたまる運用）
+    const statusToSave = form.status === '完了' ? '請求待ち' : form.status
     const payload: any = {
       name: form.name,
       office: form.office || null,
       client_name: form.client_name || undefined,
       location: form.location || undefined,
-      status: form.status,
+      status: statusToSave,
       category: form.category || undefined,
       division: form.division || undefined,
       assignee: form.assignee || undefined,
