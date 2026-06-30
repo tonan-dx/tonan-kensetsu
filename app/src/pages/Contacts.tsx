@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Send, Check, CheckCircle2, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Send, Check, CheckCircle2, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Contact } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 
@@ -12,6 +12,7 @@ export default function Contacts() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
   const [filterTo, setFilterTo] = useState('')
+  const [showDone, setShowDone] = useState(false)
 
   useEffect(() => {
     fetch('/api/contacts').then(r => r.json()).then(data => {
@@ -39,6 +40,41 @@ export default function Contacts() {
     .filter(c => matchesOffice(c.office, loc))
     .filter(c => !filterTo || c.recipients.includes(filterTo))
 
+  const active = visible.filter(c => !c.confirmed)
+  const done = visible.filter(c => c.confirmed)
+
+  const renderCard = (c: Contact) => (
+    <div key={c.id} className={`card contact-card${c.confirmed ? ' confirmed' : ''}`}>
+      <div className="contact-card-head">
+        <div className="contact-recipients">
+          {c.recipients.length === 0 ? <span className="contact-to-empty">宛先なし</span>
+            : c.recipients.map(r => <span key={r} className="contact-to-chip">{r}</span>)}
+        </div>
+        {c.office && <span className="contact-loc">{c.office}</span>}
+      </div>
+      <div className="contact-card-title">{c.subject}</div>
+      {c.content && <div className="contact-card-body">{c.content}</div>}
+      <div className="contact-card-foot">
+        <span className="contact-meta">
+          {c.poster && <span>{c.poster}</span>}
+          {c.date && <span>{c.date}</span>}
+        </span>
+        <div className="contact-actions">
+          <button
+            className={`contact-confirm${c.confirmed ? ' done' : ''}`}
+            onClick={() => toggleConfirm(c)}
+            title={c.confirmed ? '確認済み（戻す）' : '確認済みにする'}
+          >
+            {c.confirmed ? <CheckCircle2 size={16} /> : <Check size={16} />}
+            {c.confirmed ? '確認済み' : '確認'}
+          </button>
+          <button className="contact-icon-btn" onClick={() => navigate(`/contacts/${c.id}/edit`)} title="編集"><Pencil size={14} /></button>
+          <button className="contact-icon-btn danger" onClick={() => remove(c)} title="削除"><Trash2 size={14} /></button>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <div className="page">
       <div className="page-header">
@@ -57,42 +93,28 @@ export default function Contacts() {
 
       {loading ? <div className="loading">読み込み中...</div> : (
         <div className="card-list">
-          {visible.length === 0 ? (
+          {active.length === 0 && done.length === 0 && (
             <div className="notice-empty">
               <Send size={32} className="notice-empty-icon" />
               <p>連絡はありません</p>
             </div>
-          ) : visible.map(c => (
-            <div key={c.id} className={`card contact-card${c.confirmed ? ' confirmed' : ''}`}>
-              <div className="contact-card-head">
-                <div className="contact-recipients">
-                  {c.recipients.length === 0 ? <span className="contact-to-empty">宛先なし</span>
-                    : c.recipients.map(r => <span key={r} className="contact-to-chip">{r}</span>)}
-                </div>
-                {c.office && <span className="contact-loc">{c.office}</span>}
-              </div>
-              <div className="contact-card-title">{c.subject}</div>
-              {c.content && <div className="contact-card-body">{c.content}</div>}
-              <div className="contact-card-foot">
-                <span className="contact-meta">
-                  {c.poster && <span>{c.poster}</span>}
-                  {c.date && <span>{c.date}</span>}
-                </span>
-                <div className="contact-actions">
-                  <button
-                    className={`contact-confirm${c.confirmed ? ' done' : ''}`}
-                    onClick={() => toggleConfirm(c)}
-                    title={c.confirmed ? '確認済み' : '確認済みにする'}
-                  >
-                    {c.confirmed ? <CheckCircle2 size={16} /> : <Check size={16} />}
-                    {c.confirmed ? '確認済み' : '確認'}
-                  </button>
-                  <button className="contact-icon-btn" onClick={() => navigate(`/contacts/${c.id}/edit`)} title="編集"><Pencil size={14} /></button>
-                  <button className="contact-icon-btn danger" onClick={() => remove(c)} title="削除"><Trash2 size={14} /></button>
-                </div>
-              </div>
+          )}
+
+          {active.length === 0 && done.length > 0 && (
+            <p className="empty-text">未確認の連絡はありません</p>
+          )}
+
+          {active.map(renderCard)}
+
+          {done.length > 0 && (
+            <div className="task-done-section">
+              <button className="task-done-toggle" onClick={() => setShowDone(s => !s)}>
+                {showDone ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                確認済み {done.length}件
+              </button>
+              {showDone && done.map(renderCard)}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>

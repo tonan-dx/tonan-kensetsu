@@ -321,7 +321,7 @@ function AssigneeInline({ name, projects, estimates, reports, tasks, contacts }:
   const myEstimates = estimates.filter(e => e.assignee === name && e.status !== 'ボツ／失注')
   const myReports = reports.filter(r => r.assignee === name)
   const myTasks = tasks.filter(t => t.assignee === name && !t.done)
-  const myContacts = contacts.filter(c => c.recipients.includes(name))
+  const myContacts = contacts.filter(c => c.recipients.includes(name) && !c.confirmed)
 
   const isEmpty = myProjects.length === 0 && myEstimates.length === 0 && myReports.length === 0 && myTasks.length === 0 && myContacts.length === 0
 
