@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import type { DailyReport } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
+import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 
 const STATUS_COLORS: Record<string, string> = {
   '未確認': 'badge-red',
@@ -16,12 +17,14 @@ export default function Reports() {
   const [loading, setLoading] = useState(true)
   const { loc } = useOfficeFilter()
 
-  useEffect(() => {
+  const load = () => {
     fetch('/api/reports').then(r => r.json()).then(data => {
       setReports(Array.isArray(data) ? data : [])
       setLoading(false)
     })
-  }, [])
+  }
+  useEffect(() => { load() }, [])
+  useRefetchOnFocus(load)
 
   const filtered = reports.filter(r => matchesOffice(r.office, loc))
 

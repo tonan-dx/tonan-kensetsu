@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import type { Estimate, EstimateStatus, Assignee } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
+import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
@@ -27,12 +28,14 @@ export default function Estimates() {
   const [filterAssignee, setFilterAssignee] = useState<string>('')
   const { loc } = useOfficeFilter()
 
-  useEffect(() => {
-    setLoading(true)
+  const load = (silent = false) => {
+    if (!silent) setLoading(true)
     fetch(`/api/estimates${showAll ? '?show_all=true' : ''}`)
       .then(r => r.json())
       .then(data => { setEstimates(data); setLoading(false) })
-  }, [showAll])
+  }
+  useEffect(() => { load() }, [showAll])
+  useRefetchOnFocus(() => load(true))
 
   const filtered = estimates
     .filter(e => !filterStatus || e.status === filterStatus)

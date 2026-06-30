@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Plus, CheckCircle, Circle, Users } from 'lucide-react'
 import type { SafetyRecord } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
+import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 
 const ALL_MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 const TOTAL_MEMBERS = ALL_MEMBERS.length
@@ -16,12 +17,14 @@ export default function Safety() {
   const [toggling, setToggling] = useState(false)
   const { loc } = useOfficeFilter()
 
-  useEffect(() => {
+  const load = () => {
     fetch('/api/safety')
       .then(r => r.json())
       .then(data => { setRecords(Array.isArray(data) ? data : []); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [])
+  }
+  useEffect(() => { load() }, [])
+  useRefetchOnFocus(load)
 
   const toggleMember = async (record: SafetyRecord, name: string) => {
     if (toggling) return

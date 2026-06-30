@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Send, Check, CheckCircle2, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Contact } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
+import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 
 const MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
@@ -14,12 +15,14 @@ export default function Contacts() {
   const [filterTo, setFilterTo] = useState('')
   const [showDone, setShowDone] = useState(false)
 
-  useEffect(() => {
+  const load = () => {
     fetch('/api/contacts').then(r => r.json()).then(data => {
       setContacts(Array.isArray(data) ? data : [])
       setLoading(false)
     }).catch(() => setLoading(false))
-  }, [])
+  }
+  useEffect(() => { load() }, [])
+  useRefetchOnFocus(load)
 
   const toggleConfirm = async (c: Contact) => {
     const updated = await fetch(`/api/contacts/${c.id}`, {
