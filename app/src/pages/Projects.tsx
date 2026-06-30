@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search, GanttChart } from 'lucide-react'
 import type { Project, ProjectStatus, ProjectCategory } from '../types'
@@ -31,28 +31,44 @@ function fiscalYearLabel(fy: number): string {
   return `${fy}年度`
 }
 
+// 現在の年度（ローカル日付・7月始まり）
+function currentFiscalYear(): number {
+  const d = new Date()
+  const local = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return getFiscalYear(local) ?? d.getFullYear()
+}
+
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'すべて'>('すべて')
-  const [filterYear, setFilterYear] = useState<number | 'すべて'>('すべて')
+  const [filterYear, setFilterYear] = useState<number | 'すべて'>(currentFiscalYear())
   const [filterCategory, setFilterCategory] = useState<ProjectCategory | null>(null)
   const [filterDivision, setFilterDivision] = useState<string | null>(null)
   const { loc } = useOfficeFilter()
 
+  const yearInit = useRef(false)
   const load = () => {
     fetch('/api/projects').then(r => r.json()).then(data => {
-      setProjects(Array.isArray(data) ? data : [])
+      const arr: Project[] = Array.isArray(data) ? data : []
+      setProjects(arr)
       setLoading(false)
+      // 初回のみ：現在の年度に工事が無ければ、直近の年度を初期表示にする
+      if (!yearInit.current) {
+        yearInit.current = true
+        const cfy = currentFiscalYear()
+        const fys = arr.map(p => getFiscalYear(p.start_date ?? p.created_at)).filter((y): y is number => y !== null)
+        if (!fys.includes(cfy) && fys.length > 0) setFilterYear(Math.max(...fys))
+      }
     })
   }
   useEffect(() => { load() }, [])
   useRefetchOnFocus(load)
 
-  // 存在する年度を降順で列挙
+  // 存在する年度を降順で列挙（現在の年度は常に含める）
   const fiscalYears = Array.from(
-    new Set(projects.map(p => getFiscalYear(p.start_date ?? p.created_at)).filter((y): y is number => y !== null))
+    new Set([currentFiscalYear(), ...projects.map(p => getFiscalYear(p.start_date ?? p.created_at))].filter((y): y is number => y !== null))
   ).sort((a, b) => b - a)
 
   const filtered = projects.filter(p => {
@@ -63,6 +79,22 @@ export default function Projects() {
     const matchDivision = !filterDivision || p.division === filterDivision
     return matchSearch && matchStatus && matchYear && matchCategory && matchDivision && matchesOffice(p.office, loc)
   })
+
+  // 年度別（7月〜6月・完了日基準）の区分別 合計（拠点フィルタのみ反映）
+  const COMPLETED_STATUSES = ['完了', '請求待ち', '入金済み']
+  const summary: Record<number, { divs: Record<string, number>; none: number; total: number }> = {}
+  projects
+    .filter(p => matchesOffice(p.office, loc) && COMPLETED_STATUSES.includes(p.status))
+    .forEach(p => {
+      const fy = getFiscalYear(p.end_date ?? p.contract_date ?? p.created_at)
+      if (fy == null) return
+      const amt = (p.contract_amount ?? 0) + (p.change_amount ?? 0)
+      const y = summary[fy] ?? (summary[fy] = { divs: {}, none: 0, total: 0 })
+      if (p.division && DIVISIONS.includes(p.division)) y.divs[p.division] = (y.divs[p.division] ?? 0) + amt
+      else y.none += amt
+      y.total += amt
+    })
+  const summaryYears = Object.keys(summary).map(Number).sort((a, b) => b - a)
 
   return (
     <div className="page">
@@ -176,6 +208,36 @@ export default function Projects() {
                 {p.contract_amount != null && <span className="project-row-amount">¥{p.contract_amount.toLocaleString()}</span>}
               </div>
             </Link>
+          ))}
+        </div>
+      )}
+
+      {summaryYears.length > 0 && (
+        <div className="proj-summary">
+          <div className="proj-summary-title">
+            年度別 完工高（区分別）
+            <span className="proj-summary-note">7月〜6月・完了日基準</span>
+          </div>
+          {summaryYears.map(fy => (
+            <div key={fy} className="proj-summary-year">
+              <div className="proj-summary-year-head">{fy}年度（{fy}/7〜{fy + 1}/6）</div>
+              {DIVISIONS.map(d => (
+                <div key={d} className="proj-summary-row">
+                  <span className="proj-summary-label">{d}</span>
+                  <span className="proj-summary-amount">¥{(summary[fy].divs[d] ?? 0).toLocaleString()}</span>
+                </div>
+              ))}
+              {summary[fy].none > 0 && (
+                <div className="proj-summary-row">
+                  <span className="proj-summary-label">区分なし</span>
+                  <span className="proj-summary-amount">¥{summary[fy].none.toLocaleString()}</span>
+                </div>
+              )}
+              <div className="proj-summary-row total">
+                <span className="proj-summary-label">合計</span>
+                <span className="proj-summary-amount">¥{summary[fy].total.toLocaleString()}</span>
+              </div>
+            </div>
           ))}
         </div>
       )}

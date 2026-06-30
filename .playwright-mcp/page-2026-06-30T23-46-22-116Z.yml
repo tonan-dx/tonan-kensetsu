@@ -1,0 +1,82 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e7]
+        - generic [ref=e11]: 都南建設 工事管理
+      - generic [ref=e12]:
+        - button "全社" [ref=e13] [cursor=pointer]
+        - button "本社" [ref=e14] [cursor=pointer]
+        - button "釜石" [ref=e15] [cursor=pointer]
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - heading "工事一覧" [level=1] [ref=e19]
+        - link "工程" [ref=e20] [cursor=pointer]:
+          - /url: /timeline
+          - img [ref=e21]
+          - text: 工程
+        - link "新規" [ref=e22] [cursor=pointer]:
+          - /url: /projects/new
+          - img [ref=e23]
+          - text: 新規
+      - generic [ref=e24]:
+        - img [ref=e25]
+        - textbox "工事名・お客様名で検索" [ref=e28]
+      - generic [ref=e29]:
+        - button "民間" [ref=e30] [cursor=pointer]
+        - button "公共" [ref=e31] [cursor=pointer]
+        - button "下請" [ref=e32] [cursor=pointer]
+        - button "積水ハウス" [ref=e33] [cursor=pointer]
+        - button "修繕" [ref=e34] [cursor=pointer]
+      - generic [ref=e35]:
+        - button "管工事" [ref=e36] [cursor=pointer]
+        - button "土木工事" [ref=e37] [cursor=pointer]
+        - button "水道施設" [ref=e38] [cursor=pointer]
+        - button "舗装" [ref=e39] [cursor=pointer]
+        - button "とび・土工" [ref=e40] [cursor=pointer]
+      - generic [ref=e41]:
+        - button "すべて" [ref=e42] [cursor=pointer]
+        - button "2026年度" [ref=e43] [cursor=pointer]
+      - generic [ref=e44]:
+        - button "すべて" [ref=e45] [cursor=pointer]
+        - button "着工前" [ref=e46] [cursor=pointer]
+        - button "進行中" [ref=e47] [cursor=pointer]
+        - button "確認待ち" [ref=e48] [cursor=pointer]
+        - button "完了" [ref=e49] [cursor=pointer]
+        - button "請求待ち" [ref=e50] [cursor=pointer]
+        - button "入金済み" [ref=e51] [cursor=pointer]
+      - generic [ref=e52]: 読み込み中...
+  - navigation [ref=e53]:
+    - link "ホーム" [ref=e54] [cursor=pointer]:
+      - /url: /
+      - img [ref=e55]
+      - generic [ref=e60]: ホーム
+    - link "見積" [ref=e61] [cursor=pointer]:
+      - /url: /estimates
+      - img [ref=e62]
+      - generic [ref=e65]: 見積
+    - link "工事" [ref=e66] [cursor=pointer]:
+      - /url: /projects
+      - img [ref=e67]
+      - generic [ref=e71]: 工事
+    - link "日報" [ref=e72] [cursor=pointer]:
+      - /url: /reports
+      - img [ref=e73]
+      - generic [ref=e76]: 日報
+    - link "安全" [ref=e77] [cursor=pointer]:
+      - /url: /safety
+      - img [ref=e78]
+      - generic [ref=e83]: 安全
+    - link "確認" [ref=e84] [cursor=pointer]:
+      - /url: /approval
+      - img [ref=e85]
+      - generic [ref=e88]: 確認
+    - link "連絡" [ref=e89] [cursor=pointer]:
+      - /url: /contacts
+      - img [ref=e90]
+      - generic [ref=e93]: 連絡
+    - link "お知らせ" [ref=e94] [cursor=pointer]:
+      - /url: /notices
+      - img [ref=e95]
+      - generic [ref=e98]: お知らせ

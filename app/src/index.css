@@ -313,6 +313,56 @@ input, select, textarea { font: inherit; }
   line-height: 1.5;
 }
 
+/* 工事一覧 年度別 区分合計 */
+.proj-summary {
+  margin-top: 20px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+.proj-summary-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.proj-summary-note {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+.proj-summary-year { margin-bottom: 14px; }
+.proj-summary-year:last-child { margin-bottom: 0; }
+.proj-summary-year-head {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.proj-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 2px;
+  font-size: 13px;
+  color: var(--text);
+}
+.proj-summary-row.total {
+  border-top: 1px dashed var(--border);
+  margin-top: 4px;
+  padding-top: 8px;
+  font-weight: 700;
+}
+.proj-summary-label { color: var(--text-sub); }
+.proj-summary-row.total .proj-summary-label { color: var(--text); }
+.proj-summary-amount { font-variant-numeric: tabular-nums; }
+
 /* ── Search & Filters ── */
 .search-bar {
   position: relative;
