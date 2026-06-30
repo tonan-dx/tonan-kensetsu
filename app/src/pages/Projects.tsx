@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Plus, Search, GanttChart } from 'lucide-react'
 import type { Project, ProjectStatus, ProjectCategory } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
+import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 
 const STATUS_COLORS: Record<string, string> = {
   '着工前': 'badge-gray',
@@ -40,12 +41,14 @@ export default function Projects() {
   const [filterDivision, setFilterDivision] = useState<string | null>(null)
   const { loc } = useOfficeFilter()
 
-  useEffect(() => {
+  const load = () => {
     fetch('/api/projects').then(r => r.json()).then(data => {
       setProjects(Array.isArray(data) ? data : [])
       setLoading(false)
     })
-  }, [])
+  }
+  useEffect(() => { load() }, [])
+  useRefetchOnFocus(load)
 
   // 存在する年度を降順で列挙
   const fiscalYears = Array.from(

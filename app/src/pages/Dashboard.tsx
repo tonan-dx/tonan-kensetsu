@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Building2, ClipboardList, FileText, HardHat, ChevronRight, AlertTriangle, Bell, ShieldAlert, Send, CheckSquare } from 'lucide-react'
 import type { Project, DailyReport, Estimate, SafetyRecord, Notice, Assignee, Task, Contact } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
+import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 const MEMBER_COUNT = ASSIGNEES.length
@@ -38,7 +39,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [selectedAssignee, setSelectedAssignee] = useState<string | null>(null)
 
-  useEffect(() => {
+  const load = () => {
     Promise.all([
       fetch('/api/projects').then(r => r.json()).catch(() => []),
       fetch('/api/reports').then(r => r.json()).catch(() => []),
@@ -57,7 +58,9 @@ export default function Dashboard() {
       setContacts(Array.isArray(c) ? c : [])
       setLoading(false)
     })
-  }, [])
+  }
+  useEffect(() => { load() }, [])
+  useRefetchOnFocus(load)
 
   // 拠点フィルタ適用
   const projects = projectsRaw.filter(x => matchesOffice(x.office, loc))

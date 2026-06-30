@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Building2, ClipboardList, FileText, HardHat, Send, CheckSquare } from 'lucide-react'
 import type { Project, DailyReport, Estimate, SafetyRecord, Task, Contact } from '../types'
+import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 
 function taskPath(t: Task): string | null {
   if (!t.ref_id) return null
@@ -23,7 +24,7 @@ export default function AssigneeView() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const load = () => {
     Promise.all([
       fetch('/api/projects').then(r => r.json()).catch(() => []),
       fetch('/api/reports').then(r => r.json()).catch(() => []),
@@ -40,7 +41,9 @@ export default function AssigneeView() {
       setContacts(Array.isArray(c) ? c.filter((x: Contact) => x.recipients.includes(name ?? '') && !x.confirmed) : [])
       setLoading(false)
     })
-  }, [name])
+  }
+  useEffect(() => { load() }, [name])
+  useRefetchOnFocus(load)
 
   if (loading) return <div className="page"><div className="loading">読み込み中...</div></div>
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Plus, Bell, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Notice } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
+import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 
 const MEMBER_COUNT = 16
 
@@ -12,12 +13,14 @@ export default function Notices() {
   const [loading, setLoading] = useState(true)
   const [showDone, setShowDone] = useState(false)
 
-  useEffect(() => {
+  const load = () => {
     fetch('/api/notices').then(r => r.json()).then(data => {
       setNotices(Array.isArray(data) ? data : [])
       setLoading(false)
     })
-  }, [])
+  }
+  useEffect(() => { load() }, [])
+  useRefetchOnFocus(load)
 
   const visible = notices.filter(n => matchesOffice(n.office, loc))
   const unseenOf = (n: Notice) => MEMBER_COUNT - (n.confirmed_by?.length ?? 0)
