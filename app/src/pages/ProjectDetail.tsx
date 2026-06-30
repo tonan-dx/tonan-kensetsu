@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2, Plus, Send } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2, Plus, Send, FileSpreadsheet } from 'lucide-react'
 import type { Project, DailyReport } from '../types'
 import TaskList from '../components/TaskList'
 import PhotoUpload from '../components/PhotoUpload'
+import { generateInvoice } from '../lib/invoice'
+
+const BILLING_STATUSES = ['完了', '請求待ち', '入金済み']
+// この請求書テンプレ(A)は本社の民間・下請工事が対象
+const INVOICE_DIVISIONS = ['民間', '下請']
 
 const STATUS_COLORS: Record<string, string> = {
   '着工前': 'badge-gray',
   '進行中': 'badge-blue',
   '確認待ち': 'badge-gray',
   '完了': 'badge-green',
-  '請求': 'badge-gray',
+  '請求待ち': 'badge-gray',
   '入金済み': 'badge-green',
 }
 
@@ -21,6 +26,7 @@ export default function ProjectDetail() {
   const [reports, setReports] = useState<DailyReport[]>([])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [genInvoice, setGenInvoice] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -51,6 +57,17 @@ export default function ProjectDetail() {
     const updated = await res.json()
     setProject(updated)
     setSending(false)
+  }
+
+  const handleInvoice = async () => {
+    if (!project || genInvoice) return
+    setGenInvoice(true)
+    try {
+      await generateInvoice(project)
+    } catch (e) {
+      alert('請求書の作成に失敗しました：' + String(e))
+    }
+    setGenInvoice(false)
   }
 
   if (loading) return <div className="loading">読み込み中...</div>
@@ -119,6 +136,19 @@ export default function ProjectDetail() {
           </div>
         )}
       </div>
+
+      {BILLING_STATUSES.includes(project.status) && (
+        project.office === '本社' && INVOICE_DIVISIONS.includes(project.division ?? '') ? (
+          <button className="btn-invoice" onClick={handleInvoice} disabled={genInvoice}>
+            <FileSpreadsheet size={18} />
+            {genInvoice ? '作成中...' : '請求書を作成（Excel）'}
+          </button>
+        ) : (
+          <p className="invoice-note">
+            ※ この請求書テンプレートは「本社」の「民間・下請」工事が対象です（他の拠点・区分は今後対応）
+          </p>
+        )
+      )}
 
       {id && <PhotoUpload refId={id} refType="project" />}
       {id && <TaskList refId={id} refType="project" />}
