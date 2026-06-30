@@ -31,12 +31,19 @@ function fiscalYearLabel(fy: number): string {
   return `${fy}年度`
 }
 
+// 現在の年度（ローカル日付・7月始まり）
+function currentFiscalYear(): number {
+  const d = new Date()
+  const local = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return getFiscalYear(local) ?? d.getFullYear()
+}
+
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'すべて'>('すべて')
-  const [filterYear, setFilterYear] = useState<number | 'すべて'>('すべて')
+  const [filterYear, setFilterYear] = useState<number | 'すべて'>(currentFiscalYear())
   const [filterCategory, setFilterCategory] = useState<ProjectCategory | null>(null)
   const [filterDivision, setFilterDivision] = useState<string | null>(null)
   const { loc } = useOfficeFilter()
@@ -50,9 +57,9 @@ export default function Projects() {
   useEffect(() => { load() }, [])
   useRefetchOnFocus(load)
 
-  // 存在する年度を降順で列挙
+  // 存在する年度を降順で列挙（現在の年度は常に含める）
   const fiscalYears = Array.from(
-    new Set(projects.map(p => getFiscalYear(p.start_date ?? p.created_at)).filter((y): y is number => y !== null))
+    new Set([currentFiscalYear(), ...projects.map(p => getFiscalYear(p.start_date ?? p.created_at))].filter((y): y is number => y !== null))
   ).sort((a, b) => b - a)
 
   const filtered = projects.filter(p => {
