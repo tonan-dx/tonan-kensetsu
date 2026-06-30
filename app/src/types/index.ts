@@ -1,9 +1,25 @@
+export type Office = '本社' | '釜石'
+
 export interface Notice {
   id: string
   title: string
   content: string | null
   date: string | null
   poster: string | null
+  confirmed_by: string[]
+  office: string | null
+  created_at: string
+}
+
+export interface Contact {
+  id: string
+  subject: string
+  recipients: string[]
+  content: string | null
+  poster: string | null
+  date: string | null
+  office: string | null
+  confirmed: boolean
   confirmed_by: string[]
   created_at: string
 }
@@ -31,12 +47,14 @@ export interface Project {
   assignee: string | null
   type: string | null
   category: string | null
+  division: string | null
   contract_date: string | null
   contact: string | null
   change_amount: number | null
   billing_date: string | null
   payment_date: string | null
   notes: string | null
+  office: string | null
   created_at: string
 }
 
@@ -61,6 +79,7 @@ export interface Estimate {
   category: string | null
   notes: string | null
   related_project_id: string | null
+  office: string | null
   created_at: string
 }
 
@@ -79,6 +98,7 @@ export interface SafetyRecord {
   reviewer: string | null
   confirmed: boolean
   confirmed_by: string[]
+  office: string | null
   created_at: string
 }
 
@@ -91,6 +111,7 @@ export interface Task {
   notes: string | null
   ref_id: string | null
   ref_type: 'project' | 'estimate' | 'safety' | null
+  office: string | null
   created_at: string
 }
 
@@ -132,5 +153,6 @@ export interface DailyReport {
   trouble: boolean
   check_status: CheckStatus
   assignee: string | null
+  office: string | null
   created_at: string
 }

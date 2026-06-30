@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CheckSquare, Square, Trash2, Plus, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
 import type { Task } from '../types'
+import { useOfficeFilter } from '../lib/office'
 
 const MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function TaskList({ refId, refType }: Props) {
+  const { loc } = useOfficeFilter()
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
@@ -61,6 +63,7 @@ export default function TaskList({ refId, refType }: Props) {
         due_date: newDue || null,
         ref_id: refId,
         ref_type: refType,
+        office: loc === 'all' ? null : loc,
       }),
     }).then(r => r.json()).catch(() => null)
     if (created) setTasks(prev => [...prev, created])

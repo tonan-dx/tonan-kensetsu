@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import type { DailyReport } from '../types'
+import { useOfficeFilter, matchesOffice } from '../lib/office'
 
 const STATUS_COLORS: Record<string, string> = {
   '未確認': 'badge-red',
@@ -13,6 +14,7 @@ const STATUS_COLORS: Record<string, string> = {
 export default function Reports() {
   const [reports, setReports] = useState<DailyReport[]>([])
   const [loading, setLoading] = useState(true)
+  const { loc } = useOfficeFilter()
 
   useEffect(() => {
     fetch('/api/reports').then(r => r.json()).then(data => {
@@ -20,6 +22,8 @@ export default function Reports() {
       setLoading(false)
     })
   }, [])
+
+  const filtered = reports.filter(r => matchesOffice(r.office, loc))
 
   return (
     <div className="page">
@@ -32,9 +36,9 @@ export default function Reports() {
 
       {loading ? <div className="loading">読み込み中...</div> : (
         <div className="card-list">
-          {reports.length === 0 ? (
+          {filtered.length === 0 ? (
             <p className="empty-text">日報がありません</p>
-          ) : reports.map(r => (
+          ) : filtered.map(r => (
             <Link to={`/reports/${r.id}`} key={r.id} className="card">
               <div className="card-row">
                 <div className="card-title">{r.title || r.report_date}</div>

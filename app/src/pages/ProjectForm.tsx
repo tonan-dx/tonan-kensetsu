@@ -2,20 +2,25 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import type { ProjectStatus, ProjectCategory, Assignee } from '../types'
+import { useOfficeFilter } from '../lib/office'
 
 const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
 const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
+const DIVISIONS = ['民間', '公共', '下請', '積水ハウス', '修繕']
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
 export default function ProjectForm() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isEdit = !!id && id !== 'new'
+  const { loc } = useOfficeFilter()
 
   const [form, setForm] = useState({
     assignee: '' as Assignee | '',
+    office: loc === 'all' ? '' : loc,
     contract_date: '',
     category: '' as ProjectCategory | '',
+    division: '',
     status: '着工前' as ProjectStatus,
     start_date: '',
     end_date: '',
@@ -38,8 +43,10 @@ export default function ProjectForm() {
     fetch(`/api/projects/${id}`).then(r => r.json()).then(d => {
       setForm({
         assignee: d.assignee ?? '',
+        office: d.office ?? '',
         contract_date: d.contract_date ?? '',
         category: d.category ?? '',
+        division: d.division ?? '',
         status: d.status ?? '着工前',
         start_date: d.start_date ?? '',
         end_date: d.end_date ?? '',
@@ -65,10 +72,12 @@ export default function ProjectForm() {
     setSaving(true)
     const payload: any = {
       name: form.name,
+      office: form.office || null,
       client_name: form.client_name || undefined,
       location: form.location || undefined,
       status: form.status,
       category: form.category || undefined,
+      division: form.division || undefined,
       assignee: form.assignee || undefined,
       contract_date: form.contract_date || undefined,
       start_date: form.start_date || undefined,
@@ -97,6 +106,16 @@ export default function ProjectForm() {
       <form onSubmit={handleSubmit} className="form"
         onKeyDown={e => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}>
 
+        {/* 拠点 */}
+        <div className="form-group">
+          <label className="form-label">拠点</label>
+          <select className="form-select" value={form.office} onChange={e => set('office', e.target.value)}>
+            <option value="">未設定</option>
+            <option value="本社">本社</option>
+            <option value="釜石">釜石</option>
+          </select>
+        </div>
+
         {/* 担当者 */}
         <div className="form-group">
           <label className="form-label">担当者</label>
@@ -119,6 +138,15 @@ export default function ProjectForm() {
           <select className="form-select" value={form.category} onChange={e => set('category', e.target.value as ProjectCategory)}>
             <option value="">未選択</option>
             {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+          </select>
+        </div>
+
+        {/* 工事区分（民間/公共/下請/積水ハウス/修繕） */}
+        <div className="form-group">
+          <label className="form-label">工事区分</label>
+          <select className="form-select" value={form.division} onChange={e => set('division', e.target.value)}>
+            <option value="">未選択</option>
+            {DIVISIONS.map(d => <option key={d}>{d}</option>)}
           </select>
         </div>
 

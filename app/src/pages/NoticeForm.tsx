@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import type { Assignee } from '../types'
+import { useOfficeFilter } from '../lib/office'
 
 const ASSIGNEES: Array<Assignee | '管理者'> = ['管理者', '長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
@@ -9,12 +10,14 @@ export default function NoticeForm() {
   const navigate = useNavigate()
   const { id } = useParams()
   const isEdit = !!id
+  const { loc } = useOfficeFilter()
 
   const [form, setForm] = useState({
     title: '',
     content: '',
     date: new Date().toISOString().slice(0, 10),
     poster: '' as string,
+    office: loc === 'all' ? '' : loc,
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -27,6 +30,7 @@ export default function NoticeForm() {
         content: data.content ?? '',
         date: data.date ?? new Date().toISOString().slice(0, 10),
         poster: data.poster ?? '',
+        office: data.office ?? '',
       })
     })
   }, [id, isEdit])
@@ -43,6 +47,7 @@ export default function NoticeForm() {
       content: form.content || null,
       date: form.date || null,
       poster: form.poster || null,
+      office: form.office || null,
     }
     try {
       if (isEdit) {
@@ -89,6 +94,15 @@ export default function NoticeForm() {
           <select className="form-select" value={form.poster} onChange={e => set('poster', e.target.value)}>
             <option value="">選択してください</option>
             {ASSIGNEES.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">拠点</label>
+          <select className="form-select" value={form.office} onChange={e => set('office', e.target.value)}>
+            <option value="">未設定</option>
+            <option value="本社">本社</option>
+            <option value="釜石">釜石</option>
           </select>
         </div>
 

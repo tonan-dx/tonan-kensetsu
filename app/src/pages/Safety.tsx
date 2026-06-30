@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, CheckCircle, Circle, Users } from 'lucide-react'
 import type { SafetyRecord } from '../types'
+import { useOfficeFilter, matchesOffice } from '../lib/office'
 
 const ALL_MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 const TOTAL_MEMBERS = ALL_MEMBERS.length
@@ -13,6 +14,7 @@ export default function Safety() {
   const [filterConfirmed, setFilterConfirmed] = useState<'all' | 'unconfirmed' | 'confirmed'>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [toggling, setToggling] = useState(false)
+  const { loc } = useOfficeFilter()
 
   useEffect(() => {
     fetch('/api/safety')
@@ -41,7 +43,7 @@ export default function Safety() {
     if (filterConfirmed === 'unconfirmed') return !r.confirmed
     if (filterConfirmed === 'confirmed') return r.confirmed
     return true
-  })
+  }).filter(r => matchesOffice(r.office, loc))
 
   return (
     <div className="page">

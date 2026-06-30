@@ -47,6 +47,8 @@ export default function NoticeDetail() {
   const confirmedList = notice.confirmed_by ?? []
   const confirmedCount = confirmedList.length
   const total = ALL_MEMBERS.length
+  const unconfirmedMembers = ALL_MEMBERS.filter(m => !confirmedList.includes(m))
+  const unconfirmedCount = unconfirmedMembers.length
 
   return (
     <div className="page">
@@ -88,6 +90,7 @@ export default function NoticeDetail() {
           </div>
           <div className={`circulation-count${confirmedCount === total ? ' done' : ''}`}>
             {confirmedCount}/{total} 人確認済み
+            {unconfirmedCount > 0 && <span className="circulation-unseen">未確認 {unconfirmedCount}名</span>}
           </div>
         </div>
         <div className="circulation-progress">
@@ -96,6 +99,12 @@ export default function NoticeDetail() {
             style={{ width: `${(confirmedCount / total) * 100}%` }}
           />
         </div>
+        {unconfirmedCount > 0 && (
+          <div className="circulation-unseen-list">
+            <span className="circulation-unseen-label">見ていない人：</span>
+            {unconfirmedMembers.join('、')}
+          </div>
+        )}
         <div className="circulation-grid">
           {ALL_MEMBERS.map(name => {
             const isConfirmed = confirmedList.includes(name)

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search, GanttChart } from 'lucide-react'
 import type { Project, ProjectStatus, ProjectCategory } from '../types'
+import { useOfficeFilter, matchesOffice } from '../lib/office'
 
 const STATUS_COLORS: Record<string, string> = {
   '着工前': 'badge-gray',
@@ -14,6 +15,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const STATUSES: Array<ProjectStatus | 'すべて'> = ['すべて', '着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
 const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
+const DIVISIONS = ['民間', '公共', '下請', '積水ハウス', '修繕']
 
 // 7月始まりの年度を返す（例: 2024年7月〜2025年6月 → 2024）
 function getFiscalYear(dateStr: string | null): number | null {
@@ -35,6 +37,8 @@ export default function Projects() {
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'すべて'>('すべて')
   const [filterYear, setFilterYear] = useState<number | 'すべて'>('すべて')
   const [filterCategory, setFilterCategory] = useState<ProjectCategory | null>(null)
+  const [filterDivision, setFilterDivision] = useState<string | null>(null)
+  const { loc } = useOfficeFilter()
 
   useEffect(() => {
     fetch('/api/projects').then(r => r.json()).then(data => {
@@ -53,7 +57,8 @@ export default function Projects() {
     const matchStatus = filterStatus === 'すべて' || p.status === filterStatus
     const matchYear = filterYear === 'すべて' || getFiscalYear(p.start_date ?? p.created_at) === filterYear
     const matchCategory = !filterCategory || (p.category === filterCategory && p.status !== '入金済み')
-    return matchSearch && matchStatus && matchYear && matchCategory
+    const matchDivision = !filterDivision || p.division === filterDivision
+    return matchSearch && matchStatus && matchYear && matchCategory && matchDivision && matchesOffice(p.office, loc)
   })
 
   return (
@@ -76,6 +81,19 @@ export default function Projects() {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
+      </div>
+
+      {/* 工事区分タグ（民間/公共/下請/積水ハウス/修繕） */}
+      <div className="filter-tabs">
+        {DIVISIONS.map(d => (
+          <button
+            key={d}
+            className={`filter-tab ${filterDivision === d ? 'active' : ''}`}
+            onClick={() => setFilterDivision(filterDivision === d ? null : d)}
+          >
+            {d}
+          </button>
+        ))}
       </div>
 
       {/* 工事分類タグ（クリックで未入金のみ表示） */}
@@ -145,6 +163,7 @@ export default function Projects() {
               <div className="project-row-main">
                 <span className={`badge ${STATUS_COLORS[p.status] ?? 'badge-gray'}`}>{p.status}</span>
                 <span className="project-row-name">{p.name}</span>
+                {p.division && <span className="badge badge-division">{p.division}</span>}
                 {p.category && <span className="badge badge-category">{p.category}</span>}
               </div>
               <div className="project-row-sub">

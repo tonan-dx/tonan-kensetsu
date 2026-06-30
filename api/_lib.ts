@@ -48,12 +48,14 @@ export function toProject(page: any) {
     assignee: getSelect(p['担当者']),
     type: getSelect(p['工事種別']),
     category: getSelect(p['工事分類']) || null,
+    division: getSelect(p['工事区分']) || null,
     contract_date: p['契約日']?.date?.start ?? null,
     contact: getPhone(p['連絡先']),
     change_amount: p['増減金額']?.number ?? null,
     billing_date: p['請求日']?.date?.start ?? null,
     payment_date: p['入金日']?.date?.start ?? null,
     notes: getText(p['備考']) || null,
+    office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }
 }
@@ -89,6 +91,7 @@ export function toReport(page: any, projectMap: Record<string, any> = {}) {
     trouble: p['トラブル']?.checkbox ?? false,
     check_status: getStatus(p['確認ステータス']),
     assignee: getSelect(p['担当者']),
+    office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }
 }
@@ -117,6 +120,7 @@ export function toEstimate(page: any) {
     category: getSelect(p['工事分類']) || null,
     notes: getText(p['メモ']) || null,
     related_project_id: p['関連工事']?.relation?.[0]?.id ?? null,
+    office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }
 }
@@ -140,6 +144,7 @@ export function toSafety(page: any, projectMap: Record<string, any> = {}) {
     reviewer: getPerson(p['確認者']) || null,
     confirmed: p['確認済みチェック']?.checkbox ?? false,
     confirmed_by: getMultiSelect(p['確認者リスト']),
+    office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }
 }
@@ -156,6 +161,7 @@ export function toTask(page: any) {
     notes: getText(p['備考']) || null,
     ref_id: getText(p['関連先ID']) || null,
     ref_type: getSelect(p['関連先タイプ']) || null,
+    office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }
 }
@@ -187,6 +193,25 @@ export function toNotice(page: any) {
     content: getText(p['内容']) || null,
     date: p['日付']?.date?.start ?? null,
     poster: getSelect(p['投稿者']) || null,
+    confirmed_by: getMultiSelect(p['確認者リスト']),
+    office: getSelect(p['拠点']) || null,
+    created_at: page.created_time,
+  }
+}
+
+// 連絡（報連相）は お知らせDB に 種別=連絡 として格納（連携済みDBのため）
+export function toContact(page: any) {
+  if (!isFullPage(page)) return null
+  const p = page.properties as any
+  return {
+    id: page.id,
+    subject: getTitle(p['タイトル']),
+    recipients: getMultiSelect(p['宛先']),
+    content: getText(p['内容']) || null,
+    poster: getSelect(p['投稿者']) || null,
+    date: p['日付']?.date?.start ?? null,
+    office: getSelect(p['拠点']) || null,
+    confirmed: p['確認済み']?.checkbox ?? false,
     confirmed_by: getMultiSelect(p['確認者リスト']),
     created_at: page.created_time,
   }

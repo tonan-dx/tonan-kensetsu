@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import type { Assignee, EstimateStatus, ProjectCategory } from '../types'
+import { useOfficeFilter } from '../lib/office'
 
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 const STATUSES: EstimateStatus[] = ['見積書作成前', '見積書作成中', '社長チェック', 'お客様へ提出', '着工決定', 'ボツ／失注']
@@ -11,9 +12,11 @@ export default function EstimateForm() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const isEdit = !!id
+  const { loc } = useOfficeFilter()
 
   const [form, setForm] = useState({
     title: '',
+    office: loc === 'all' ? '' : loc,
     customer_name: '',
     address: '',
     assignee: '' as Assignee | '',
@@ -35,6 +38,7 @@ export default function EstimateForm() {
       .then(r => r.json())
       .then(data => setForm({
         title: data.title ?? '',
+        office: data.office ?? '',
         customer_name: data.customer_name ?? '',
         address: data.address ?? '',
         assignee: data.assignee ?? '',
@@ -57,6 +61,7 @@ export default function EstimateForm() {
     setSaving(true)
     const body = {
       title: form.title,
+      office: form.office || null,
       customer_name: form.customer_name || null,
       address: form.address || null,
       assignee: form.assignee || null,
@@ -104,6 +109,15 @@ export default function EstimateForm() {
         <div className="form-group">
           <label className="form-label">連絡先</label>
           <input type="tel" className="form-input" value={form.contact} onChange={e => set('contact', e.target.value)} placeholder="例：019-XXX-XXXX" />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">拠点</label>
+          <select className="form-select" value={form.office} onChange={e => set('office', e.target.value)}>
+            <option value="">未設定</option>
+            <option value="本社">本社</option>
+            <option value="釜石">釜石</option>
+          </select>
         </div>
 
         <div className="form-group">

@@ -1,6 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { notion, toNotice, NOTICES_DB, cors } from './_lib'
+import { notion, toContact, NOTICES_DB, cors } from './_lib'
 import { isFullPage } from '@notionhq/client'
+
+// 連絡（報連相）は お知らせDB(NOTICES_DB) に 種別=連絡 として格納する
+const KIND = '連絡'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   cors(res)
@@ -10,49 +13,51 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (!id) {
-      // /api/notices — list & create
+      // /api/contacts — list & create
       if (req.method === 'GET') {
-        // 連絡(種別=連絡)はお知らせ一覧から除外
         const response = await notion.databases.query({
           database_id: NOTICES_DB,
-          filter: { property: '種別', select: { does_not_equal: '連絡' } },
-          sorts: [{ property: '日付', direction: 'descending' }],
+          filter: { property: '種別', select: { equals: KIND } },
+          sorts: [{ timestamp: 'created_time', direction: 'descending' }],
         })
-        return res.json(response.results.map(toNotice).filter(Boolean))
+        return res.json(response.results.map(toContact).filter(Boolean))
       }
       if (req.method === 'POST') {
-        const { title, content, date, poster, office } = req.body
+        const { subject, recipients, content, poster, date, office } = req.body
         const props: any = {
-          'タイトル': { title: [{ text: { content: title ?? '' } }] },
-          '種別': { select: { name: 'お知らせ' } },
+          'タイトル': { title: [{ text: { content: subject ?? '' } }] },
+          '種別': { select: { name: KIND } },
         }
+        if (Array.isArray(recipients) && recipients.length > 0) props['宛先'] = { multi_select: recipients.map((name: string) => ({ name })) }
         if (content) props['内容'] = { rich_text: [{ text: { content } }] }
-        if (date) props['日付'] = { date: { start: date } }
         if (poster) props['投稿者'] = { select: { name: poster } }
+        if (date) props['日付'] = { date: { start: date } }
         if (office) props['拠点'] = { select: { name: office } }
         const page = await notion.pages.create({ parent: { database_id: NOTICES_DB }, properties: props })
-        return res.json(toNotice(page))
+        return res.status(201).json(toContact(page))
       }
       return res.status(405).end()
     }
 
-    // /api/notices/:id — detail
+    // /api/contacts/:id — detail
     if (req.method === 'GET') {
       const page = await notion.pages.retrieve({ page_id: id })
       if (!isFullPage(page)) return res.status(404).json({ error: 'not found' })
-      return res.json(toNotice(page))
+      return res.json(toContact(page))
     }
     if (req.method === 'PATCH') {
-      const { title, content, date, poster, confirmed_by, office } = req.body
+      const { subject, recipients, content, poster, date, office, confirmed, confirmed_by } = req.body
       const props: any = {}
-      if (title != null) props['タイトル'] = { title: [{ text: { content: title } }] }
+      if (subject != null) props['タイトル'] = { title: [{ text: { content: subject } }] }
+      if (recipients !== undefined) props['宛先'] = { multi_select: (recipients ?? []).map((name: string) => ({ name })) }
       if (content != null) props['内容'] = { rich_text: [{ text: { content } }] }
-      if (date !== undefined) props['日付'] = date ? { date: { start: date } } : { date: null }
       if (poster) props['投稿者'] = { select: { name: poster } }
-      if (confirmed_by != null) props['確認者リスト'] = { multi_select: confirmed_by.map((name: string) => ({ name })) }
+      if (date !== undefined) props['日付'] = date ? { date: { start: date } } : { date: null }
       if (office !== undefined) props['拠点'] = office ? { select: { name: office } } : { select: null }
+      if (confirmed != null) props['確認済み'] = { checkbox: confirmed }
+      if (confirmed_by != null) props['確認者リスト'] = { multi_select: confirmed_by.map((name: string) => ({ name })) }
       const page = await notion.pages.update({ page_id: id, properties: props })
-      return res.json(toNotice(page))
+      return res.json(toContact(page))
     }
     if (req.method === 'DELETE') {
       await notion.pages.update({ page_id: id, archived: true })
