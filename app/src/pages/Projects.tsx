@@ -64,6 +64,22 @@ export default function Projects() {
     return matchSearch && matchStatus && matchYear && matchCategory && matchDivision && matchesOffice(p.office, loc)
   })
 
+  // 年度別（7月〜6月・完了日基準）の区分別 合計（拠点フィルタのみ反映）
+  const COMPLETED_STATUSES = ['完了', '請求待ち', '入金済み']
+  const summary: Record<number, { divs: Record<string, number>; none: number; total: number }> = {}
+  projects
+    .filter(p => matchesOffice(p.office, loc) && COMPLETED_STATUSES.includes(p.status))
+    .forEach(p => {
+      const fy = getFiscalYear(p.end_date ?? p.contract_date ?? p.created_at)
+      if (fy == null) return
+      const amt = (p.contract_amount ?? 0) + (p.change_amount ?? 0)
+      const y = summary[fy] ?? (summary[fy] = { divs: {}, none: 0, total: 0 })
+      if (p.division && DIVISIONS.includes(p.division)) y.divs[p.division] = (y.divs[p.division] ?? 0) + amt
+      else y.none += amt
+      y.total += amt
+    })
+  const summaryYears = Object.keys(summary).map(Number).sort((a, b) => b - a)
+
   return (
     <div className="page">
       <div className="page-header">
@@ -176,6 +192,36 @@ export default function Projects() {
                 {p.contract_amount != null && <span className="project-row-amount">¥{p.contract_amount.toLocaleString()}</span>}
               </div>
             </Link>
+          ))}
+        </div>
+      )}
+
+      {summaryYears.length > 0 && (
+        <div className="proj-summary">
+          <div className="proj-summary-title">
+            年度別 完工高（区分別）
+            <span className="proj-summary-note">7月〜6月・完了日基準</span>
+          </div>
+          {summaryYears.map(fy => (
+            <div key={fy} className="proj-summary-year">
+              <div className="proj-summary-year-head">{fy}年度（{fy}/7〜{fy + 1}/6）</div>
+              {DIVISIONS.map(d => (
+                <div key={d} className="proj-summary-row">
+                  <span className="proj-summary-label">{d}</span>
+                  <span className="proj-summary-amount">¥{(summary[fy].divs[d] ?? 0).toLocaleString()}</span>
+                </div>
+              ))}
+              {summary[fy].none > 0 && (
+                <div className="proj-summary-row">
+                  <span className="proj-summary-label">区分なし</span>
+                  <span className="proj-summary-amount">¥{summary[fy].none.toLocaleString()}</span>
+                </div>
+              )}
+              <div className="proj-summary-row total">
+                <span className="proj-summary-label">合計</span>
+                <span className="proj-summary-amount">¥{summary[fy].total.toLocaleString()}</span>
+              </div>
+            </div>
           ))}
         </div>
       )}
