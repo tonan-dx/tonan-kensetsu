@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2, Plus, Send } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2, Plus, Send, FileSpreadsheet } from 'lucide-react'
 import type { Project, DailyReport } from '../types'
 import TaskList from '../components/TaskList'
 import PhotoUpload from '../components/PhotoUpload'
+import { generateInvoice } from '../lib/invoice'
+
+const BILLING_STATUSES = ['完了', '請求', '入金済み']
 
 const STATUS_COLORS: Record<string, string> = {
   '着工前': 'badge-gray',
@@ -21,6 +24,7 @@ export default function ProjectDetail() {
   const [reports, setReports] = useState<DailyReport[]>([])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [genInvoice, setGenInvoice] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -51,6 +55,17 @@ export default function ProjectDetail() {
     const updated = await res.json()
     setProject(updated)
     setSending(false)
+  }
+
+  const handleInvoice = async () => {
+    if (!project || genInvoice) return
+    setGenInvoice(true)
+    try {
+      await generateInvoice(project)
+    } catch (e) {
+      alert('請求書の作成に失敗しました：' + String(e))
+    }
+    setGenInvoice(false)
   }
 
   if (loading) return <div className="loading">読み込み中...</div>
@@ -119,6 +134,13 @@ export default function ProjectDetail() {
           </div>
         )}
       </div>
+
+      {BILLING_STATUSES.includes(project.status) && (
+        <button className="btn-invoice" onClick={handleInvoice} disabled={genInvoice}>
+          <FileSpreadsheet size={18} />
+          {genInvoice ? '作成中...' : '請求書を作成（Excel）'}
+        </button>
+      )}
 
       {id && <PhotoUpload refId={id} refType="project" />}
       {id && <TaskList refId={id} refType="project" />}

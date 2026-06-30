@@ -287,6 +287,22 @@ input, select, textarea { font: inherit; }
 .badge-category { background: #f0f4ff; color: #4a6cf7; border: 1px solid #c7d4fd; font-size: 11px; }
 .badge-division { background: #fef3f2; color: #c4320a; border: 1px solid #fcd9ce; font-size: 11px; }
 
+.btn-invoice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 12px 0;
+  padding: 13px;
+  background: #107c41;
+  color: #fff;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.btn-invoice:disabled { opacity: 0.6; }
+
 /* ── Search & Filters ── */
 .search-bar {
   position: relative;
