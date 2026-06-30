@@ -7,6 +7,8 @@ import PhotoUpload from '../components/PhotoUpload'
 import { generateInvoice } from '../lib/invoice'
 
 const BILLING_STATUSES = ['完了', '請求', '入金済み']
+// この請求書テンプレ(A)は本社の民間・下請工事が対象
+const INVOICE_DIVISIONS = ['民間', '下請']
 
 const STATUS_COLORS: Record<string, string> = {
   '着工前': 'badge-gray',
@@ -136,10 +138,16 @@ export default function ProjectDetail() {
       </div>
 
       {BILLING_STATUSES.includes(project.status) && (
-        <button className="btn-invoice" onClick={handleInvoice} disabled={genInvoice}>
-          <FileSpreadsheet size={18} />
-          {genInvoice ? '作成中...' : '請求書を作成（Excel）'}
-        </button>
+        project.office === '本社' && INVOICE_DIVISIONS.includes(project.division ?? '') ? (
+          <button className="btn-invoice" onClick={handleInvoice} disabled={genInvoice}>
+            <FileSpreadsheet size={18} />
+            {genInvoice ? '作成中...' : '請求書を作成（Excel）'}
+          </button>
+        ) : (
+          <p className="invoice-note">
+            ※ この請求書テンプレートは「本社」の「民間・下請」工事が対象です（他の拠点・区分は今後対応）
+          </p>
+        )
       )}
 
       {id && <PhotoUpload refId={id} refType="project" />}
