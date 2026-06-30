@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (req.method === 'POST') {
-      const { title, date, project_id, ky_activity, near_miss, safety_log, hazard, corrective_action, confirmed } = req.body
+      const { title, date, project_id, ky_activity, near_miss, safety_log, hazard, corrective_action, confirmed, office } = req.body
       const props: any = {
         '安全記録タイトル': { title: [{ text: { content: title ?? '' } }] },
       }
@@ -37,6 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (hazard) props['危険箇所'] = { rich_text: [{ text: { content: hazard } }] }
       if (corrective_action) props['是正対応'] = { rich_text: [{ text: { content: corrective_action } }] }
       if (confirmed != null) props['確認済みチェック'] = { checkbox: confirmed }
+      if (office) props['拠点'] = { select: { name: office } }
       const page = await notion.pages.create({ parent: { database_id: SAFETY_DB }, properties: props })
       return res.json(toSafety(page))
     }

@@ -9,6 +9,7 @@ export const PROCESSES_DB         = '79dcabf6-0b5a-495e-8e4a-7a2e859f4245'
 export const SAFETY_DB            = '8c6634ec-9ec7-41a5-a796-c5b13c6ceac4'
 export const TASKS_DB             = '9b42effe-3601-46e1-978c-9ebb8fc6fc0d'
 export const NOTICES_DB           = '5e990df0-0082-4d72-9b02-e75615bf76e9'
+export const CONTACTS_DB          = '71bfc63c-924f-4890-9086-c96739015b74'
 export const ESTIMATE_REVISIONS_DB = 'b024cd6dd0354eb98eb6dac2ca2ae80e'
 
 export function getTitle(prop: any): string {
@@ -54,6 +55,7 @@ export function toProject(page: any) {
     billing_date: p['請求日']?.date?.start ?? null,
     payment_date: p['入金日']?.date?.start ?? null,
     notes: getText(p['備考']) || null,
+    office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }
 }
@@ -89,6 +91,7 @@ export function toReport(page: any, projectMap: Record<string, any> = {}) {
     trouble: p['トラブル']?.checkbox ?? false,
     check_status: getStatus(p['確認ステータス']),
     assignee: getSelect(p['担当者']),
+    office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }
 }
@@ -117,6 +120,7 @@ export function toEstimate(page: any) {
     category: getSelect(p['工事分類']) || null,
     notes: getText(p['メモ']) || null,
     related_project_id: p['関連工事']?.relation?.[0]?.id ?? null,
+    office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }
 }
@@ -140,6 +144,7 @@ export function toSafety(page: any, projectMap: Record<string, any> = {}) {
     reviewer: getPerson(p['確認者']) || null,
     confirmed: p['確認済みチェック']?.checkbox ?? false,
     confirmed_by: getMultiSelect(p['確認者リスト']),
+    office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }
 }
@@ -156,6 +161,7 @@ export function toTask(page: any) {
     notes: getText(p['備考']) || null,
     ref_id: getText(p['関連先ID']) || null,
     ref_type: getSelect(p['関連先タイプ']) || null,
+    office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }
 }
@@ -187,6 +193,24 @@ export function toNotice(page: any) {
     content: getText(p['内容']) || null,
     date: p['日付']?.date?.start ?? null,
     poster: getSelect(p['投稿者']) || null,
+    confirmed_by: getMultiSelect(p['確認者リスト']),
+    office: getSelect(p['拠点']) || null,
+    created_at: page.created_time,
+  }
+}
+
+export function toContact(page: any) {
+  if (!isFullPage(page)) return null
+  const p = page.properties as any
+  return {
+    id: page.id,
+    subject: getTitle(p['件名']),
+    recipients: getMultiSelect(p['宛先']),
+    content: getText(p['内容']) || null,
+    poster: getSelect(p['投稿者']) || null,
+    date: p['日付']?.date?.start ?? null,
+    office: getSelect(p['拠点']) || null,
+    confirmed: p['確認済み']?.checkbox ?? false,
     confirmed_by: getMultiSelect(p['確認者リスト']),
     created_at: page.created_time,
   }

@@ -2,16 +2,19 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import type { Project } from '../types'
+import { useOfficeFilter } from '../lib/office'
 
 export default function SafetyForm() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const isEdit = !!id && id !== 'new'
+  const { loc } = useOfficeFilter()
 
   const [projects, setProjects] = useState<Project[]>([])
   const [form, setForm] = useState({
     title: '',
+    office: loc === 'all' ? '' : loc,
     date: '',
     project_id: searchParams.get('project_id') ?? '',
     ky_activity: '',
@@ -28,6 +31,7 @@ export default function SafetyForm() {
     fetch(`/api/safety/${id}`).then(r => r.json()).then(data => {
       setForm({
         title: data.title ?? '',
+        office: data.office ?? '',
         date: data.date ?? '',
         project_id: data.project_id ?? '',
         ky_activity: data.ky_activity ?? '',
@@ -44,6 +48,7 @@ export default function SafetyForm() {
     setSaving(true)
     const payload = {
       title: form.title,
+      office: form.office || null,
       date: form.date || undefined,
       project_id: form.project_id || undefined,
       ky_activity: form.ky_activity || undefined,
@@ -72,6 +77,14 @@ export default function SafetyForm() {
         <div className="form-group">
           <label className="form-label">タイトル *</label>
           <input className="form-input" required value={form.title} onChange={e => set('title', e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">拠点</label>
+          <select className="form-select" value={form.office} onChange={e => set('office', e.target.value)}>
+            <option value="">未設定</option>
+            <option value="本社">本社</option>
+            <option value="釜石">釜石</option>
+          </select>
         </div>
         <div className="form-row">
           <div className="form-group">

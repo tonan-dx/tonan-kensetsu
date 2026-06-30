@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search, GanttChart } from 'lucide-react'
 import type { Project, ProjectStatus, ProjectCategory } from '../types'
+import { useOfficeFilter, matchesOffice } from '../lib/office'
 
 const STATUS_COLORS: Record<string, string> = {
   '着工前': 'badge-gray',
@@ -35,6 +36,7 @@ export default function Projects() {
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'すべて'>('すべて')
   const [filterYear, setFilterYear] = useState<number | 'すべて'>('すべて')
   const [filterCategory, setFilterCategory] = useState<ProjectCategory | null>(null)
+  const { loc } = useOfficeFilter()
 
   useEffect(() => {
     fetch('/api/projects').then(r => r.json()).then(data => {
@@ -53,7 +55,7 @@ export default function Projects() {
     const matchStatus = filterStatus === 'すべて' || p.status === filterStatus
     const matchYear = filterYear === 'すべて' || getFiscalYear(p.start_date ?? p.created_at) === filterYear
     const matchCategory = !filterCategory || (p.category === filterCategory && p.status !== '入金済み')
-    return matchSearch && matchStatus && matchYear && matchCategory
+    return matchSearch && matchStatus && matchYear && matchCategory && matchesOffice(p.office, loc)
   })
 
   return (

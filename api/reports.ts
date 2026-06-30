@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (req.method === 'PATCH') {
-      const { title, project_id, report_date, weather, workers_count, work_content, tomorrow, notes, trouble, assignee, check_status } = req.body
+      const { title, project_id, report_date, weather, workers_count, work_content, tomorrow, notes, trouble, assignee, check_status, office } = req.body
       const props: any = {}
       if (title != null) props['日報タイトル'] = { title: [{ text: { content: title } }] }
       if (report_date !== undefined) props['日付'] = { date: { start: report_date } }
@@ -32,6 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (assignee) props['担当者'] = { select: { name: assignee } }
       if (check_status) props['確認ステータス'] = { status: { name: check_status } }
       if (project_id !== undefined) props['関連工事'] = project_id ? { relation: [{ id: project_id }] } : { relation: [] }
+      if (office !== undefined) props['拠点'] = office ? { select: { name: office } } : { select: null }
       const page = await notion.pages.update({ page_id: id, properties: props })
       return res.json(toReport(page))
     }
@@ -61,7 +62,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'POST') {
-    const { title, project_id, report_date, weather, workers_count, work_content, tomorrow, notes, trouble, assignee } = req.body
+    const { title, project_id, report_date, weather, workers_count, work_content, tomorrow, notes, trouble, assignee, office } = req.body
     const props: any = {
       '日報タイトル': { title: [{ text: { content: title ?? '' } }] },
     }
@@ -74,6 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (trouble != null) props['トラブル'] = { checkbox: trouble }
     if (assignee) props['担当者'] = { select: { name: assignee } }
     if (project_id) props['関連工事'] = { relation: [{ id: project_id }] }
+    if (office) props['拠点'] = { select: { name: office } }
     const page = await notion.pages.create({ parent: { database_id: REPORTS_DB }, properties: props })
     return res.json(toReport(page))
   }

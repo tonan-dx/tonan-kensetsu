@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Building2, ClipboardList, FileText, HardHat, ChevronRight, AlertTriangle, Bell, ShieldAlert } from 'lucide-react'
-import type { Project, DailyReport, Estimate, SafetyRecord, Notice, Assignee } from '../types'
+import { Building2, ClipboardList, FileText, HardHat, ChevronRight, AlertTriangle, Bell, ShieldAlert, Send, CheckSquare } from 'lucide-react'
+import type { Project, DailyReport, Estimate, SafetyRecord, Notice, Assignee, Task, Contact } from '../types'
+import { useOfficeFilter, matchesOffice } from '../lib/office'
 
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
+const MEMBER_COUNT = ASSIGNEES.length
 
 const today = new Date().toISOString().slice(0, 10)
 const todayJP = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
@@ -16,12 +18,23 @@ function isRecent(dateStr: string | null, days = 7): boolean {
   return d >= threshold
 }
 
+function taskPath(t: Task): string | null {
+  if (!t.ref_id) return null
+  if (t.ref_type === 'project') return `/projects/${t.ref_id}`
+  if (t.ref_type === 'estimate') return `/estimates/${t.ref_id}`
+  if (t.ref_type === 'safety') return `/safety/${t.ref_id}`
+  return null
+}
+
 export default function Dashboard() {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [reports, setReports] = useState<DailyReport[]>([])
-  const [estimates, setEstimates] = useState<Estimate[]>([])
-  const [safetyRecords, setSafetyRecords] = useState<SafetyRecord[]>([])
-  const [notices, setNotices] = useState<Notice[]>([])
+  const { loc } = useOfficeFilter()
+  const [projectsRaw, setProjects] = useState<Project[]>([])
+  const [reportsRaw, setReports] = useState<DailyReport[]>([])
+  const [estimatesRaw, setEstimates] = useState<Estimate[]>([])
+  const [safetyRaw, setSafetyRecords] = useState<SafetyRecord[]>([])
+  const [noticesRaw, setNotices] = useState<Notice[]>([])
+  const [tasksRaw, setTasks] = useState<Task[]>([])
+  const [contactsRaw, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedAssignee, setSelectedAssignee] = useState<string | null>(null)
 
@@ -32,15 +45,28 @@ export default function Dashboard() {
       fetch('/api/estimates').then(r => r.json()).catch(() => []),
       fetch('/api/safety').then(r => r.json()).catch(() => []),
       fetch('/api/notices').then(r => r.json()).catch(() => []),
-    ]).then(([p, r, e, s, n]) => {
+      fetch('/api/checklist').then(r => r.json()).catch(() => []),
+      fetch('/api/contacts').then(r => r.json()).catch(() => []),
+    ]).then(([p, r, e, s, n, t, c]) => {
       setProjects(Array.isArray(p) ? p : [])
       setReports(Array.isArray(r) ? r : [])
       setEstimates(Array.isArray(e) ? e : [])
       setSafetyRecords(Array.isArray(s) ? s : [])
       setNotices(Array.isArray(n) ? n : [])
+      setTasks(Array.isArray(t) ? t : [])
+      setContacts(Array.isArray(c) ? c : [])
       setLoading(false)
     })
   }, [])
+
+  // 拠点フィルタ適用
+  const projects = projectsRaw.filter(x => matchesOffice(x.office, loc))
+  const reports = reportsRaw.filter(x => matchesOffice(x.office, loc))
+  const estimates = estimatesRaw.filter(x => matchesOffice(x.office, loc))
+  const safetyRecords = safetyRaw.filter(x => matchesOffice(x.office, loc))
+  const notices = noticesRaw.filter(x => matchesOffice(x.office, loc))
+  const tasks = tasksRaw.filter(x => matchesOffice(x.office, loc))
+  const contacts = contactsRaw.filter(x => matchesOffice(x.office, loc))
 
   // 見積
   const newEstimates = estimates.filter(e => e.status === '見積書作成前').length
@@ -59,9 +85,13 @@ export default function Dashboard() {
   const unconfirmedSafety = safetyRecords.filter(s => !s.confirmed).length
   const hazardSafety = safetyRecords.filter(s => s.near_miss || s.hazard).length
 
-  // お知らせ
+  // お知らせ（未確認のある回覧数 = まだ全員が見ていないお知らせ）
   const recentNotices = notices.filter(n => isRecent(n.date ?? n.created_at)).length
   const todayNotices = notices.filter(n => (n.date ?? n.created_at?.slice(0, 10)) === today).length
+  const pendingNotices = notices.filter(n => (n.confirmed_by?.length ?? 0) < MEMBER_COUNT).length
+
+  // 連絡
+  const unconfirmedContacts = contacts.filter(c => !c.confirmed).length
 
   if (loading) return <div className="loading">読み込み中...</div>
 
@@ -185,6 +215,31 @@ export default function Dashboard() {
           </div>
         </Link>
 
+        {/* 連絡（報連相） */}
+        <Link to="/contacts" className="home-tile">
+          <div className="home-tile-left">
+            <div className="home-tile-icon indigo">
+              <Send size={26} />
+            </div>
+            <div>
+              <div className="home-tile-title">連絡（報連相）</div>
+              <div className="home-tile-stats">
+                <span>全 {contacts.length}件</span>
+              </div>
+              {unconfirmedContacts > 0 && (
+                <div className="home-tile-alert indigo">
+                  <Send size={13} />
+                  未確認 {unconfirmedContacts}件
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="home-tile-right">
+            {unconfirmedContacts > 0 && <span className="notif-badge indigo">{unconfirmedContacts}</span>}
+            <ChevronRight size={20} className="home-tile-arrow" />
+          </div>
+        </Link>
+
         {/* お知らせ */}
         <Link to="/notices" className="home-tile">
           <div className="home-tile-left">
@@ -206,6 +261,12 @@ export default function Dashboard() {
                 <div className="home-tile-alert teal">
                   <Bell size={13} />
                   新着 {recentNotices}件（7日以内）
+                </div>
+              )}
+              {pendingNotices > 0 && (
+                <div className="home-tile-alert">
+                  <AlertTriangle size={13} />
+                  未確認あり {pendingNotices}件
                 </div>
               )}
             </div>
@@ -234,62 +295,122 @@ export default function Dashboard() {
 
       {/* 担当者別一覧（インライン） */}
       {selectedAssignee && (
-        <div className="assignee-inline">
-          <div className="assignee-inline-title">{selectedAssignee} の担当</div>
+        <AssigneeInline
+          name={selectedAssignee}
+          projects={projects}
+          estimates={estimates}
+          reports={reports}
+          tasks={tasks}
+          contacts={contacts}
+        />
+      )}
 
-          {/* 工事 */}
-          {projects.filter(p => p.assignee === selectedAssignee).length > 0 && (
-            <div className="assignee-inline-group">
-              <div className="assignee-inline-label">
-                <Building2 size={13} /> 工事
-              </div>
-              {projects.filter(p => p.assignee === selectedAssignee).map(p => (
-                <Link to={`/projects/${p.id}`} key={p.id} className="assignee-inline-item">
-                  <span>{p.name}</span>
-                  <span className="assignee-inline-status">{p.status}</span>
-                </Link>
-              ))}
-            </div>
-          )}
+    </div>
+  )
+}
 
-          {/* 見積 */}
-          {estimates.filter(e => e.assignee === selectedAssignee && e.status !== 'ボツ／失注').length > 0 && (
-            <div className="assignee-inline-group">
-              <div className="assignee-inline-label">
-                <FileText size={13} /> 見積
-              </div>
-              {estimates.filter(e => e.assignee === selectedAssignee && e.status !== 'ボツ／失注').map(e => (
-                <Link to={`/estimates/${e.id}`} key={e.id} className="assignee-inline-item">
-                  <span>{e.title}</span>
-                  <span className="assignee-inline-status">{e.status}</span>
-                </Link>
-              ))}
-            </div>
-          )}
+function AssigneeInline({ name, projects, estimates, reports, tasks, contacts }: {
+  name: string
+  projects: Project[]
+  estimates: Estimate[]
+  reports: DailyReport[]
+  tasks: Task[]
+  contacts: Contact[]
+}) {
+  const myProjects = projects.filter(p => p.assignee === name)
+  const myEstimates = estimates.filter(e => e.assignee === name && e.status !== 'ボツ／失注')
+  const myReports = reports.filter(r => r.assignee === name)
+  const myTasks = tasks.filter(t => t.assignee === name && !t.done)
+  const myContacts = contacts.filter(c => c.recipients.includes(name))
 
-          {/* 日報（直近5件） */}
-          {reports.filter(r => r.assignee === selectedAssignee).length > 0 && (
-            <div className="assignee-inline-group">
-              <div className="assignee-inline-label">
-                <ClipboardList size={13} /> 日報
-              </div>
-              {reports.filter(r => r.assignee === selectedAssignee).slice(0, 5).map(r => (
-                <Link to={`/reports/${r.id}`} key={r.id} className="assignee-inline-item">
-                  <span>{r.report_date ?? r.title}</span>
-                  <span className="assignee-inline-status">{r.project?.name ?? ''}</span>
-                </Link>
-              ))}
-            </div>
-          )}
+  const isEmpty = myProjects.length === 0 && myEstimates.length === 0 && myReports.length === 0 && myTasks.length === 0 && myContacts.length === 0
 
-          {projects.filter(p => p.assignee === selectedAssignee).length === 0 &&
-           estimates.filter(e => e.assignee === selectedAssignee && e.status !== 'ボツ／失注').length === 0 &&
-           reports.filter(r => r.assignee === selectedAssignee).length === 0 && (
-            <p className="assignee-inline-empty">担当データなし</p>
-          )}
+  return (
+    <div className="assignee-inline">
+      <div className="assignee-inline-title">{name} の担当・連絡</div>
+
+      {/* 連絡（報連相）— この人宛 */}
+      {myContacts.length > 0 && (
+        <div className="assignee-inline-group">
+          <div className="assignee-inline-label">
+            <Send size={13} /> 連絡（{name} さん宛）
+          </div>
+          {myContacts.map(c => (
+            <Link to={`/contacts/${c.id}/edit`} key={c.id} className="assignee-inline-item">
+              <span>{c.subject}</span>
+              <span className={`assignee-inline-status${c.confirmed ? '' : ' unread'}`}>{c.confirmed ? '確認済' : '未確認'}</span>
+            </Link>
+          ))}
         </div>
       )}
 
+      {/* タスク（この人が担当・未完了） */}
+      {myTasks.length > 0 && (
+        <div className="assignee-inline-group">
+          <div className="assignee-inline-label">
+            <CheckSquare size={13} /> タスク（未完了 {myTasks.length}件）
+          </div>
+          {myTasks.map(t => {
+            const path = taskPath(t)
+            const inner = (
+              <>
+                <span>{t.name}</span>
+                {t.due_date && <span className="assignee-inline-status">{t.due_date}</span>}
+              </>
+            )
+            return path
+              ? <Link to={path} key={t.id} className="assignee-inline-item">{inner}</Link>
+              : <div key={t.id} className="assignee-inline-item">{inner}</div>
+          })}
+        </div>
+      )}
+
+      {/* 工事 */}
+      {myProjects.length > 0 && (
+        <div className="assignee-inline-group">
+          <div className="assignee-inline-label">
+            <Building2 size={13} /> 工事
+          </div>
+          {myProjects.map(p => (
+            <Link to={`/projects/${p.id}`} key={p.id} className="assignee-inline-item">
+              <span>{p.name}</span>
+              <span className="assignee-inline-status">{p.status}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* 見積 */}
+      {myEstimates.length > 0 && (
+        <div className="assignee-inline-group">
+          <div className="assignee-inline-label">
+            <FileText size={13} /> 見積
+          </div>
+          {myEstimates.map(e => (
+            <Link to={`/estimates/${e.id}`} key={e.id} className="assignee-inline-item">
+              <span>{e.title}</span>
+              <span className="assignee-inline-status">{e.status}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* 日報（直近5件） */}
+      {myReports.length > 0 && (
+        <div className="assignee-inline-group">
+          <div className="assignee-inline-label">
+            <ClipboardList size={13} /> 日報
+          </div>
+          {myReports.slice(0, 5).map(r => (
+            <Link to={`/reports/${r.id}`} key={r.id} className="assignee-inline-item">
+              <span>{r.report_date ?? r.title}</span>
+              <span className="assignee-inline-status">{r.project?.name ?? ''}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {isEmpty && <p className="assignee-inline-empty">担当データ・連絡なし</p>}
     </div>
   )
 }

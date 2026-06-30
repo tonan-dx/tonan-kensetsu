@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import type { ProjectStatus, ProjectCategory, Assignee } from '../types'
+import { useOfficeFilter } from '../lib/office'
 
 const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
 const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
@@ -11,9 +12,11 @@ export default function ProjectForm() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isEdit = !!id && id !== 'new'
+  const { loc } = useOfficeFilter()
 
   const [form, setForm] = useState({
     assignee: '' as Assignee | '',
+    office: loc === 'all' ? '' : loc,
     contract_date: '',
     category: '' as ProjectCategory | '',
     status: '着工前' as ProjectStatus,
@@ -38,6 +41,7 @@ export default function ProjectForm() {
     fetch(`/api/projects/${id}`).then(r => r.json()).then(d => {
       setForm({
         assignee: d.assignee ?? '',
+        office: d.office ?? '',
         contract_date: d.contract_date ?? '',
         category: d.category ?? '',
         status: d.status ?? '着工前',
@@ -65,6 +69,7 @@ export default function ProjectForm() {
     setSaving(true)
     const payload: any = {
       name: form.name,
+      office: form.office || null,
       client_name: form.client_name || undefined,
       location: form.location || undefined,
       status: form.status,
@@ -96,6 +101,16 @@ export default function ProjectForm() {
 
       <form onSubmit={handleSubmit} className="form"
         onKeyDown={e => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}>
+
+        {/* 拠点 */}
+        <div className="form-group">
+          <label className="form-label">拠点</label>
+          <select className="form-select" value={form.office} onChange={e => set('office', e.target.value)}>
+            <option value="">未設定</option>
+            <option value="本社">本社</option>
+            <option value="釜石">釜石</option>
+          </select>
+        </div>
 
         {/* 担当者 */}
         <div className="form-group">

@@ -19,9 +19,13 @@ import Notices from './pages/Notices'
 import NoticeDetail from './pages/NoticeDetail'
 import NoticeForm from './pages/NoticeForm'
 import AssigneeView from './pages/AssigneeView'
+import Contacts from './pages/Contacts'
+import ContactForm from './pages/ContactForm'
+import { OfficeProvider } from './lib/office'
 
 export default function App() {
   return (
+    <OfficeProvider>
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
@@ -48,9 +52,13 @@ export default function App() {
           <Route path="/notices/new" element={<NoticeForm />} />
           <Route path="/notices/:id" element={<NoticeDetail />} />
           <Route path="/notices/:id/edit" element={<NoticeForm />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/contacts/new" element={<ContactForm />} />
+          <Route path="/contacts/:id/edit" element={<ContactForm />} />
           <Route path="/assignee/:name" element={<AssigneeView />} />
         </Route>
       </Routes>
     </BrowserRouter>
+    </OfficeProvider>
   )
 }

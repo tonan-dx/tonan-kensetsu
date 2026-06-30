@@ -15,7 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'PATCH') {
-    const { title, customer_name, address, assignee, estimate_deadline, estimate_amount, cost_estimate, gross_profit, status, president_check, result, submission_date, decision_date, rejection_reason, request_content, notes, contact, category } = req.body
+    const { title, customer_name, address, assignee, estimate_deadline, estimate_amount, cost_estimate, gross_profit, status, president_check, result, submission_date, decision_date, rejection_reason, request_content, notes, contact, category, office } = req.body
     const props: any = {}
     if (title != null) props['案件名'] = { title: [{ text: { content: title } }] }
     if (customer_name != null) props['お客様名'] = { rich_text: [{ text: { content: customer_name } }] }
@@ -35,6 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (notes != null) props['メモ'] = { rich_text: [{ text: { content: notes } }] }
     if (contact !== undefined) props['連絡先'] = { phone_number: contact || null }
     if (category !== undefined) props['工事分類'] = category ? { select: { name: category } } : { select: null }
+    if (office !== undefined) props['拠点'] = office ? { select: { name: office } } : { select: null }
 
     const page = await notion.pages.update({ page_id: id, properties: props })
     const estimate = toEstimate(page)
@@ -50,6 +51,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (estimate?.assignee) projectProps['担当者'] = { select: { name: estimate.assignee } }
       if (estimate?.contact) projectProps['連絡先'] = { phone_number: estimate.contact }
       if (estimate?.category) projectProps['工事分類'] = { select: { name: estimate.category } }
+      const projOffice = office ?? estimate?.office
+      if (projOffice) projectProps['拠点'] = { select: { name: projOffice } }
       const contractDate = decision_date || estimate?.decision_date
       if (contractDate) projectProps['契約日'] = { date: { start: contractDate } }
       if (estimate?.estimate_amount != null) projectProps['契約金額'] = { number: estimate.estimate_amount }

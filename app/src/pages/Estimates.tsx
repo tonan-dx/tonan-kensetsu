@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import type { Estimate, EstimateStatus, Assignee } from '../types'
+import { useOfficeFilter, matchesOffice } from '../lib/office'
 
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
@@ -24,6 +25,7 @@ export default function Estimates() {
   const [showAll, setShowAll] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>('')
   const [filterAssignee, setFilterAssignee] = useState<string>('')
+  const { loc } = useOfficeFilter()
 
   useEffect(() => {
     setLoading(true)
@@ -35,6 +37,7 @@ export default function Estimates() {
   const filtered = estimates
     .filter(e => !filterStatus || e.status === filterStatus)
     .filter(e => !filterAssignee || e.assignee === filterAssignee)
+    .filter(e => matchesOffice(e.office, loc))
 
   return (
     <div className="page">
