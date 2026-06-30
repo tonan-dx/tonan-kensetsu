@@ -37,7 +37,7 @@ export default function AssigneeView() {
       setEstimates(Array.isArray(e) ? e.filter((x: Estimate) => x.assignee === name && x.status !== 'ボツ／失注') : [])
       setSafety(Array.isArray(s) ? s.filter((x: SafetyRecord) => x.recorder === name) : [])
       setTasks(Array.isArray(t) ? t.filter((x: Task) => !x.done) : [])
-      setContacts(Array.isArray(c) ? c.filter((x: Contact) => x.recipients.includes(name ?? '')) : [])
+      setContacts(Array.isArray(c) ? c.filter((x: Contact) => x.recipients.includes(name ?? '') && !x.confirmed) : [])
       setLoading(false)
     })
   }, [name])
