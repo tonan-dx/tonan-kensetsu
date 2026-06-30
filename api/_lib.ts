@@ -9,7 +9,6 @@ export const PROCESSES_DB         = '79dcabf6-0b5a-495e-8e4a-7a2e859f4245'
 export const SAFETY_DB            = '8c6634ec-9ec7-41a5-a796-c5b13c6ceac4'
 export const TASKS_DB             = '9b42effe-3601-46e1-978c-9ebb8fc6fc0d'
 export const NOTICES_DB           = '5e990df0-0082-4d72-9b02-e75615bf76e9'
-export const CONTACTS_DB          = '71bfc63c-924f-4890-9086-c96739015b74'
 export const ESTIMATE_REVISIONS_DB = 'b024cd6dd0354eb98eb6dac2ca2ae80e'
 
 export function getTitle(prop: any): string {
@@ -199,12 +198,13 @@ export function toNotice(page: any) {
   }
 }
 
+// 連絡（報連相）は お知らせDB に 種別=連絡 として格納（連携済みDBのため）
 export function toContact(page: any) {
   if (!isFullPage(page)) return null
   const p = page.properties as any
   return {
     id: page.id,
-    subject: getTitle(p['件名']),
+    subject: getTitle(p['タイトル']),
     recipients: getMultiSelect(p['宛先']),
     content: getText(p['内容']) || null,
     poster: getSelect(p['投稿者']) || null,

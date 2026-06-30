@@ -1,6 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { notion, toContact, CONTACTS_DB, cors } from './_lib'
+import { notion, toContact, NOTICES_DB, cors } from './_lib'
 import { isFullPage } from '@notionhq/client'
+
+// 連絡（報連相）は お知らせDB(NOTICES_DB) に 種別=連絡 として格納する
+const KIND = '連絡'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   cors(res)
@@ -13,20 +16,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // /api/contacts — list & create
       if (req.method === 'GET') {
         const response = await notion.databases.query({
-          database_id: CONTACTS_DB,
+          database_id: NOTICES_DB,
+          filter: { property: '種別', select: { equals: KIND } },
           sorts: [{ timestamp: 'created_time', direction: 'descending' }],
         })
         return res.json(response.results.map(toContact).filter(Boolean))
       }
       if (req.method === 'POST') {
         const { subject, recipients, content, poster, date, office } = req.body
-        const props: any = { '件名': { title: [{ text: { content: subject ?? '' } }] } }
+        const props: any = {
+          'タイトル': { title: [{ text: { content: subject ?? '' } }] },
+          '種別': { select: { name: KIND } },
+        }
         if (Array.isArray(recipients) && recipients.length > 0) props['宛先'] = { multi_select: recipients.map((name: string) => ({ name })) }
         if (content) props['内容'] = { rich_text: [{ text: { content } }] }
         if (poster) props['投稿者'] = { select: { name: poster } }
         if (date) props['日付'] = { date: { start: date } }
         if (office) props['拠点'] = { select: { name: office } }
-        const page = await notion.pages.create({ parent: { database_id: CONTACTS_DB }, properties: props })
+        const page = await notion.pages.create({ parent: { database_id: NOTICES_DB }, properties: props })
         return res.status(201).json(toContact(page))
       }
       return res.status(405).end()
@@ -41,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method === 'PATCH') {
       const { subject, recipients, content, poster, date, office, confirmed, confirmed_by } = req.body
       const props: any = {}
-      if (subject != null) props['件名'] = { title: [{ text: { content: subject } }] }
+      if (subject != null) props['タイトル'] = { title: [{ text: { content: subject } }] }
       if (recipients !== undefined) props['宛先'] = { multi_select: (recipients ?? []).map((name: string) => ({ name })) }
       if (content != null) props['内容'] = { rich_text: [{ text: { content } }] }
       if (poster) props['投稿者'] = { select: { name: poster } }

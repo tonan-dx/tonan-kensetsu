@@ -12,18 +12,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!id) {
       // /api/notices — list & create
       if (req.method === 'GET') {
+        // 連絡(種別=連絡)はお知らせ一覧から除外
         const response = await notion.databases.query({
           database_id: NOTICES_DB,
+          filter: { property: '種別', select: { does_not_equal: '連絡' } },
           sorts: [{ property: '日付', direction: 'descending' }],
         })
         return res.json(response.results.map(toNotice).filter(Boolean))
       }
       if (req.method === 'POST') {
-        const { title, content, date, poster } = req.body
-        const props: any = { 'タイトル': { title: [{ text: { content: title ?? '' } }] } }
+        const { title, content, date, poster, office } = req.body
+        const props: any = {
+          'タイトル': { title: [{ text: { content: title ?? '' } }] },
+          '種別': { select: { name: 'お知らせ' } },
+        }
         if (content) props['内容'] = { rich_text: [{ text: { content } }] }
         if (date) props['日付'] = { date: { start: date } }
         if (poster) props['投稿者'] = { select: { name: poster } }
+        if (office) props['拠点'] = { select: { name: office } }
         const page = await notion.pages.create({ parent: { database_id: NOTICES_DB }, properties: props })
         return res.json(toNotice(page))
       }
@@ -37,13 +43,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.json(toNotice(page))
     }
     if (req.method === 'PATCH') {
-      const { title, content, date, poster, confirmed_by } = req.body
+      const { title, content, date, poster, confirmed_by, office } = req.body
       const props: any = {}
       if (title != null) props['タイトル'] = { title: [{ text: { content: title } }] }
       if (content != null) props['内容'] = { rich_text: [{ text: { content } }] }
       if (date !== undefined) props['日付'] = date ? { date: { start: date } } : { date: null }
       if (poster) props['投稿者'] = { select: { name: poster } }
       if (confirmed_by != null) props['確認者リスト'] = { multi_select: confirmed_by.map((name: string) => ({ name })) }
+      if (office !== undefined) props['拠点'] = office ? { select: { name: office } } : { select: null }
       const page = await notion.pages.update({ page_id: id, properties: props })
       return res.json(toNotice(page))
     }
