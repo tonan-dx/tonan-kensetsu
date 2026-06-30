@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import type { ProjectStatus, ProjectCategory, Assignee } from '../types'
 import { useOfficeFilter } from '../lib/office'
 
-const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
+const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求待ち', '入金済み']
 const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
 const DIVISIONS = ['民間', '公共', '下請', '積水ハウス', '修繕']
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
@@ -91,7 +91,12 @@ export default function ProjectForm() {
     }
     const url = isEdit ? `/api/projects/${id}` : '/api/projects'
     const method = isEdit ? 'PATCH' : 'POST'
-    await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    if (!res.ok) {
+      alert('保存に失敗しました。入力内容をご確認ください。')
+      setSaving(false)
+      return
+    }
     setSaving(false)
     navigate('/projects')
   }

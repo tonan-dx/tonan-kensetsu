@@ -18,7 +18,7 @@ const PROJECT_STATUS_COLORS: Record<string, string> = {
   '進行中':  '#3b82f6',
   '確認待ち': '#f59e0b',
   '完了':    '#10b981',
-  '請求':    '#8b5cf6',
+  '請求待ち':    '#8b5cf6',
   '入金済み': '#6b7280',
 }
 

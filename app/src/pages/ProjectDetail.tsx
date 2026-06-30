@@ -6,7 +6,7 @@ import TaskList from '../components/TaskList'
 import PhotoUpload from '../components/PhotoUpload'
 import { generateInvoice } from '../lib/invoice'
 
-const BILLING_STATUSES = ['完了', '請求', '入金済み']
+const BILLING_STATUSES = ['完了', '請求待ち', '入金済み']
 // この請求書テンプレ(A)は本社の民間・下請工事が対象
 const INVOICE_DIVISIONS = ['民間', '下請']
 
@@ -15,7 +15,7 @@ const STATUS_COLORS: Record<string, string> = {
   '進行中': 'badge-blue',
   '確認待ち': 'badge-gray',
   '完了': 'badge-green',
-  '請求': 'badge-gray',
+  '請求待ち': 'badge-gray',
   '入金済み': 'badge-green',
 }
 

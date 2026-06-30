@@ -10,11 +10,11 @@ const STATUS_COLORS: Record<string, string> = {
   '進行中': 'badge-blue',
   '確認待ち': 'badge-gray',
   '完了': 'badge-green',
-  '請求': 'badge-gray',
+  '請求待ち': 'badge-gray',
   '入金済み': 'badge-green',
 }
 
-const STATUSES: Array<ProjectStatus | 'すべて'> = ['すべて', '着工前', '進行中', '確認待ち', '完了', '請求', '入金済み']
+const STATUSES: Array<ProjectStatus | 'すべて'> = ['すべて', '着工前', '進行中', '確認待ち', '完了', '請求待ち', '入金済み']
 const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
 const DIVISIONS = ['民間', '公共', '下請', '積水ハウス', '修繕']
 
