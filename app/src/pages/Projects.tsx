@@ -38,6 +38,18 @@ function currentFiscalYear(): number {
   return getFiscalYear(local) ?? d.getFullYear()
 }
 
+const COMPLETED_STATUSES = ['完了', '請求待ち', '入金済み']
+
+// 工事が属する年度：
+// - 完了/請求待ち/入金済み → 完了日(竣工日→契約日→登録日)の年度に固定（翌年度へ繰り越さない）
+// - 未完了（着工前/進行中/確認待ち） → 現在の年度（6月末の年度切替で翌年度へ繰り越す）
+function projectFiscalYear(p: Project): number | null {
+  if (COMPLETED_STATUSES.includes(p.status)) {
+    return getFiscalYear(p.end_date ?? p.contract_date ?? p.created_at)
+  }
+  return currentFiscalYear()
+}
+
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
@@ -58,7 +70,7 @@ export default function Projects() {
       if (!yearInit.current) {
         yearInit.current = true
         const cfy = currentFiscalYear()
-        const fys = arr.map(p => getFiscalYear(p.start_date ?? p.created_at)).filter((y): y is number => y !== null)
+        const fys = arr.map(p => projectFiscalYear(p)).filter((y): y is number => y !== null)
         if (!fys.includes(cfy) && fys.length > 0) setFilterYear(Math.max(...fys))
       }
     })
@@ -68,25 +80,24 @@ export default function Projects() {
 
   // 存在する年度を降順で列挙（現在の年度は常に含める）
   const fiscalYears = Array.from(
-    new Set([currentFiscalYear(), ...projects.map(p => getFiscalYear(p.start_date ?? p.created_at))].filter((y): y is number => y !== null))
+    new Set([currentFiscalYear(), ...projects.map(p => projectFiscalYear(p))].filter((y): y is number => y !== null))
   ).sort((a, b) => b - a)
 
   const filtered = projects.filter(p => {
     const matchSearch = p.name.includes(search) || p.client_name.includes(search) || p.location.includes(search)
     const matchStatus = filterStatus === 'すべて' || p.status === filterStatus
-    const matchYear = filterYear === 'すべて' || getFiscalYear(p.start_date ?? p.created_at) === filterYear
+    const matchYear = filterYear === 'すべて' || projectFiscalYear(p) === filterYear
     const matchCategory = !filterCategory || (p.category === filterCategory && p.status !== '入金済み')
     const matchDivision = !filterDivision || p.division === filterDivision
     return matchSearch && matchStatus && matchYear && matchCategory && matchDivision && matchesOffice(p.office, loc)
   })
 
-  // 年度別（7月〜6月・完了日基準）の区分別 合計（拠点フィルタのみ反映）
-  const COMPLETED_STATUSES = ['完了', '請求待ち', '入金済み']
+  // 年度別の区分別 合計（決定済みの全工事・最終金額／拠点フィルタ反映／年度は projectFiscalYear）
   const summary: Record<number, { divs: Record<string, number>; none: number; total: number }> = {}
   projects
-    .filter(p => matchesOffice(p.office, loc) && COMPLETED_STATUSES.includes(p.status))
+    .filter(p => matchesOffice(p.office, loc))
     .forEach(p => {
-      const fy = getFiscalYear(p.end_date ?? p.contract_date ?? p.created_at)
+      const fy = projectFiscalYear(p)
       if (fy == null) return
       const amt = (p.contract_amount ?? 0) + (p.change_amount ?? 0)
       const y = summary[fy] ?? (summary[fy] = { divs: {}, none: 0, total: 0 })
@@ -94,7 +105,10 @@ export default function Projects() {
       else y.none += amt
       y.total += amt
     })
-  const summaryYears = Object.keys(summary).map(Number).sort((a, b) => b - a)
+  // 選択中の年度だけ表示（「すべて」なら全年度）
+  const summaryYears = Object.keys(summary).map(Number)
+    .filter(fy => filterYear === 'すべて' || fy === filterYear)
+    .sort((a, b) => b - a)
 
   return (
     <div className="page">
