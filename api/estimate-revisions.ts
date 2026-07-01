@@ -1,5 +1,34 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { notion, ESTIMATE_REVISIONS_DB, toEstimateRevision, cors } from './_lib'
+import { notion, getText, cors } from './_lib'
+
+// 見積リビジョンは、連携済みの見積DBの各見積ページ内に JSON で保存する
+// （専用DBが連携未共有で読めないため）
+interface Rev {
+  id: string
+  version_name: string
+  drive_url: string
+  registered_date: string | null
+  memo: string | null
+}
+
+async function readRevs(estimateId: string): Promise<Rev[]> {
+  const page: any = await notion.pages.retrieve({ page_id: estimateId })
+  const text = getText(page.properties?.['見積リビジョン'])
+  if (!text) return []
+  try {
+    const arr = JSON.parse(text)
+    return Array.isArray(arr) ? arr : []
+  } catch {
+    return []
+  }
+}
+
+async function writeRevs(estimateId: string, revs: Rev[]): Promise<void> {
+  await notion.pages.update({
+    page_id: estimateId,
+    properties: { '見積リビジョン': { rich_text: [{ text: { content: JSON.stringify(revs) } }] } },
+  })
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   cors(res)
@@ -8,9 +37,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const id = req.query.id as string | undefined
 
   try {
-    // DELETE /api/estimate-revisions/:id
+    // DELETE /api/estimate-revisions/:id  （id は "見積ID__ローカルID"）
     if (req.method === 'DELETE' && id) {
-      await notion.pages.update({ page_id: id, archived: true })
+      const estimateId = id.split('__')[0]
+      const revs = await readRevs(estimateId)
+      await writeRevs(estimateId, revs.filter(r => r.id !== id))
       return res.json({ ok: true })
     }
 
@@ -18,15 +49,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method === 'GET') {
       const estimate_id = req.query.estimate_id as string
       if (!estimate_id) return res.status(400).json({ error: 'estimate_id required' })
-      const response = await notion.databases.query({
-        database_id: ESTIMATE_REVISIONS_DB,
-        filter: {
-          property: '見積ID',
-          rich_text: { equals: estimate_id },
-        },
-        sorts: [{ property: '登録日', direction: 'descending' }],
-      })
-      return res.json(response.results.map(toEstimateRevision).filter(Boolean))
+      const revs = await readRevs(estimate_id)
+      revs.sort((a, b) => (b.registered_date || '').localeCompare(a.registered_date || ''))
+      return res.json(revs)
     }
 
     // POST /api/estimate-revisions
@@ -35,18 +60,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!estimate_id || !version_name || !drive_url) {
         return res.status(400).json({ error: 'estimate_id, version_name, drive_url required' })
       }
-      const props: any = {
-        '版名': { title: [{ text: { content: version_name } }] },
-        '見積ID': { rich_text: [{ text: { content: estimate_id } }] },
-        'Google Drive URL': { url: drive_url },
+      const revs = await readRevs(estimate_id)
+      const rev: Rev = {
+        id: `${estimate_id}__${Date.now()}${Math.floor(Math.random() * 1000)}`,
+        version_name,
+        drive_url,
+        registered_date: registered_date || null,
+        memo: memo || null,
       }
-      if (registered_date) props['登録日'] = { date: { start: registered_date } }
-      if (memo) props['メモ'] = { rich_text: [{ text: { content: memo } }] }
-      const page = await notion.pages.create({
-        parent: { database_id: ESTIMATE_REVISIONS_DB },
-        properties: props,
-      })
-      return res.status(201).json(toEstimateRevision(page))
+      revs.push(rev)
+      await writeRevs(estimate_id, revs)
+      return res.status(201).json(rev)
     }
 
     res.status(405).end()

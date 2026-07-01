@@ -105,10 +105,10 @@ export default function Projects() {
       else y.none += amt
       y.total += amt
     })
-  // 選択中の年度だけ表示（「すべて」なら全年度）
-  const summaryYears = Object.keys(summary).map(Number)
-    .filter(fy => filterYear === 'すべて' || fy === filterYear)
-    .sort((a, b) => b - a)
+  // 完工高は「選択中の年度」だけ表示（「すべて」のときは出さない＝年度が増えても見やすく）
+  const summaryYears = filterYear === 'すべて'
+    ? []
+    : Object.keys(summary).map(Number).filter(fy => fy === filterYear)
 
   return (
     <div className="page">
