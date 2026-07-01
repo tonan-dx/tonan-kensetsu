@@ -28,16 +28,25 @@ export default function EstimateRevisionList({ estimateId }: Props) {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
-    const res = await fetch('/api/estimate-revisions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ estimate_id: estimateId, ...form }),
-    })
-    const newRevision = await res.json()
-    setRevisions(prev => [newRevision, ...prev])
-    setForm({ version_name: '', drive_url: '', registered_date: new Date().toISOString().slice(0, 10), memo: '' })
-    setShowForm(false)
-    setSaving(false)
+    try {
+      const res = await fetch('/api/estimate-revisions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estimate_id: estimateId, ...form }),
+      })
+      if (!res.ok) {
+        const er = await res.json().catch(() => ({}))
+        throw new Error(er.error || `HTTP ${res.status}`)
+      }
+      const newRevision = await res.json()
+      setRevisions(prev => [newRevision, ...prev])
+      setForm({ version_name: '', drive_url: '', registered_date: new Date().toISOString().slice(0, 10), memo: '' })
+      setShowForm(false)
+    } catch (err) {
+      alert('保存に失敗しました：' + String(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleDelete = async (id: string, name: string) => {
