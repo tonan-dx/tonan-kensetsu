@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Project, Process } from '../types'
+import { useOfficeFilter, matchesOffice } from '../lib/office'
 
 const PROCESS_STATUS_COLORS: Record<string, string> = {
   '未着手': '#94a3b8',
@@ -33,6 +34,7 @@ export default function Timeline() {
   const [projects, setProjects]   = useState<Project[]>([])
   const [processes, setProcesses] = useState<Process[]>([])
   const [loading, setLoading]     = useState(true)
+  const { loc } = useOfficeFilter()
   const [viewMonth, setViewMonth] = useState(() => {
     const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1)
   })
@@ -53,6 +55,7 @@ export default function Timeline() {
   const totalDays = daysBetween(viewStart, viewEnd) + 1
 
   const visibleProjects = projects.filter(p => {
+    if (!matchesOffice(p.office, loc)) return false
     if (!p.start_date && !p.end_date) return false
     const s = p.start_date ? new Date(p.start_date) : null
     const e = p.end_date   ? new Date(p.end_date)   : null
