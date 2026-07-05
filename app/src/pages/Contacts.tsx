@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Send, Check, CheckCircle2, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Send, Check, CheckCircle2, Pencil, Trash2, ChevronDown, ChevronUp, MessageCircle } from 'lucide-react'
 import type { Contact } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
@@ -55,8 +55,14 @@ export default function Contacts() {
         </div>
         {c.office && <span className="contact-loc">{c.office}</span>}
       </div>
-      <div className="contact-card-title">{c.subject}</div>
-      {c.content && <div className="contact-card-body">{c.content}</div>}
+      <Link to={`/contacts/${c.id}`} className="contact-card-link">
+        <div className="contact-card-title">{c.subject}</div>
+        {c.content && <div className="contact-card-body">{c.content}</div>}
+        <div className="contact-card-open">
+          <MessageCircle size={13} />
+          {c.replies && c.replies.length > 0 ? `会話を開く（${c.replies.length}件の返信）` : '会話を開く'}
+        </div>
+      </Link>
       <div className="contact-card-foot">
         <span className="contact-meta">
           {c.poster && <span>{c.poster}</span>}

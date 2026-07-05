@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2, CheckCircle, Circle, Users } from 'lucide-react'
 import type { Notice } from '../types'
+import AttachmentBox from '../components/AttachmentBox'
 
 const ALL_MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
@@ -81,6 +82,10 @@ export default function NoticeDetail() {
           <p className="notice-body">{notice.content}</p>
         </div>
       )}
+
+      <div className="detail-section-card">
+        <AttachmentBox refId={notice.id} refType="notice" />
+      </div>
 
       <div className="detail-section-card">
         <div className="circulation-header">

@@ -2,14 +2,45 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { put, list, del } from '@vercel/blob'
 import { cors } from './_lib'
 
-const MAX_PHOTOS = 10
+// 画像・ファイル添付を Vercel Blob に保存する（ref_type / ref_id 単位）
+const MAX_FILES = 20
+// Vercelのリクエストボディ上限(約4.5MB)を base64膨張後も超えないよう、実体は3MBまで
+const MAX_BYTES = 3 * 1024 * 1024
+
+const IMAGE_EXT = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'bmp', 'svg'])
+const MIME: Record<string, string> = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
+  webp: 'image/webp', heic: 'image/heic', bmp: 'image/bmp', svg: 'image/svg+xml',
+  pdf: 'application/pdf', doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  csv: 'text/csv', txt: 'text/plain', zip: 'application/zip',
+}
+
+function extOf(name: string): string {
+  const m = /\.([A-Za-z0-9]+)$/.exec(name || '')
+  return m ? m[1].toLowerCase() : ''
+}
+function guessType(name: string): string {
+  return MIME[extOf(name)] ?? 'application/octet-stream'
+}
+// 元のファイル名を保持するため、パスに encodeURIComponent して埋め込む
+function decodeName(pathname: string): string {
+  const base = pathname.split('/').pop() ?? ''
+  const idx = base.indexOf('__')
+  const raw = idx >= 0 ? base.slice(idx + 2) : base
+  try { return decodeURIComponent(raw) } catch { return raw }
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   cors(res)
   if (req.method === 'OPTIONS') return res.status(200).end()
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return res.status(503).json({ error: 'Photo storage not configured', setup_required: true })
+    return res.status(503).json({ error: 'Attachment storage not configured', setup_required: true })
   }
 
   try {
@@ -18,36 +49,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!ref_id || !ref_type) return res.status(400).json({ error: 'missing params' })
       const prefix = `photos/${ref_type}/${ref_id}/`
       const { blobs } = await list({ prefix })
-      return res.json(blobs.map(b => ({
-        url: b.url,
-        filename: b.pathname.split('/').pop() ?? '',
-        uploaded_at: b.uploadedAt,
-      })))
+      return res.json(blobs.map(b => {
+        const filename = decodeName(b.pathname)
+        return {
+          url: b.url,
+          filename,
+          content_type: guessType(filename),
+          is_image: IMAGE_EXT.has(extOf(filename)),
+          uploaded_at: b.uploadedAt,
+        }
+      }))
     }
 
     if (req.method === 'POST') {
-      const { filename, data, ref_id, ref_type } = req.body ?? {}
+      const { filename, data, ref_id, ref_type, content_type } = req.body ?? {}
       if (!filename || !data || !ref_id || !ref_type) {
         return res.status(400).json({ error: 'missing params' })
       }
       const prefix = `photos/${ref_type}/${ref_id}/`
       const { blobs } = await list({ prefix })
-      if (blobs.length >= MAX_PHOTOS) {
-        return res.status(400).json({ error: `最大${MAX_PHOTOS}枚までです` })
+      if (blobs.length >= MAX_FILES) {
+        return res.status(400).json({ error: `最大${MAX_FILES}件までです` })
       }
-      const base64Data = String(data).replace(/^data:image\/\w+;base64,/, '')
+      const match = /^data:([^;]+);base64,/.exec(String(data))
+      const mime = content_type || (match ? match[1] : guessType(filename))
+      const base64Data = String(data).replace(/^data:[^;]+;base64,/, '')
       const buffer = Buffer.from(base64Data, 'base64')
-      if (buffer.length > 4 * 1024 * 1024) {
-        return res.status(400).json({ error: 'ファイルサイズが大きすぎます (最大4MB)' })
+      if (buffer.length > MAX_BYTES) {
+        return res.status(400).json({ error: 'ファイルサイズが大きすぎます (最大3MB)' })
       }
-      const safeName = `${Date.now()}.jpg`
+      const safeName = `${Date.now()}__${encodeURIComponent(filename)}`
       const blob = await put(`${prefix}${safeName}`, buffer, {
         access: 'public',
-        contentType: 'image/jpeg',
+        contentType: mime,
       })
       return res.status(201).json({
         url: blob.url,
-        filename: safeName,
+        filename,
+        content_type: mime,
+        is_image: IMAGE_EXT.has(extOf(filename)) || mime.startsWith('image/'),
         uploaded_at: new Date().toISOString(),
       })
     }

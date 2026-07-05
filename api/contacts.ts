@@ -1,9 +1,35 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { notion, toContact, NOTICES_DB, cors } from './_lib'
+import { notion, toContact, NOTICES_DB, cors, getText, parseReplies, CONTACT_REPLY_PROP } from './_lib'
 import { isFullPage } from '@notionhq/client'
 
 // 連絡（報連相）は お知らせDB(NOTICES_DB) に 種別=連絡 として格納する
 const KIND = '連絡'
+
+// 返信スレッド（会話）は各連絡ページの rich_text プロパティに JSON で保存する。
+// Notionの rich_text は1オブジェクト2000字上限のため、分割して書き込む。
+function chunkText(s: string, size = 1900): { text: { content: string } }[] {
+  if (!s) return [{ text: { content: '' } }]
+  const out: { text: { content: string } }[] = []
+  for (let i = 0; i < s.length; i += size) out.push({ text: { content: s.slice(i, i + size) } })
+  return out.slice(0, 100)
+}
+
+async function readReplies(id: string): Promise<any[]> {
+  const page: any = await notion.pages.retrieve({ page_id: id })
+  return parseReplies(getText(page.properties?.[CONTACT_REPLY_PROP]))
+}
+
+async function writeReplies(id: string, replies: any[]): Promise<void> {
+  // プロパティが未作成でも書けるよう、先にスキーマへ追加を試みる（既存なら実質no-op）
+  await notion.databases.update({
+    database_id: NOTICES_DB,
+    properties: { [CONTACT_REPLY_PROP]: { rich_text: {} } },
+  }).catch(() => { /* 既に存在 */ })
+  await notion.pages.update({
+    page_id: id,
+    properties: { [CONTACT_REPLY_PROP]: { rich_text: chunkText(JSON.stringify(replies)) } },
+  })
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   cors(res)
@@ -45,6 +71,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!isFullPage(page)) return res.status(404).json({ error: 'not found' })
       return res.json(toContact(page))
     }
+    // 返信を追加（会話スレッドへ1件append）
+    if (req.method === 'POST') {
+      const { author, content, attachments } = req.body ?? {}
+      if (!content && (!Array.isArray(attachments) || attachments.length === 0)) {
+        return res.status(400).json({ error: '本文か添付が必要です' })
+      }
+      const replies = await readReplies(id)
+      const reply = {
+        id: `${Date.now()}${Math.floor(Math.random() * 1000)}`,
+        author: author || '',
+        content: content || '',
+        at: new Date().toISOString(),
+        attachments: Array.isArray(attachments) ? attachments : [],
+      }
+      replies.push(reply)
+      await writeReplies(id, replies)
+      return res.status(201).json(reply)
+    }
     if (req.method === 'PATCH') {
       const { subject, recipients, content, poster, date, office, confirmed, confirmed_by } = req.body
       const props: any = {}
@@ -60,6 +104,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.json(toContact(page))
     }
     if (req.method === 'DELETE') {
+      // ?reply=xxx が付いていれば返信1件だけ削除、なければ連絡自体を削除
+      const replyId = req.query.reply as string | undefined
+      if (replyId) {
+        const replies = await readReplies(id)
+        await writeReplies(id, replies.filter(r => r.id !== replyId))
+        return res.json({ ok: true })
+      }
       await notion.pages.update({ page_id: id, archived: true })
       return res.json({ ok: true })
     }

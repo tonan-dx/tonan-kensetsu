@@ -199,6 +199,19 @@ export function toNotice(page: any) {
   }
 }
 
+// 返信スレッドを格納する rich_text プロパティ名（お知らせDB上）
+export const CONTACT_REPLY_PROP = '返信スレッド'
+
+export function parseReplies(text: string): any[] {
+  if (!text) return []
+  try {
+    const arr = JSON.parse(text)
+    return Array.isArray(arr) ? arr : []
+  } catch {
+    return []
+  }
+}
+
 // 連絡（報連相）は お知らせDB に 種別=連絡 として格納（連携済みDBのため）
 export function toContact(page: any) {
   if (!isFullPage(page)) return null
@@ -213,6 +226,7 @@ export function toContact(page: any) {
     office: getSelect(p['拠点']) || null,
     confirmed: p['確認済み']?.checkbox ?? false,
     confirmed_by: getMultiSelect(p['確認者リスト']),
+    replies: parseReplies(getText(p[CONTACT_REPLY_PROP])),
     created_at: page.created_time,
   }
 }

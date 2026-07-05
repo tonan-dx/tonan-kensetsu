@@ -11,6 +11,21 @@ export interface Notice {
   created_at: string
 }
 
+export interface Attachment {
+  url: string
+  filename: string
+  content_type: string | null
+  uploaded_at?: string
+}
+
+export interface ContactReply {
+  id: string
+  author: string
+  content: string
+  at: string
+  attachments: Attachment[]
+}
+
 export interface Contact {
   id: string
   subject: string
@@ -21,6 +36,7 @@ export interface Contact {
   office: string | null
   confirmed: boolean
   confirmed_by: string[]
+  replies: ContactReply[]
   created_at: string
 }
 
