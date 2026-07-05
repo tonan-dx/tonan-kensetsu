@@ -41,7 +41,8 @@ export default function ContactThread() {
     try { return localStorage.getItem(ME_KEY) ?? '' } catch { return '' }
   })
   const [text, setText] = useState('')
-  const [pending, setPending] = useState<File[]>([])
+  const [staged, setStaged] = useState<Attachment[]>([])
+  const [attaching, setAttaching] = useState(false)
   const [sending, setSending] = useState(false)
   const [menuId, setMenuId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -81,28 +82,21 @@ export default function ContactThread() {
   }
 
   const send = async () => {
-    if (sending) return
-    if (!text.trim() && pending.length === 0) return
+    if (sending || attaching) return
+    if (!text.trim() && staged.length === 0) return
     setSending(true)
     try {
-      const attachments: Attachment[] = []
-      for (const file of pending) {
-        try {
-          attachments.push(await uploadAttachment(file, id!, 'contact-msg'))
-        } catch (e: any) {
-          alert(e?.message || `${file.name} のアップロードに失敗しました`)
-        }
-      }
       const reply: ContactReply = await fetch(`/api/contacts/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ author: me, content: text.trim(), attachments }),
+        body: JSON.stringify({ author: me, content: text.trim(), attachments: staged }),
       }).then(r => r.json())
       if (reply && reply.id) {
         setContact(prev => prev ? { ...prev, replies: [...(prev.replies ?? []), reply] } : prev)
         setText('')
-        setPending([])
-        if (fileRef.current) fileRef.current.value = ''
+        setStaged([])
+      } else {
+        alert('送信に失敗しました')
       }
     } catch (e) {
       console.error(e)
@@ -112,10 +106,23 @@ export default function ContactThread() {
     }
   }
 
-  const addPending = (files: FileList | null) => {
-    if (!files) return
-    setPending(prev => [...prev, ...Array.from(files)].slice(0, 10))
+  // お知らせと同じく、選んだ時点で即アップロード（送信時ではなく）
+  const attachFiles = async (files: FileList | null) => {
+    if (!files || attaching) return
+    const list = Array.from(files).slice(0, 10 - staged.length)
     if (fileRef.current) fileRef.current.value = ''
+    if (!list.length) return
+    setAttaching(true)
+    for (const file of list) {
+      try {
+        const a = await uploadAttachment(file, id!, 'contact-msg')
+        setStaged(prev => [...prev, a])
+      } catch (e: any) {
+        console.error('attach failed', e)
+        alert(e?.message || `${file.name} の添付に失敗しました`)
+      }
+    }
+    setAttaching(false)
   }
 
   const startEdit = (m: Msg) => {
@@ -265,14 +272,15 @@ export default function ContactThread() {
       </div>
 
       <div className="chat-composer">
-        {pending.length > 0 && (
+        {(staged.length > 0 || attaching) && (
           <div className="chat-pending">
-            {pending.map((f, i) => (
-              <span key={i} className="chat-pending-chip">
-                <span>{f.name}</span>
-                <button onClick={() => setPending(prev => prev.filter((_, j) => j !== i))}><X size={12} /></button>
+            {staged.map((a, i) => (
+              <span key={a.url} className="chat-pending-chip">
+                <span>{a.filename}</span>
+                <button onClick={() => setStaged(prev => prev.filter((_, j) => j !== i))}><X size={12} /></button>
               </span>
             ))}
+            {attaching && <span className="chat-pending-chip"><Loader size={12} className="spin" /> アップロード中…</span>}
           </div>
         )}
         <div className="chat-composer-row">
@@ -280,10 +288,10 @@ export default function ContactThread() {
             <option value="">名前</option>
             {MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
-          <button className="chat-attach-btn" onClick={() => fileRef.current?.click()} title="画像・ファイルを添付">
+          <button className="chat-attach-btn" onClick={() => fileRef.current?.click()} disabled={attaching} title="画像・ファイルを添付">
             <Paperclip size={18} />
           </button>
-          <input ref={fileRef} type="file" multiple style={{ display: 'none' }} onChange={e => addPending(e.target.files)} />
+          <input ref={fileRef} type="file" multiple style={{ display: 'none' }} onChange={e => attachFiles(e.target.files)} />
           <textarea
             className="chat-input"
             placeholder={me ? 'メッセージを入力' : 'まず名前を選んでください'}
@@ -291,7 +299,7 @@ export default function ContactThread() {
             rows={1}
             onChange={e => setText(e.target.value)}
           />
-          <button className="chat-send" onClick={send} disabled={sending || (!text.trim() && pending.length === 0)}>
+          <button className="chat-send" onClick={send} disabled={sending || attaching || (!text.trim() && staged.length === 0)}>
             {sending ? <Loader size={18} className="spin" /> : <Send size={18} />}
           </button>
         </div>
