@@ -1,46 +1,61 @@
 import { useState, useEffect, useRef } from 'react'
 import { Paperclip, Trash2, Plus, Loader, X, FileText } from 'lucide-react'
+import { upload } from '@vercel/blob/client'
 import type { Attachment } from '../types'
 
 const MAX_FILES = 20
 const MAX_PX = 1600
+const MAX_BYTES = 30 * 1024 * 1024
+
+// 画像を縮小してjpeg Blob化する（アップロード容量を抑える）
+function compressImage(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      let { width, height } = img
+      if (width > MAX_PX || height > MAX_PX) {
+        const r = Math.min(MAX_PX / width, MAX_PX / height)
+        width = Math.round(width * r)
+        height = Math.round(height * r)
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+      URL.revokeObjectURL(objectUrl)
+      canvas.toBlob(b => b ? resolve(b) : reject(new Error('compress failed')), 'image/jpeg', 0.82)
+    }
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('load failed')) }
+    img.src = objectUrl
+  })
+}
+
+// ブラウザから Vercel Blob へ直接アップロード（大きいPDF等も可・最大30MB）
+export async function uploadAttachment(file: File, refId: string, refType: string): Promise<Attachment> {
+  const isImg = file.type.startsWith('image/')
+  let body: Blob = file
+  let filename = file.name || 'file'
+  let contentType = file.type || 'application/octet-stream'
+  if (isImg) {
+    body = await compressImage(file)
+    filename = filename.replace(/\.[^.]+$/, '') + '.jpg'
+    contentType = 'image/jpeg'
+  }
+  if (body.size > MAX_BYTES) throw new Error('ファイルが大きすぎます（最大30MB）')
+  const pathname = `photos/${refType}/${refId}/${Date.now()}__${encodeURIComponent(filename)}`
+  const result = await upload(pathname, body, {
+    access: 'public',
+    handleUploadUrl: '/api/photos',
+    contentType,
+  })
+  return { url: result.url, filename, content_type: contentType }
+}
 
 interface Props {
   refId: string
   refType: string
   label?: string
-}
-
-// 画像は縮小してjpeg化、その他ファイルはそのままdataURL化して送る
-export function toDataUrl(file: File): Promise<{ data: string; contentType: string }> {
-  if (file.type.startsWith('image/')) {
-    return new Promise((resolve, reject) => {
-      const img = new Image()
-      const objectUrl = URL.createObjectURL(file)
-      img.onload = () => {
-        let { width, height } = img
-        if (width > MAX_PX || height > MAX_PX) {
-          const r = Math.min(MAX_PX / width, MAX_PX / height)
-          width = Math.round(width * r)
-          height = Math.round(height * r)
-        }
-        const canvas = document.createElement('canvas')
-        canvas.width = width
-        canvas.height = height
-        canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
-        URL.revokeObjectURL(objectUrl)
-        resolve({ data: canvas.toDataURL('image/jpeg', 0.82), contentType: 'image/jpeg' })
-      }
-      img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('load failed')) }
-      img.src = objectUrl
-    })
-  }
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve({ data: String(reader.result), contentType: file.type || 'application/octet-stream' })
-    reader.onerror = () => reject(new Error('read failed'))
-    reader.readAsDataURL(file)
-  })
 }
 
 export function isImage(a: Attachment): boolean {
@@ -68,15 +83,12 @@ export default function AttachmentBox({ refId, refType, label = '添付ファイ
     setUploading(true)
     for (const file of toUpload) {
       try {
-        const { data, contentType } = await toDataUrl(file)
-        const result = await fetch('/api/photos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: file.name, data, ref_id: refId, ref_type: refType, content_type: contentType }),
-        }).then(r => r.json())
-        if (result.url) setItems(prev => [...prev, result])
-        else if (result.error) alert(result.error)
-      } catch (e) { console.error('upload failed', e) }
+        const result = await uploadAttachment(file, refId, refType)
+        setItems(prev => [...prev, result])
+      } catch (e: any) {
+        console.error('upload failed', e)
+        alert(e?.message || 'アップロードに失敗しました')
+      }
     }
     setUploading(false)
     if (inputRef.current) inputRef.current.value = ''

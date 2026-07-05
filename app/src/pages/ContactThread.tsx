@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2, Send, Paperclip, X, Loader, Check, CheckCircle2 } from 'lucide-react'
 import type { Contact, ContactReply, Attachment } from '../types'
-import { AttachmentView, toDataUrl } from '../components/AttachmentBox'
+import { AttachmentView, uploadAttachment } from '../components/AttachmentBox'
 
 const MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 const ME_KEY = 'tonan-chat-me'
@@ -87,14 +87,11 @@ export default function ContactThread() {
     try {
       const attachments: Attachment[] = []
       for (const file of pending) {
-        const { data, contentType } = await toDataUrl(file)
-        const result = await fetch('/api/photos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: file.name, data, ref_id: id, ref_type: 'contact-msg', content_type: contentType }),
-        }).then(r => r.json())
-        if (result.url) attachments.push(result)
-        else if (result.error) alert(result.error)
+        try {
+          attachments.push(await uploadAttachment(file, id!, 'contact-msg'))
+        } catch (e: any) {
+          alert(e?.message || `${file.name} のアップロードに失敗しました`)
+        }
       }
       const reply: ContactReply = await fetch(`/api/contacts/${id}`, {
         method: 'POST',

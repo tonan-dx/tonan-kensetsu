@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { put, list, del } from '@vercel/blob'
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
 import { cors } from './_lib'
 
 // 画像・ファイル添付を Vercel Blob に保存する（ref_type / ref_id 単位）
@@ -59,6 +60,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           uploaded_at: b.uploadedAt,
         }
       }))
+    }
+
+    // ブラウザからの直接アップロード（大きいPDF等・Vercelのボディ上限を回避）
+    // クライアントの upload() が送る token 要求 / 完了通知を処理する
+    if (req.method === 'POST' && typeof req.body?.type === 'string' && req.body.type.startsWith('blob.')) {
+      const jsonResponse = await handleUpload({
+        body: req.body as HandleUploadBody,
+        request: req,
+        onBeforeGenerateToken: async () => ({
+          addRandomSuffix: false,
+          maximumSizeInBytes: 30 * 1024 * 1024,
+        }),
+        onUploadCompleted: async () => { /* URLはクライアント側で取得済み。何もしない */ },
+      })
+      return res.status(200).json(jsonResponse)
     }
 
     if (req.method === 'POST') {
