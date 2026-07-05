@@ -1,19 +1,33 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2, Send, Paperclip, X, Loader, Check, CheckCircle2 } from 'lucide-react'
 import type { Contact, ContactReply, Attachment } from '../types'
 import { AttachmentView, toDataUrl } from '../components/AttachmentBox'
 
 const MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
+const ME_KEY = 'tonan-chat-me'
+const AVATAR_COLORS = ['#f97316', '#0ea5e9', '#8b5cf6', '#ec4899', '#14b8a6', '#eab308', '#ef4444', '#22c55e', '#6366f1', '#f43f5e']
+
+function colorFor(name: string): string {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
+  return AVATAR_COLORS[h % AVATAR_COLORS.length]
+}
 
 function timeLabel(iso: string): string {
   const d = new Date(iso)
   if (isNaN(d.getTime())) return ''
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
   const hh = String(d.getHours()).padStart(2, '0')
   const mi = String(d.getMinutes()).padStart(2, '0')
-  return `${mm}/${dd} ${hh}:${mi}`
+  return `${hh}:${mi}`
+}
+
+interface Msg {
+  id: string
+  author: string
+  content: string
+  at: string
+  attachments: Attachment[]
 }
 
 export default function ContactThread() {
@@ -22,7 +36,9 @@ export default function ContactThread() {
   const [contact, setContact] = useState<Contact | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const [author, setAuthor] = useState('')
+  const [me, setMe] = useState<string>(() => {
+    try { return localStorage.getItem(ME_KEY) ?? '' } catch { return '' }
+  })
   const [text, setText] = useState('')
   const [pending, setPending] = useState<File[]>([])
   const [sending, setSending] = useState(false)
@@ -36,7 +52,12 @@ export default function ContactThread() {
     }).catch(() => setLoading(false))
   }
   useEffect(() => { load() }, [id])
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [contact?.replies?.length])
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [contact?.replies?.length, loading])
+
+  const chooseMe = (name: string) => {
+    setMe(name)
+    try { localStorage.setItem(ME_KEY, name) } catch { /* ignore */ }
+  }
 
   const remove = async () => {
     if (!confirm('この報連相を削除しますか？')) return
@@ -59,7 +80,6 @@ export default function ContactThread() {
     if (!text.trim() && pending.length === 0) return
     setSending(true)
     try {
-      // 添付を先にアップロード
       const attachments: Attachment[] = []
       for (const file of pending) {
         const { data, contentType } = await toDataUrl(file)
@@ -69,12 +89,12 @@ export default function ContactThread() {
           body: JSON.stringify({ filename: file.name, data, ref_id: id, ref_type: 'contact-msg', content_type: contentType }),
         }).then(r => r.json())
         if (result.url) attachments.push(result)
-        else if (result.error) { alert(result.error) }
+        else if (result.error) alert(result.error)
       }
       const reply: ContactReply = await fetch(`/api/contacts/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ author, content: text.trim(), attachments }),
+        body: JSON.stringify({ author: me, content: text.trim(), attachments }),
       }).then(r => r.json())
       if (reply && reply.id) {
         setContact(prev => prev ? { ...prev, replies: [...(prev.replies ?? []), reply] } : prev)
@@ -96,10 +116,24 @@ export default function ContactThread() {
     if (fileRef.current) fileRef.current.value = ''
   }
 
+  // 元投稿を先頭メッセージとして、返信と連結する
+  const messages = useMemo<Msg[]>(() => {
+    if (!contact) return []
+    const origin: Msg = {
+      id: 'origin',
+      author: contact.poster || '',
+      content: contact.content || '',
+      at: contact.date || contact.created_at,
+      attachments: [],
+    }
+    const rest: Msg[] = (contact.replies ?? []).map(r => ({
+      id: r.id, author: r.author, content: r.content, at: r.at, attachments: r.attachments ?? [],
+    }))
+    return [origin, ...rest]
+  }, [contact])
+
   if (loading) return <div className="loading">読み込み中...</div>
   if (!contact) return <div className="loading">報連相が見つかりません</div>
-
-  const replies = contact.replies ?? []
 
   return (
     <div className="chat-page">
@@ -123,50 +157,54 @@ export default function ContactThread() {
         <button className="btn-icon danger" onClick={remove}><Trash2 size={17} /></button>
       </div>
 
-      <div className="chat-body">
-        {/* 元の投稿（会話の先頭） */}
-        <div className="chat-msg">
-          <div className="chat-msg-meta">
-            <span className="chat-msg-author">{contact.poster || '投稿'}</span>
-            {contact.date && <span className="chat-msg-time">{contact.date}</span>}
-          </div>
-          <div className="chat-bubble chat-bubble-origin">
-            {contact.content ? contact.content : <span className="chat-empty">（本文なし）</span>}
-          </div>
-        </div>
-
-        {/* 返信 */}
-        {replies.map(r => (
-          <div key={r.id} className="chat-msg">
-            <div className="chat-msg-meta">
-              <span className="chat-msg-author">{r.author || '匿名'}</span>
-              <span className="chat-msg-time">{timeLabel(r.at)}</span>
-            </div>
-            {r.content && <div className="chat-bubble">{r.content}</div>}
-            {r.attachments?.length > 0 && (
-              <div className="chat-attach">
-                {r.attachments.map(a => <AttachmentView key={a.url} a={a} onView={u => window.open(u, '_blank')} />)}
+      <div className="chat-body line-bg">
+        {messages.map(m => {
+          const mine = !!me && m.author === me
+          const hasBody = !!m.content
+          return (
+            <div key={m.id} className={`line-row ${mine ? 'mine' : 'other'}`}>
+              {!mine && (
+                <div className="line-avatar" style={{ background: colorFor(m.author || '？') }}>
+                  {(m.author || '？').slice(0, 1)}
+                </div>
+              )}
+              <div className="line-stack">
+                {!mine && <div className="line-name">{m.author || '投稿'}</div>}
+                <div className="line-bubble-wrap">
+                  {mine && <span className="line-time">{timeLabel(m.at)}</span>}
+                  <div className="line-content">
+                    {hasBody && <div className={`line-bubble ${mine ? 'mine' : 'other'}`}>{m.content}</div>}
+                    {m.attachments.length > 0 && (
+                      <div className="line-attach">
+                        {m.attachments.map(a => <AttachmentView key={a.url} a={a} onView={u => window.open(u, '_blank')} />)}
+                      </div>
+                    )}
+                    {!hasBody && m.attachments.length === 0 && (
+                      <div className={`line-bubble ${mine ? 'mine' : 'other'} line-empty`}>（本文なし）</div>
+                    )}
+                  </div>
+                  {!mine && <span className="line-time">{timeLabel(m.at)}</span>}
+                </div>
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          )
+        })}
         <div ref={endRef} />
       </div>
 
-      {/* 返信入力 */}
       <div className="chat-composer">
         {pending.length > 0 && (
           <div className="chat-pending">
             {pending.map((f, i) => (
               <span key={i} className="chat-pending-chip">
-                {f.name}
+                <span>{f.name}</span>
                 <button onClick={() => setPending(prev => prev.filter((_, j) => j !== i))}><X size={12} /></button>
               </span>
             ))}
           </div>
         )}
         <div className="chat-composer-row">
-          <select className="chat-author-select" value={author} onChange={e => setAuthor(e.target.value)}>
+          <select className="chat-author-select" value={me} onChange={e => chooseMe(e.target.value)} title="自分の名前">
             <option value="">名前</option>
             {MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
@@ -176,7 +214,7 @@ export default function ContactThread() {
           <input ref={fileRef} type="file" multiple style={{ display: 'none' }} onChange={e => addPending(e.target.files)} />
           <textarea
             className="chat-input"
-            placeholder="メッセージを入力"
+            placeholder={me ? 'メッセージを入力' : 'まず名前を選んでください'}
             value={text}
             rows={1}
             onChange={e => setText(e.target.value)}

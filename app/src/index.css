@@ -2267,31 +2267,53 @@ input, select, textarea { font: inherit; }
 
 .chat-body {
   flex: 1;
-  padding: 14px 12px;
+  padding: 14px 10px 18px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  background: var(--bg);
+  gap: 12px;
 }
-.chat-msg { display: flex; flex-direction: column; gap: 3px; max-width: 88%; }
-.chat-msg-meta { display: flex; align-items: baseline; gap: 8px; padding: 0 2px; }
-.chat-msg-author { font-size: 12px; font-weight: 600; color: var(--text); }
-.chat-msg-time { font-size: 10px; color: var(--text-sub); }
-.chat-bubble {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 4px 14px 14px 14px;
-  padding: 9px 12px;
+.line-bg { background: #7d9bc1; }
+
+.line-row { display: flex; align-items: flex-start; gap: 7px; max-width: 100%; }
+.line-row.mine { flex-direction: row-reverse; }
+.line-avatar {
+  flex: 0 0 auto;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 15px; font-weight: 700;
+  margin-top: 16px;
+}
+.line-stack { display: flex; flex-direction: column; gap: 3px; max-width: 78%; min-width: 0; }
+.line-name { font-size: 11px; color: #eef2f7; padding: 0 2px; }
+.line-bubble-wrap { display: flex; align-items: flex-end; gap: 5px; }
+.line-row.mine .line-bubble-wrap { flex-direction: row; justify-content: flex-end; }
+.line-content { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.line-time { flex: 0 0 auto; font-size: 10px; color: #eef2f7; opacity: 0.9; margin-bottom: 1px; white-space: nowrap; }
+
+.line-bubble {
+  padding: 8px 11px;
   font-size: 14px;
-  line-height: 1.55;
-  color: var(--text);
+  line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
-  box-shadow: var(--shadow);
+  border-radius: 16px;
+  max-width: 100%;
 }
-.chat-bubble-origin { background: var(--blue-light); border-color: #cfe0f7; }
-.chat-empty { color: var(--text-sub); }
-.chat-attach { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.line-bubble.other {
+  background: #fff;
+  color: #1a1a1a;
+  border-top-left-radius: 4px;
+}
+.line-bubble.mine {
+  background: #06c755;
+  color: #fff;
+  border-top-right-radius: 4px;
+  align-self: flex-end;
+}
+.line-bubble.line-empty { opacity: 0.6; font-style: italic; }
+.line-attach { display: flex; flex-wrap: wrap; gap: 8px; }
+.line-row.mine .line-attach { justify-content: flex-end; }
 
 .chat-composer {
   position: sticky;
