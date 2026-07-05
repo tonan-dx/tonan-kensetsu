@@ -39,9 +39,14 @@ export default function Contacts() {
     setContacts(prev => prev.filter(x => x.id !== c.id))
   }
 
+  // 最新の書き込み時刻（作成 or 最後の返信）。返信が付いたスレッドを上に上げる。
+  const lastActivity = (c: Contact) =>
+    [c.created_at, ...(c.replies ?? []).map(r => r.at)].filter(Boolean).reduce((a, b) => (a > b ? a : b), '')
+
   const visible = contacts
     .filter(c => matchesOffice(c.office, loc))
     .filter(c => !filterTo || c.recipients.includes(filterTo))
+    .sort((a, b) => lastActivity(b).localeCompare(lastActivity(a)))
 
   const active = visible.filter(c => !c.confirmed)
   const done = visible.filter(c => c.confirmed)

@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const response = await notion.databases.query({
           database_id: NOTICES_DB,
           filter: { property: '種別', select: { does_not_equal: '連絡' } },
-          sorts: [{ property: '日付', direction: 'descending' }],
+          sorts: [{ timestamp: 'created_time', direction: 'descending' }],
         })
         return res.json(response.results.map(toNotice).filter(Boolean))
       }
