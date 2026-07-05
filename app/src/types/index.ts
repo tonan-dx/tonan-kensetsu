@@ -23,6 +23,7 @@ export interface ContactReply {
   author: string
   content: string
   at: string
+  edited_at?: string
   attachments: Attachment[]
 }
 

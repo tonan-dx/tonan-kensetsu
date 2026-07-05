@@ -90,6 +90,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(201).json(reply)
     }
     if (req.method === 'PATCH') {
+      // reply_id が指定されていれば、その返信1件だけ本文/添付を編集する
+      const replyId = req.body?.reply_id as string | undefined
+      if (replyId) {
+        const replies = await readReplies(id)
+        const idx = replies.findIndex(r => r.id === replyId)
+        if (idx < 0) return res.status(404).json({ error: 'reply not found' })
+        if (typeof req.body.content === 'string') replies[idx].content = req.body.content
+        if (Array.isArray(req.body.attachments)) replies[idx].attachments = req.body.attachments
+        replies[idx].edited_at = new Date().toISOString()
+        await writeReplies(id, replies)
+        return res.json(replies[idx])
+      }
       const { subject, recipients, content, poster, date, office, confirmed, confirmed_by } = req.body
       const props: any = {}
       if (subject != null) props['タイトル'] = { title: [{ text: { content: subject } }] }

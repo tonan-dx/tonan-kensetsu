@@ -27,6 +27,7 @@ interface Msg {
   author: string
   content: string
   at: string
+  edited_at?: string
   attachments: Attachment[]
 }
 
@@ -42,6 +43,10 @@ export default function ContactThread() {
   const [text, setText] = useState('')
   const [pending, setPending] = useState<File[]>([])
   const [sending, setSending] = useState(false)
+  const [menuId, setMenuId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editText, setEditText] = useState('')
+  const [savingEdit, setSavingEdit] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
 
@@ -116,6 +121,40 @@ export default function ContactThread() {
     if (fileRef.current) fileRef.current.value = ''
   }
 
+  const startEdit = (m: Msg) => {
+    setMenuId(null)
+    setEditingId(m.id)
+    setEditText(m.content)
+  }
+
+  const saveEdit = async (replyId: string) => {
+    if (savingEdit) return
+    setSavingEdit(true)
+    try {
+      const updated: ContactReply = await fetch(`/api/contacts/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reply_id: replyId, content: editText.trim() }),
+      }).then(r => r.json())
+      if (updated && updated.id) {
+        setContact(prev => prev ? { ...prev, replies: (prev.replies ?? []).map(r => r.id === replyId ? updated : r) } : prev)
+        setEditingId(null)
+      }
+    } catch (e) {
+      console.error(e)
+      alert('編集に失敗しました')
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
+  const deleteReply = async (replyId: string) => {
+    setMenuId(null)
+    if (!confirm('このメッセージを取り消しますか？')) return
+    await fetch(`/api/contacts/${id}?reply=${replyId}`, { method: 'DELETE' }).catch(() => {})
+    setContact(prev => prev ? { ...prev, replies: (prev.replies ?? []).filter(r => r.id !== replyId) } : prev)
+  }
+
   // 元投稿を先頭メッセージとして、返信と連結する
   const messages = useMemo<Msg[]>(() => {
     if (!contact) return []
@@ -127,7 +166,7 @@ export default function ContactThread() {
       attachments: [],
     }
     const rest: Msg[] = (contact.replies ?? []).map(r => ({
-      id: r.id, author: r.author, content: r.content, at: r.at, attachments: r.attachments ?? [],
+      id: r.id, author: r.author, content: r.content, at: r.at, edited_at: r.edited_at, attachments: r.attachments ?? [],
     }))
     return [origin, ...rest]
   }, [contact])
@@ -161,6 +200,8 @@ export default function ContactThread() {
         {messages.map(m => {
           const mine = !!me && m.author === me
           const hasBody = !!m.content
+          const isOrigin = m.id === 'origin'
+          const editing = editingId === m.id
           return (
             <div key={m.id} className={`line-row ${mine ? 'mine' : 'other'}`}>
               {!mine && (
@@ -171,19 +212,53 @@ export default function ContactThread() {
               <div className="line-stack">
                 {!mine && <div className="line-name">{m.author || '投稿'}</div>}
                 <div className="line-bubble-wrap">
-                  {mine && <span className="line-time">{timeLabel(m.at)}</span>}
+                  {mine && <span className="line-time">{timeLabel(m.at)}{m.edited_at ? ' ・編集済み' : ''}</span>}
                   <div className="line-content">
-                    {hasBody && <div className={`line-bubble ${mine ? 'mine' : 'other'}`}>{m.content}</div>}
-                    {m.attachments.length > 0 && (
-                      <div className="line-attach">
-                        {m.attachments.map(a => <AttachmentView key={a.url} a={a} onView={u => window.open(u, '_blank')} />)}
+                    {editing ? (
+                      <div className="line-edit">
+                        <textarea className="line-edit-input" value={editText} rows={2} onChange={e => setEditText(e.target.value)} />
+                        <div className="line-edit-actions">
+                          <button className="line-edit-cancel" onClick={() => setEditingId(null)}>やめる</button>
+                          <button className="line-edit-save" onClick={() => saveEdit(m.id)} disabled={savingEdit || !editText.trim()}>保存</button>
+                        </div>
                       </div>
-                    )}
-                    {!hasBody && m.attachments.length === 0 && (
-                      <div className={`line-bubble ${mine ? 'mine' : 'other'} line-empty`}>（本文なし）</div>
+                    ) : (
+                      <>
+                        {hasBody && (
+                          <div
+                            className={`line-bubble ${mine ? 'mine' : 'other'}`}
+                            onClick={() => mine && setMenuId(menuId === m.id ? null : m.id)}
+                          >
+                            {m.content}
+                          </div>
+                        )}
+                        {m.attachments.length > 0 && (
+                          <div className="line-attach">
+                            {m.attachments.map(a => <AttachmentView key={a.url} a={a} onView={u => window.open(u, '_blank')} />)}
+                          </div>
+                        )}
+                        {!hasBody && m.attachments.length === 0 && (
+                          <div
+                            className={`line-bubble ${mine ? 'mine' : 'other'} line-empty`}
+                            onClick={() => mine && setMenuId(menuId === m.id ? null : m.id)}
+                          >（本文なし）</div>
+                        )}
+                        {mine && menuId === m.id && (
+                          <div className="line-actions">
+                            {isOrigin ? (
+                              <button onClick={() => navigate(`/contacts/${id}/edit`)}>編集</button>
+                            ) : (
+                              <>
+                                {hasBody && <button onClick={() => startEdit(m)}>編集</button>}
+                                <button className="danger" onClick={() => deleteReply(m.id)}>取消</button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
-                  {!mine && <span className="line-time">{timeLabel(m.at)}</span>}
+                  {!mine && <span className="line-time">{timeLabel(m.at)}{m.edited_at ? ' ・編集済み' : ''}</span>}
                 </div>
               </div>
             </div>
