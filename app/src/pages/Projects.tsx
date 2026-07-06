@@ -81,6 +81,12 @@ export default function Projects() {
     const matchCategory = !filterCategory || (p.category === filterCategory && p.status !== '入金済み')
     const matchDivision = !filterDivision || p.division === filterDivision
     return matchSearch && matchStatus && matchYear && matchCategory && matchDivision && matchesOffice(p.office, loc)
+  }).sort((a, b) => {
+    // 着工日の若い順（早い日付が上）。着工日なしは末尾。
+    if (!a.start_date && !b.start_date) return 0
+    if (!a.start_date) return 1
+    if (!b.start_date) return -1
+    return a.start_date.localeCompare(b.start_date)
   })
 
   // 年度別の区分別 合計（決定済みの全工事・最終金額／拠点フィルタ反映／年度は projectFiscalYear）

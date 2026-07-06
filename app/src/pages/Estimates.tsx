@@ -41,6 +41,8 @@ export default function Estimates() {
     .filter(e => !filterStatus || e.status === filterStatus)
     .filter(e => !filterAssignee || e.assignee === filterAssignee)
     .filter(e => matchesOffice(e.office, loc))
+    // 登録した新しい順（新着が上）
+    .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
 
   return (
     <div className="page">
