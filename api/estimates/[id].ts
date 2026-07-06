@@ -41,6 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const estimate = toEstimate(page)
 
     // 着工決定時に工事一覧へ自動スライド（まだ関連工事がない場合のみ）
+    let createdProjectId: string | null = null
     if (status === '着工決定' && !estimate?.related_project_id) {
       const projectProps: any = {
         '工事名': { title: [{ text: { content: estimate?.title ?? '' } }] },
@@ -61,6 +62,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         parent: { database_id: PROJECTS_DB },
         properties: projectProps,
       })
+      createdProjectId = projectPage.id
 
       // 見積に関連工事をリンク
       await notion.pages.update({
@@ -69,7 +71,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })
     }
 
-    return res.json(estimate)
+    return res.json({
+      ...(estimate ?? {}),
+      related_project_id: estimate?.related_project_id ?? createdProjectId,
+      created_project_id: createdProjectId,
+    })
   }
 
   if (req.method === 'DELETE') {
