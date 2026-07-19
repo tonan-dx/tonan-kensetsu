@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CalendarOff } from 'lucide-react'
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addMonths, addWeeks, addDays, eachDayOfInterval,
@@ -8,6 +8,8 @@ import {
 } from 'date-fns'
 import type { Project, DailyReport, Notice, Estimate, SafetyRecord, Contact, Task } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
+import { isLeave, parseLeave, leaveLabel } from '../lib/leave'
+import LeaveModal from '../components/LeaveModal'
 
 /** カレンダーに載せる予定の種類。表示順・色・ラベルの真実源。 */
 const TYPE_META = {
@@ -21,6 +23,7 @@ const TYPE_META = {
   safety:   { label: '安全',     color: '#b45309' },
   contact:  { label: '連絡',     color: '#0d9488' },
   task:     { label: 'ToDo',     color: '#64748b' },
+  leave:    { label: '休み',     color: '#e11d48' },
 } as const
 
 type EventKind = keyof typeof TYPE_META
@@ -90,6 +93,11 @@ function buildEvents(data: {
     push(c.id, 'contact', c.date, c.subject, `/contacts/${c.id}`, c.office)
   }
   for (const t of data.tasks) {
+    if (isLeave(t)) {
+      const { half } = parseLeave(t.ref_id)
+      push(t.id, 'leave', t.due_date, leaveLabel(t.assignee ?? '', half), null, t.office)
+      continue
+    }
     if (t.done) continue
     const route = t.ref_type ? TASK_REF_ROUTE[t.ref_type] : undefined
     const link = route && t.ref_id ? `/${route}/${t.ref_id}` : null
@@ -105,8 +113,9 @@ export default function Calendar() {
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<ViewMode>('month')
   const [cursor, setCursor] = useState(() => new Date())
+  const [leaveOpen, setLeaveOpen] = useState(false)
 
-  useEffect(() => {
+  const loadEvents = useCallback(() => {
     const j = (p: string) => fetch(p).then(r => r.json()).catch(() => [])
     Promise.all([
       j('/api/projects'), j('/api/reports'), j('/api/notices'),
@@ -119,6 +128,7 @@ export default function Calendar() {
       setLoading(false)
     })
   }, [])
+  useEffect(() => { loadEvents() }, [loadEvents])
 
   // 拠点フィルター＋日付キーでグルーピング（種類順にソート）
   const eventsByKey = useMemo(() => {
@@ -167,6 +177,9 @@ export default function Calendar() {
         <button className="cal-today-btn" onClick={goToday}>今日</button>
         <span className="cal-range">{rangeLabel}</span>
         <button className="cal-nav-btn" onClick={goNext} aria-label="次へ"><ChevronRight size={20} /></button>
+        <button className="cal-leave-btn" onClick={() => setLeaveOpen(true)}>
+          <CalendarOff size={15} /> 休み登録
+        </button>
       </div>
 
       {loading ? (
@@ -195,6 +208,15 @@ export default function Calendar() {
           </span>
         ))}
       </div>
+
+      {leaveOpen && (
+        <LeaveModal
+          defaultDate={format(cursor, 'yyyy-MM-dd')}
+          loc={loc}
+          onClose={() => setLeaveOpen(false)}
+          onChanged={loadEvents}
+        />
+      )}
     </div>
   )
 }
