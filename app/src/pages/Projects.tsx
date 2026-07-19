@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Search, GanttChart } from 'lucide-react'
+import { Plus, Search, CalendarDays } from 'lucide-react'
 import type { Project, ProjectStatus, ProjectCategory } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
@@ -111,8 +111,8 @@ export default function Projects() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">工事一覧</h1>
-        <Link to="/timeline" className="btn-sm">
-          <GanttChart size={15} /> 工程
+        <Link to="/calendar" className="btn-sm">
+          <CalendarDays size={15} /> 予定
         </Link>
         <Link to="/projects/new" className="btn-primary">
           <Plus size={18} /> 新規
