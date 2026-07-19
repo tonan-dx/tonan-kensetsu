@@ -114,6 +114,7 @@ export default function TaskList({ refId, refType }: Props) {
               <option value="">担当者</option>
               {MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
+            <span className="task-date-label">実施日</span>
             <input
               type="date"
               className="task-date"
@@ -129,6 +130,7 @@ export default function TaskList({ refId, refType }: Props) {
             </button>
             <button className="task-cancel-btn" onClick={() => setAdding(false)}>×</button>
           </div>
+          <p className="task-add-hint">登録日（入力した日）は自動で記録されます。実施日（予定日）を指定してください。</p>
         </div>
       )}
 
@@ -191,7 +193,7 @@ function TaskItem({ task, onToggle, onDelete, onUpdate }: {
       name: editName.trim(),
       assignee: editAssignee || null,
       due_date: editDue || null,
-    } as any)
+    })
     setSaving(false)
     setEditing(false)
   }
@@ -221,6 +223,7 @@ function TaskItem({ task, onToggle, onDelete, onUpdate }: {
             <option value="">担当者</option>
             {MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
+          <span className="task-date-label">実施日</span>
           <input
             type="date"
             className="task-date"
@@ -247,7 +250,7 @@ function TaskItem({ task, onToggle, onDelete, onUpdate }: {
           {task.assignee && <span className="task-assignee">{task.assignee}</span>}
           {task.due_date && (
             <span className={`task-due${isOverdue ? ' overdue' : ''}`}>
-              {task.due_date}
+              実施 {task.due_date.replace(/-/g, '/').slice(5)}
             </span>
           )}
         </div>
