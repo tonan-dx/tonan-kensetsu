@@ -9,6 +9,27 @@ const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施�
 const DIVISIONS = ['民間', '公共', '下請', '積水ハウス', '修繕']
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
+/** タップで選ぶチップ式セレクタ。activeを再タップで解除（allowClear時）。 */
+function ChipGroup({ options, value, onSelect, allowClear = true }: {
+  options: readonly string[]
+  value: string
+  onSelect: (v: string) => void
+  allowClear?: boolean
+}) {
+  return (
+    <div className="chip-group">
+      {options.map(o => (
+        <button
+          type="button"
+          key={o}
+          className={`chip-opt${value === o ? ' active' : ''}`}
+          onClick={() => onSelect(value === o && allowClear ? '' : o)}
+        >{o}</button>
+      ))}
+    </div>
+  )
+}
+
 export default function ProjectForm() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -72,7 +93,7 @@ export default function ProjectForm() {
     setSaving(true)
     // 「完了」を選んだら自動的に「請求待ち」へ進める（完了＝請求待ちにたまる運用）
     const statusToSave = form.status === '完了' ? '請求待ち' : form.status
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       name: form.name,
       office: form.office || null,
       client_name: form.client_name || undefined,
@@ -116,20 +137,13 @@ export default function ProjectForm() {
         {/* 拠点 */}
         <div className="form-group">
           <label className="form-label">拠点</label>
-          <select className="form-select" value={form.office} onChange={e => set('office', e.target.value)}>
-            <option value="">未設定</option>
-            <option value="本社">本社</option>
-            <option value="釜石">釜石</option>
-          </select>
+          <ChipGroup options={['本社', '釜石']} value={form.office} onSelect={v => set('office', v)} />
         </div>
 
         {/* 担当者 */}
         <div className="form-group">
           <label className="form-label">担当者</label>
-          <select className="form-select" value={form.assignee} onChange={e => set('assignee', e.target.value)}>
-            <option value="">未選択</option>
-            {ASSIGNEES.map(a => <option key={a}>{a}</option>)}
-          </select>
+          <ChipGroup options={ASSIGNEES} value={form.assignee} onSelect={v => set('assignee', v)} />
         </div>
 
         {/* 契約日 */}
@@ -142,27 +156,27 @@ export default function ProjectForm() {
         {/* 分類 */}
         <div className="form-group">
           <label className="form-label">工事分類</label>
-          <select className="form-select" value={form.category} onChange={e => set('category', e.target.value as ProjectCategory)}>
-            <option value="">未選択</option>
-            {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-          </select>
+          <ChipGroup options={CATEGORIES} value={form.category} onSelect={v => set('category', v)} />
         </div>
 
         {/* 工事区分（民間/公共/下請/積水ハウス/修繕） */}
         <div className="form-group">
           <label className="form-label">工事区分</label>
-          <select className="form-select" value={form.division} onChange={e => set('division', e.target.value)}>
-            <option value="">未選択</option>
-            {DIVISIONS.map(d => <option key={d}>{d}</option>)}
-          </select>
+          <ChipGroup options={DIVISIONS} value={form.division} onSelect={v => set('division', v)} />
         </div>
 
-        {/* ステータス */}
+        {/* ステータス（「完了」を押すと自動で「請求待ち」へ） */}
         <div className="form-group">
           <label className="form-label">ステータス</label>
-          <select className="form-select" value={form.status} onChange={e => set('status', e.target.value as ProjectStatus)}>
-            {STATUSES.map(s => <option key={s}>{s}</option>)}
-          </select>
+          <ChipGroup
+            options={STATUSES}
+            value={form.status}
+            allowClear={false}
+            onSelect={v => set('status', v === '完了' ? '請求待ち' : v)}
+          />
+          <p className="form-hint">
+            「完了」を押すと自動で「請求待ち」になります。請求日を入れると一覧で「請求済」表示、入金日を入れると「入金済み」になります。
+          </p>
         </div>
 
         {/* 工期 */}
@@ -234,11 +248,14 @@ export default function ProjectForm() {
             onChange={e => set('billing_date', e.target.value)} />
         </div>
 
-        {/* 入金日 */}
+        {/* 入金日（入力すると自動で「入金済み」へ） */}
         <div className="form-group">
           <label className="form-label">入金日</label>
           <input type="date" className="form-input" value={form.payment_date}
-            onChange={e => set('payment_date', e.target.value)} />
+            onChange={e => {
+              const v = e.target.value
+              setForm(f => ({ ...f, payment_date: v, status: v ? '入金済み' : f.status }))
+            }} />
         </div>
 
         {/* 備考 */}

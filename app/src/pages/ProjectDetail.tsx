@@ -5,19 +5,11 @@ import type { Project, DailyReport } from '../types'
 import TaskList from '../components/TaskList'
 import PhotoUpload from '../components/PhotoUpload'
 import { generateInvoice } from '../lib/invoice'
+import { STATUS_COLORS, displayStatus } from '../lib/projectStatus'
 
 const BILLING_STATUSES = ['完了', '請求待ち', '入金済み']
 // この請求書テンプレ(A)は本社の民間・下請工事が対象
 const INVOICE_DIVISIONS = ['民間', '下請']
-
-const STATUS_COLORS: Record<string, string> = {
-  '着工前': 'badge-gray',
-  '進行中': 'badge-blue',
-  '確認待ち': 'badge-gray',
-  '完了': 'badge-green',
-  '請求待ち': 'badge-gray',
-  '入金済み': 'badge-green',
-}
 
 export default function ProjectDetail() {
   const { id } = useParams()
@@ -97,7 +89,7 @@ export default function ProjectDetail() {
       <div className="detail-card">
         <div className="detail-row">
           <span className="detail-label">ステータス</span>
-          <span className={`badge ${STATUS_COLORS[project.status] ?? 'badge-gray'}`}>{project.status}</span>
+          <span className={`badge ${STATUS_COLORS[displayStatus(project)] ?? 'badge-gray'}`}>{displayStatus(project)}</span>
         </div>
         {project.client_name && (
           <div className="detail-row">
