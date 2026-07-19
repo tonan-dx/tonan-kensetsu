@@ -3,6 +3,14 @@
   "outputDirectory": "app/dist",
   "installCommand": "npm install",
   "framework": null,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/api/notices/:id", "destination": "/api/notices?id=:id" },
     { "source": "/api/contacts/:id", "destination": "/api/contacts?id=:id" },
