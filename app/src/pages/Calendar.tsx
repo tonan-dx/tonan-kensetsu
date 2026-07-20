@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, CalendarOff } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CalendarOff, CalendarPlus } from 'lucide-react'
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addMonths, addWeeks, addDays, eachDayOfInterval,
@@ -9,7 +9,9 @@ import {
 import type { Project, DailyReport, Notice, Estimate, SafetyRecord, Contact, Task } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { isLeave, parseLeave, leaveLabel } from '../lib/leave'
+import { isPlan, planLabel } from '../lib/plan'
 import LeaveModal from '../components/LeaveModal'
+import PlanModal from '../components/PlanModal'
 
 /** カレンダーに載せる予定の種類。表示順・色・ラベルの真実源。 */
 const TYPE_META = {
@@ -24,6 +26,7 @@ const TYPE_META = {
   contact:  { label: '連絡',     color: '#0d9488' },
   task:     { label: 'ToDo',     color: '#64748b' },
   leave:    { label: '休み',     color: '#e11d48' },
+  plan:     { label: '予定',     color: '#4338ca' },
 } as const
 
 type EventKind = keyof typeof TYPE_META
@@ -98,6 +101,10 @@ function buildEvents(data: {
       push(t.id, 'leave', t.due_date, leaveLabel(t.assignee ?? '', half), null, t.office)
       continue
     }
+    if (isPlan(t)) {
+      push(t.id, 'plan', t.due_date, planLabel(t.name, t.ref_id, t.assignee), null, t.office)
+      continue
+    }
     if (t.done) continue
     const route = t.ref_type ? TASK_REF_ROUTE[t.ref_type] : undefined
     const link = route && t.ref_id ? `/${route}/${t.ref_id}` : null
@@ -114,6 +121,7 @@ export default function Calendar() {
   const [view, setView] = useState<ViewMode>('month')
   const [cursor, setCursor] = useState(() => new Date())
   const [leaveOpen, setLeaveOpen] = useState(false)
+  const [planOpen, setPlanOpen] = useState(false)
 
   const loadEvents = useCallback(() => {
     const j = (p: string) => fetch(p).then(r => r.json()).catch(() => [])
@@ -177,8 +185,14 @@ export default function Calendar() {
         <button className="cal-today-btn" onClick={goToday}>今日</button>
         <span className="cal-range">{rangeLabel}</span>
         <button className="cal-nav-btn" onClick={goNext} aria-label="次へ"><ChevronRight size={20} /></button>
-        <button className="cal-leave-btn" onClick={() => setLeaveOpen(true)}>
-          <CalendarOff size={15} /> 休み登録
+      </div>
+
+      <div className="cal-actions">
+        <button className="cal-action-btn plan" onClick={() => setPlanOpen(true)}>
+          <CalendarPlus size={16} /> 予定登録
+        </button>
+        <button className="cal-action-btn leave" onClick={() => setLeaveOpen(true)}>
+          <CalendarOff size={16} /> 休み登録
         </button>
       </div>
 
@@ -214,6 +228,14 @@ export default function Calendar() {
           defaultDate={format(cursor, 'yyyy-MM-dd')}
           loc={loc}
           onClose={() => setLeaveOpen(false)}
+          onChanged={loadEvents}
+        />
+      )}
+      {planOpen && (
+        <PlanModal
+          defaultDate={format(cursor, 'yyyy-MM-dd')}
+          loc={loc}
+          onClose={() => setPlanOpen(false)}
           onChanged={loadEvents}
         />
       )}

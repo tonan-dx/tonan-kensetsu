@@ -4,6 +4,7 @@ import { ArrowLeft, Building2, ClipboardList, FileText, HardHat, Send, CheckSqua
 import type { Project, DailyReport, Estimate, SafetyRecord, Task, Contact } from '../types'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 import { isLeave } from '../lib/leave'
+import { isPlan } from '../lib/plan'
 
 function taskPath(t: Task): string | null {
   if (!t.ref_id) return null
@@ -38,7 +39,7 @@ export default function AssigneeView() {
       setReports(Array.isArray(r) ? r.filter((x: DailyReport) => x.assignee === name) : [])
       setEstimates(Array.isArray(e) ? e.filter((x: Estimate) => x.assignee === name && x.status !== 'ボツ／失注') : [])
       setSafety(Array.isArray(s) ? s.filter((x: SafetyRecord) => x.recorder === name) : [])
-      setTasks(Array.isArray(t) ? t.filter((x: Task) => !x.done && !isLeave(x)) : [])
+      setTasks(Array.isArray(t) ? t.filter((x: Task) => !x.done && !isLeave(x) && !isPlan(x)) : [])
       setContacts(Array.isArray(c) ? c.filter((x: Contact) => x.recipients.includes(name ?? '') && !x.confirmed) : [])
       setLoading(false)
     })

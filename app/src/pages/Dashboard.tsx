@@ -5,6 +5,7 @@ import type { Project, DailyReport, Estimate, SafetyRecord, Notice, Assignee, Ta
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 import { isLeave } from '../lib/leave'
+import { isPlan } from '../lib/plan'
 
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 const MEMBER_COUNT = ASSIGNEES.length
@@ -324,7 +325,7 @@ function AssigneeInline({ name, projects, estimates, reports, tasks, contacts }:
   const myProjects = projects.filter(p => p.assignee === name)
   const myEstimates = estimates.filter(e => e.assignee === name && e.status !== 'ボツ／失注')
   const myReports = reports.filter(r => r.assignee === name)
-  const myTasks = tasks.filter(t => t.assignee === name && !t.done && !isLeave(t))
+  const myTasks = tasks.filter(t => t.assignee === name && !t.done && !isLeave(t) && !isPlan(t))
   const myContacts = contacts.filter(c => c.recipients.includes(name) && !c.confirmed)
 
   const isEmpty = myProjects.length === 0 && myEstimates.length === 0 && myReports.length === 0 && myTasks.length === 0 && myContacts.length === 0

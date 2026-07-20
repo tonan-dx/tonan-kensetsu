@@ -1208,19 +1208,25 @@ input, select, textarea { font: inherit; }
   color: var(--text-sub);
 }
 
-/* 休み登録ボタン＋モーダル */
-.cal-leave-btn {
+/* 予定/休み登録ボタン＋モーダル */
+.cal-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 14px 0;
+}
+.cal-action-btn {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
+  justify-content: center;
+  gap: 5px;
+  padding: 9px 12px;
   font-size: 13px;
-  font-weight: 600;
-  color: #e11d48;
-  background: #ffe4e6;
-  border-radius: 8px;
-  flex-shrink: 0;
+  font-weight: 700;
+  border-radius: 10px;
 }
+.cal-action-btn.plan { color: #4338ca; background: #e0e7ff; }
+.cal-action-btn.leave { color: #e11d48; background: #ffe4e6; }
 
 .cal-modal-overlay {
   position: fixed;
