@@ -780,11 +780,29 @@ input, select, textarea { font: inherit; }
   padding: 20px 16px;
 }
 
+.home-date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 20px;
+}
 .home-date {
   font-size: 13px;
   color: var(--text-sub);
-  margin-bottom: 20px;
   font-weight: 500;
+}
+.home-cal-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+  background: var(--blue-light);
+  border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .home-tiles {

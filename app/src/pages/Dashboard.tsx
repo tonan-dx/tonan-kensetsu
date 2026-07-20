@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Building2, ClipboardList, FileText, HardHat, ChevronRight, AlertTriangle, Bell, ShieldAlert, Send, CheckSquare } from 'lucide-react'
+import { Building2, ClipboardList, FileText, HardHat, ChevronRight, AlertTriangle, Bell, ShieldAlert, Send, CheckSquare, CalendarDays } from 'lucide-react'
 import type { Project, DailyReport, Estimate, SafetyRecord, Notice, Assignee, Task, Contact } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
@@ -102,7 +102,12 @@ export default function Dashboard() {
 
   return (
     <div className="page home-page">
-      <div className="home-date">{todayJP}</div>
+      <div className="home-date-row">
+        <span className="home-date">{todayJP}</span>
+        <Link to="/calendar" className="home-cal-btn">
+          <CalendarDays size={16} /> カレンダー
+        </Link>
+      </div>
 
       <div className="home-tiles">
 
