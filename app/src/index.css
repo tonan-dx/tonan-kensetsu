@@ -1551,6 +1551,30 @@ input, select, textarea { font: inherit; }
   line-height: 1.5;
 }
 
+/* メモ（工事の覚え書き） */
+.memo-input { resize: vertical; min-height: 60px; width: 100%; }
+.memo-items { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.memo-item {
+  background: #fffdf5;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.memo-text {
+  font-size: 14px;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+}
+.memo-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+.memo-date { font-size: 11px; color: var(--text-sub); }
+
 .task-select, .task-date {
   flex: 1;
   border: 1.5px solid var(--border);

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2, Plus, Send, FileSpreadsheet } from 'lucide-react'
 import type { Project, DailyReport } from '../types'
 import TaskList from '../components/TaskList'
+import MemoList from '../components/MemoList'
 import PhotoUpload from '../components/PhotoUpload'
 import { generateInvoice } from '../lib/invoice'
 import { STATUS_COLORS, displayStatus } from '../lib/projectStatus'
@@ -144,6 +145,7 @@ export default function ProjectDetail() {
 
       {id && <PhotoUpload refId={id} refType="project" />}
       {id && <TaskList refId={id} refType="project" />}
+      {id && <MemoList refId={id} />}
 
       <section className="section">
         <div className="section-header">

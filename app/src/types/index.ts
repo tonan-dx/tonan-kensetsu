@@ -127,7 +127,7 @@ export interface Task {
   due_date: string | null
   notes: string | null
   ref_id: string | null
-  ref_type: 'project' | 'estimate' | 'safety' | '休み' | '予定' | null
+  ref_type: 'project' | 'estimate' | 'safety' | '休み' | '予定' | 'メモ' | null
   office: string | null
   created_at: string
 }
