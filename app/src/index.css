@@ -423,6 +423,11 @@ input, select, textarea { font: inherit; }
   padding-bottom: 2px;
   scrollbar-width: none;
 }
+/* 折り返しで全タブを表示（横スクロールで隠れないように） */
+.filter-tabs-wrap {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
 
 .filter-tab {
   flex-shrink: 0;

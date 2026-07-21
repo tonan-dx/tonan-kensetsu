@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search, CalendarDays } from 'lucide-react'
-import type { Project, ProjectStatus, ProjectCategory } from '../types'
+import type { Project, ProjectCategory } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 import { STATUS_COLORS, displayStatus } from '../lib/projectStatus'
 
-// フィルタ用ステータス（入金済みは既定で隠すため一覧タブには出さず、切替で表示）
-const STATUSES: Array<ProjectStatus | 'すべて'> = ['すべて', '着工前', '進行中', '確認待ち', '完了', '請求待ち']
+// フィルタ用ステータス（お金の流れ順）。「請求済み」は派生（請求待ち＋請求日あり）、
+// 「入金済み」はこのタブを選んだときだけ表示（普段は隠す）。
+const STATUSES = ['すべて', '着工前', '進行中', '請求待ち', '請求済み', '入金済み'] as const
+type StatusFilter = typeof STATUSES[number]
 const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
 const DIVISIONS = ['民間', '公共', '下請', '積水ハウス', '修繕']
 
@@ -47,11 +49,10 @@ export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'すべて'>('すべて')
+  const [filterStatus, setFilterStatus] = useState<StatusFilter>('すべて')
   const [filterYear, setFilterYear] = useState<number | 'すべて'>(currentFiscalYear())
   const [filterCategory, setFilterCategory] = useState<ProjectCategory | null>(null)
   const [filterDivision, setFilterDivision] = useState<string | null>(null)
-  const [showPaid, setShowPaid] = useState(false)
   const { loc } = useOfficeFilter()
 
   const load = () => {
@@ -70,12 +71,13 @@ export default function Projects() {
 
   const filtered = projects.filter(p => {
     const matchSearch = p.name.includes(search) || p.client_name.includes(search) || p.location.includes(search)
-    const matchStatus = filterStatus === 'すべて' || p.status === filterStatus
+    // 表示用ステータス（請求待ち＋請求日→請求済み）で絞り込み
+    const matchStatus = filterStatus === 'すべて' || displayStatus(p) === filterStatus
     const matchYear = filterYear === 'すべて' || projectFiscalYear(p) === filterYear
     const matchCategory = !filterCategory || (p.category === filterCategory && p.status !== '入金済み')
     const matchDivision = !filterDivision || p.division === filterDivision
-    // 入金済み（完了案件）は既定で隠す。切替ON・分類/区分での絞り込み中は表示。
-    const matchPaid = showPaid || !!filterCategory || !!filterDivision || p.status !== '入金済み'
+    // 入金済み（完了案件）は既定で隠す。「入金済み」タブ選択時・分類/区分での絞り込み中は表示。
+    const matchPaid = filterStatus === '入金済み' || !!filterCategory || !!filterDivision || p.status !== '入金済み'
     return matchSearch && matchStatus && matchYear && matchCategory && matchDivision && matchPaid && matchesOffice(p.office, loc)
   }).sort((a, b) => {
     // 着工日の若い順（早い日付が上）。着工日なしは末尾。
@@ -175,9 +177,9 @@ export default function Projects() {
         </div>
       )}
 
-      {/* ステータスタブ（分類タグ選択中は無効化）＋入金済み表示切替 */}
+      {/* ステータスタブ（お金の流れ順・折り返しで全部表示。分類タグ選択中は無効化） */}
       {!filterCategory && (
-        <div className="filter-tabs">
+        <div className="filter-tabs filter-tabs-wrap">
           {STATUSES.map(s => (
             <button
               key={s}
@@ -187,12 +189,6 @@ export default function Projects() {
               {s}
             </button>
           ))}
-          <button
-            className={`filter-tab ${showPaid ? 'active' : ''}`}
-            onClick={() => setShowPaid(v => !v)}
-          >
-            {showPaid ? '入金済みを隠す' : '入金済みも表示'}
-          </button>
         </div>
       )}
 
