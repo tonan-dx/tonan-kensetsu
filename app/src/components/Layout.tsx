@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Building2, ClipboardList, LayoutDashboard, FileText, HardHat, CheckSquare, Bell, Send, CalendarDays } from 'lucide-react'
+import { Building2, ClipboardList, LayoutDashboard, FileText, HardHat, CheckSquare, Bell, Send, CalendarDays, Users } from 'lucide-react'
 import { useOfficeFilter } from '../lib/office'
 import type { OfficeFilter } from '../lib/office'
 
@@ -43,6 +43,10 @@ export default function Layout() {
         <NavLink to="/calendar" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
           <CalendarDays size={22} />
           <span>予定</span>
+        </NavLink>
+        <NavLink to="/meeting" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+          <Users size={22} />
+          <span>会議</span>
         </NavLink>
         <NavLink to="/estimates" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
           <FileText size={22} />

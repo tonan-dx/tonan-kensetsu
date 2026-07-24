@@ -71,6 +71,7 @@ export interface Project {
   billing_date: string | null
   payment_date: string | null
   notes: string | null
+  progress: number | null
   office: string | null
   created_at: string
 }
@@ -127,7 +128,7 @@ export interface Task {
   due_date: string | null
   notes: string | null
   ref_id: string | null
-  ref_type: 'project' | 'estimate' | 'safety' | '休み' | '予定' | 'メモ' | null
+  ref_type: 'project' | 'estimate' | 'safety' | '休み' | '予定' | 'メモ' | '議題' | null
   office: string | null
   created_at: string
 }

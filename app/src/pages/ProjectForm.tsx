@@ -54,6 +54,7 @@ export default function ProjectForm() {
     billing_date: '',
     payment_date: '',
     notes: '',
+    progress: '',
   })
   const [saving, setSaving] = useState(false)
 
@@ -80,6 +81,7 @@ export default function ProjectForm() {
         billing_date: d.billing_date ?? '',
         payment_date: d.payment_date ?? '',
         notes: d.notes ?? '',
+        progress: d.progress != null ? String(d.progress) : '',
       })
     })
   }, [id, isEdit])
@@ -111,6 +113,8 @@ export default function ProjectForm() {
       billing_date: form.billing_date || undefined,
       payment_date: form.payment_date || undefined,
       notes: form.notes || undefined,
+      // 進行率：未入力は null（クリア）、入力ありは 0〜100 の数値
+      progress: form.progress !== '' ? Number(form.progress) : null,
     }
     const url = isEdit ? `/api/projects/${id}` : '/api/projects'
     const method = isEdit ? 'PATCH' : 'POST'
@@ -177,6 +181,28 @@ export default function ProjectForm() {
           <p className="form-hint">
             「完了」を押すと自動で「請求待ち」になります。請求日を入れると一覧で「請求済」表示、入金日を入れると「入金済み」になります。
           </p>
+        </div>
+
+        {/* 進行率（工事の進み具合・0〜100%） */}
+        <div className="form-group">
+          <label className="form-label">
+            進行率
+            <span className="progress-value">{form.progress !== '' ? `${form.progress}%` : '未入力'}</span>
+          </label>
+          <input
+            type="range"
+            className="progress-range"
+            min={0}
+            max={100}
+            step={5}
+            value={form.progress === '' ? 0 : Number(form.progress)}
+            onChange={e => set('progress', e.target.value)}
+          />
+          {form.progress !== '' && (
+            <button type="button" className="progress-clear" onClick={() => set('progress', '')}>
+              進行率をクリア
+            </button>
+          )}
         </div>
 
         {/* 工期 */}

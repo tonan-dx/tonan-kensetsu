@@ -216,6 +216,14 @@ export default function Projects() {
                 {p.assignee && <span>{p.assignee}</span>}
                 {p.contract_amount != null && <span className="project-row-amount">¥{p.contract_amount.toLocaleString()}</span>}
               </div>
+              {p.progress != null && (
+                <div className="project-row-progress">
+                  <span className="progress-bar-track">
+                    <span className="progress-bar-fill" style={{ width: `${p.progress}%` }} />
+                  </span>
+                  <span className="progress-bar-label">{p.progress}%</span>
+                </div>
+              )}
             </Link>
           ))}
         </div>

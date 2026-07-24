@@ -11,6 +11,7 @@ import Estimates from './pages/Estimates'
 import EstimateDetail from './pages/EstimateDetail'
 import EstimateForm from './pages/EstimateForm'
 import Calendar from './pages/Calendar'
+import Meeting from './pages/Meeting'
 import Safety from './pages/Safety'
 import SafetyDetail from './pages/SafetyDetail'
 import SafetyForm from './pages/SafetyForm'
@@ -36,6 +37,10 @@ export default function App() {
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/projects/:id/edit" element={<ProjectForm />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/meeting" element={<Meeting />} />
+          <Route path="/meeting/minutes/new" element={<NoticeForm kind="minutes" />} />
+          <Route path="/meeting/minutes/:id" element={<NoticeDetail kind="minutes" />} />
+          <Route path="/meeting/minutes/:id/edit" element={<NoticeForm kind="minutes" />} />
           <Route path="/safety" element={<Safety />} />
           <Route path="/safety/new" element={<SafetyForm />} />
           <Route path="/safety/:id" element={<SafetyDetail />} />

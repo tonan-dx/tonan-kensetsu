@@ -128,6 +128,17 @@ export default function ProjectDetail() {
             <span>¥{project.contract_amount.toLocaleString()}</span>
           </div>
         )}
+        {project.progress != null && (
+          <div className="detail-row">
+            <span className="detail-label">進行率</span>
+            <span className="progress-inline">
+              <span className="progress-bar-track">
+                <span className="progress-bar-fill" style={{ width: `${project.progress}%` }} />
+              </span>
+              <span className="progress-bar-label">{project.progress}%</span>
+            </span>
+          </div>
+        )}
       </div>
 
       {BILLING_STATUSES.includes(project.status) && (

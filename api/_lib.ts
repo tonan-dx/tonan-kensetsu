@@ -55,6 +55,8 @@ export function toProject(page: any) {
     billing_date: p['請求日']?.date?.start ?? null,
     payment_date: p['入金日']?.date?.start ?? null,
     notes: getText(p['備考']) || null,
+    // Notionは百分率を0〜1で保持（50%=0.5）。フロントは0〜100で扱うため×100して返す。
+    progress: p['進行率']?.number != null ? Math.round(p['進行率'].number * 100) : null,
     office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }

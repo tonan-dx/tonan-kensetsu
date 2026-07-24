@@ -99,15 +99,21 @@ input, select, textarea { font: inherit; }
 
 .nav-item {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
   color: var(--text-sub);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
+  white-space: nowrap;
   transition: color 0.15s;
+}
+
+.nav-item svg {
+  flex-shrink: 0;
 }
 
 .nav-item.active {
@@ -1023,6 +1029,64 @@ input, select, textarea { font: inherit; }
 .project-row-date {
   color: var(--text-sub);
   font-size: 12px;
+}
+
+/* ── 進行率バー（一覧・詳細共通） ── */
+.progress-bar-track {
+  flex: 1;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  display: block;
+}
+.progress-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--blue, #2563eb);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.progress-bar-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blue, #2563eb);
+  min-width: 34px;
+  text-align: right;
+}
+.project-row-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.progress-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 120px;
+}
+
+/* ── 進行率スライダー（工事フォーム） ── */
+.progress-value {
+  margin-left: 8px;
+  font-weight: 700;
+  color: var(--blue, #2563eb);
+}
+.progress-range {
+  width: 100%;
+  accent-color: var(--blue, #2563eb);
+}
+.progress-clear {
+  margin-top: 6px;
+  background: none;
+  border: none;
+  color: var(--text-sub);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
 }
 
 .form-calculated {

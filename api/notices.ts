@@ -7,15 +7,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).end()
 
   const id = req.query.id as string | undefined
+  // kind=minutes のときは議事録（お知らせDBに 種別=議事録 で相乗り）を扱う
+  const isMinutes = req.query.kind === 'minutes'
+  const KIND = isMinutes ? '議事録' : 'お知らせ'
 
   try {
     if (!id) {
       // /api/notices — list & create
       if (req.method === 'GET') {
-        // 連絡(種別=連絡)はお知らせ一覧から除外
+        // 議事録一覧は 種別=議事録 のみ。お知らせ一覧は 連絡・議事録 を除外。
+        const filter = isMinutes
+          ? { property: '種別', select: { equals: '議事録' } }
+          : { and: [
+              { property: '種別', select: { does_not_equal: '連絡' } },
+              { property: '種別', select: { does_not_equal: '議事録' } },
+            ] }
         const response = await notion.databases.query({
           database_id: NOTICES_DB,
-          filter: { property: '種別', select: { does_not_equal: '連絡' } },
+          filter,
           sorts: [{ timestamp: 'created_time', direction: 'descending' }],
         })
         return res.json(response.results.map(toNotice).filter(Boolean))
@@ -24,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { title, content, date, poster, office } = req.body
         const props: any = {
           'タイトル': { title: [{ text: { content: title ?? '' } }] },
-          '種別': { select: { name: 'お知らせ' } },
+          '種別': { select: { name: KIND } },
         }
         if (content) props['内容'] = { rich_text: [{ text: { content } }] }
         if (date) props['日付'] = { date: { start: date } }

@@ -6,9 +6,12 @@ import AttachmentBox from '../components/AttachmentBox'
 
 const ALL_MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
-export default function NoticeDetail() {
+// kind='minutes' のときは議事録（お知らせDBに 種別=議事録 で相乗り）として扱う
+export default function NoticeDetail({ kind = 'notice' }: { kind?: 'notice' | 'minutes' }) {
   const { id } = useParams()
   const navigate = useNavigate()
+  const isMinutes = kind === 'minutes'
+  const basePath = isMinutes ? '/meeting/minutes' : '/notices'
   const [notice, setNotice] = useState<Notice | null>(null)
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState(false)
@@ -21,9 +24,9 @@ export default function NoticeDetail() {
   }, [id])
 
   const handleDelete = async () => {
-    if (!confirm('このお知らせを削除しますか？')) return
+    if (!confirm(`この${isMinutes ? '議事録' : 'お知らせ'}を削除しますか？`)) return
     await fetch(`/api/notices/${id}`, { method: 'DELETE' })
-    navigate('/notices')
+    navigate(isMinutes ? '/meeting' : '/notices')
   }
 
   const toggleMember = async (name: string) => {
@@ -43,7 +46,7 @@ export default function NoticeDetail() {
   }
 
   if (loading) return <div className="loading">読み込み中...</div>
-  if (!notice) return <div className="loading">お知らせが見つかりません</div>
+  if (!notice) return <div className="loading">{isMinutes ? '議事録' : 'お知らせ'}が見つかりません</div>
 
   const confirmedList = notice.confirmed_by ?? []
   const confirmedCount = confirmedList.length
@@ -57,7 +60,7 @@ export default function NoticeDetail() {
         <button className="btn-back" onClick={() => navigate(-1)}><ArrowLeft size={20} /></button>
         <h1 className="page-title" style={{ flex: 1 }}>{notice.title}</h1>
         <div className="header-actions">
-          <Link to={`/notices/${id}/edit`} className="btn-icon"><Pencil size={18} /></Link>
+          <Link to={`${basePath}/${id}/edit`} className="btn-icon"><Pencil size={18} /></Link>
           <button className="btn-icon danger" onClick={handleDelete}><Trash2 size={18} /></button>
         </div>
       </div>
@@ -84,7 +87,7 @@ export default function NoticeDetail() {
       )}
 
       <div className="detail-section-card">
-        <AttachmentBox refId={notice.id} refType="notice" />
+        <AttachmentBox refId={notice.id} refType={isMinutes ? 'minutes' : 'notice'} />
       </div>
 
       <div className="detail-section-card">

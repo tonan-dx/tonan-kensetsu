@@ -6,11 +6,15 @@ import { useOfficeFilter } from '../lib/office'
 
 const ASSIGNEES: Array<Assignee | '管理者'> = ['管理者', '長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 
-export default function NoticeForm() {
+// kind='minutes' のときは議事録（お知らせDBに 種別=議事録 で相乗り）として扱う
+export default function NoticeForm({ kind = 'notice' }: { kind?: 'notice' | 'minutes' }) {
   const navigate = useNavigate()
   const { id } = useParams()
   const isEdit = !!id
   const { loc } = useOfficeFilter()
+  const isMinutes = kind === 'minutes'
+  const basePath = isMinutes ? '/meeting/minutes' : '/notices'
+  const label = isMinutes ? '議事録' : 'お知らせ'
 
   const [form, setForm] = useState({
     title: '',
@@ -53,12 +57,12 @@ export default function NoticeForm() {
       if (isEdit) {
         const res = await fetch(`/api/notices/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         if (!res.ok) { const e = await res.json(); throw new Error(e.error || `HTTP ${res.status}`) }
-        navigate(`/notices/${id}`)
+        navigate(`${basePath}/${id}`)
       } else {
-        const res = await fetch('/api/notices', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        const res = await fetch(`/api/notices${isMinutes ? '?kind=minutes' : ''}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         if (!res.ok) { const e = await res.json(); throw new Error(e.error || `HTTP ${res.status}`) }
         const created = await res.json()
-        navigate(`/notices/${created.id}`)
+        navigate(`${basePath}/${created.id}`)
       }
     } catch (e) {
       setError(String(e))
@@ -70,7 +74,7 @@ export default function NoticeForm() {
     <div className="page">
       <div className="page-header">
         <button className="btn-back" onClick={() => navigate(-1)}><ArrowLeft size={20} /></button>
-        <h1 className="page-title">{isEdit ? 'お知らせ編集' : '新規お知らせ'}</h1>
+        <h1 className="page-title">{isEdit ? `${label}編集` : (isMinutes ? '議事録アップ' : '新規お知らせ')}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="form">

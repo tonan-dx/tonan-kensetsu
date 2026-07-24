@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'POST') {
-    const { name, client_name, location, status, start_date, end_date, contract_amount, type, assignee, category, division, contract_date, contact, change_amount, billing_date, payment_date, notes, office } = req.body
+    const { name, client_name, location, status, start_date, end_date, contract_amount, type, assignee, category, division, contract_date, contact, change_amount, billing_date, payment_date, notes, progress, office } = req.body
     const props: any = {
       '工事名': { title: [{ text: { content: name ?? '' } }] },
     }
@@ -33,6 +33,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (billing_date) props['請求日'] = { date: { start: billing_date } }
     if (payment_date) props['入金日'] = { date: { start: payment_date } }
     if (notes) props['備考'] = { rich_text: [{ text: { content: notes } }] }
+    // 進行率(0〜100%)はNotionでは0〜1で保持するため÷100して保存
+    if (progress != null) props['進行率'] = { number: progress / 100 }
     if (office) props['拠点'] = { select: { name: office } }
     const page = await notion.pages.create({ parent: { database_id: PROJECTS_DB }, properties: props })
     return res.json(toProject(page))
