@@ -1,89 +1,45 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Plus, MessageSquare, FileText, CheckSquare, Square, Trash2, Users } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Plus, Users, ChevronRight, MessageSquare, FileText } from 'lucide-react'
 import type { Task, Notice } from '../types'
-import { useOfficeFilter, matchesOffice } from '../lib/office'
+import { useOfficeFilter } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
-import { AGENDA_REF } from '../lib/agenda'
+import { AGENDA_REF, thisFriday, formatMeetingDate } from '../lib/meeting'
 
-const MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
-const MEMBER_COUNT = MEMBERS.length
+interface MeetingRow { date: string; agenda: number; minutes: number }
 
 export default function Meeting() {
+  const navigate = useNavigate()
   const { loc } = useOfficeFilter()
-  const [agenda, setAgenda] = useState<Task[]>([])
-  const [minutes, setMinutes] = useState<Notice[]>([])
+  const [rows, setRows] = useState<MeetingRow[]>([])
   const [loading, setLoading] = useState(true)
-
-  // 議題の新規入力
-  const [newText, setNewText] = useState('')
-  const [newProposer, setNewProposer] = useState('')
-  const [saving, setSaving] = useState(false)
+  const [pickDate, setPickDate] = useState(thisFriday())
 
   const load = () => {
     Promise.all([
       fetch(`/api/checklist?ref_type=${encodeURIComponent(AGENDA_REF)}`).then(r => r.json()).catch(() => []),
       fetch('/api/notices?kind=minutes').then(r => r.json()).catch(() => []),
-    ]).then(([a, m]) => {
-      setAgenda(Array.isArray(a) ? a : [])
-      setMinutes(Array.isArray(m) ? m : [])
+    ]).then(([a, m]: [Task[], Notice[]]) => {
+      const map = new Map<string, MeetingRow>()
+      const get = (d: string) => {
+        let row = map.get(d)
+        if (!row) { row = { date: d, agenda: 0, minutes: 0 }; map.set(d, row) }
+        return row
+      }
+      if (Array.isArray(a)) a.forEach(t => {
+        const d = (t.ref_id ?? '').slice(0, 10)
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d) && (!t.office || loc === 'all' || t.office === loc)) get(d).agenda++
+      })
+      if (Array.isArray(m)) m.forEach(n => {
+        const d = (n.date ?? '').slice(0, 10)
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d) && (!n.office || loc === 'all' || n.office === loc)) get(d).minutes++
+      })
+      setRows([...map.values()].sort((x, y) => y.date.localeCompare(x.date)))
       setLoading(false)
     })
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [loc])
   useRefetchOnFocus(load)
-
-  const visibleAgenda = agenda.filter(t => matchesOffice(t.office, loc))
-  const pending = visibleAgenda.filter(t => !t.done)
-  const discussed = visibleAgenda.filter(t => t.done)
-  const visibleMinutes = minutes.filter(n => matchesOffice(n.office, loc))
-
-  const addAgenda = async () => {
-    if (!newText.trim() || saving) return
-    setSaving(true)
-    const created = await fetch('/api/checklist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: newText.trim(),
-        assignee: newProposer || null,
-        ref_type: AGENDA_REF,
-        office: loc === 'all' ? null : loc,
-      }),
-    }).then(r => r.json()).catch(() => null)
-    if (created) setAgenda(prev => [...prev, created])
-    setNewText('')
-    setNewProposer('')
-    setSaving(false)
-  }
-
-  const toggleAgenda = async (t: Task) => {
-    const updated = await fetch(`/api/checklist/${t.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ done: !t.done }),
-    }).then(r => r.json()).catch(() => null)
-    if (updated) setAgenda(prev => prev.map(x => x.id === t.id ? updated : x))
-  }
-
-  const deleteAgenda = async (t: Task) => {
-    if (!confirm('この議題を削除しますか？')) return
-    await fetch(`/api/checklist/${t.id}`, { method: 'DELETE' })
-    setAgenda(prev => prev.filter(x => x.id !== t.id))
-  }
-
-  const renderAgendaItem = (t: Task) => (
-    <div className={`task-item${t.done ? ' done' : ''}`} key={t.id}>
-      <button className="task-check" onClick={() => toggleAgenda(t)} title={t.done ? '議論済み' : '未議論'}>
-        {t.done ? <CheckSquare size={18} color="#16a34a" /> : <Square size={18} color="#94a3b8" />}
-      </button>
-      <div className="task-info" style={{ flex: 1 }}>
-        <span className="task-name">{t.name}</span>
-        {t.assignee && <div className="task-meta"><span className="task-assignee">提案：{t.assignee}</span></div>}
-      </div>
-      <button className="task-delete" onClick={() => deleteAgenda(t)}><Trash2 size={14} /></button>
-    </div>
-  )
 
   return (
     <div className="page">
@@ -91,92 +47,37 @@ export default function Meeting() {
         <h1 className="page-title">金曜会議</h1>
       </div>
 
-      {/* 議題 */}
+      {/* 今週（または指定日）の会議を開く */}
       <div className="detail-section-card">
-        <div className="task-list-header">
-          <div className="task-list-title">
-            <MessageSquare size={16} />
-            今週の議題
-            <span className="task-count">{pending.length}件</span>
-          </div>
+        <div className="meeting-open-row">
+          <input type="date" className="task-date" value={pickDate} onChange={e => setPickDate(e.target.value)} />
+          <button className="btn-primary" onClick={() => navigate(`/meeting/date/${pickDate}`)}>
+            <Plus size={16} /> この日の会議を開く
+          </button>
         </div>
+        <p className="meeting-open-hint">基本は毎週金曜16:30。日付を選んで会議を開くと、議題の追加・議事録・車検・資格の一覧が使えます。</p>
+      </div>
 
-        <div className="task-add-form">
-          <input
-            className="task-input"
-            placeholder="話し合いたいこと（議題）を入力..."
-            value={newText}
-            onChange={e => setNewText(e.target.value)}
-          />
-          <div className="task-add-row">
-            <select className="task-select" value={newProposer} onChange={e => setNewProposer(e.target.value)}>
-              <option value="">提案者</option>
-              {MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
-            </select>
-            <button className="task-save-btn" onClick={addAgenda} disabled={!newText.trim() || saving}>
-              {saving ? '...' : <><Plus size={14} /> 追加</>}
-            </button>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="task-loading">読み込み中...</div>
-        ) : (
-          <>
-            {pending.length === 0 && discussed.length === 0 && (
-              <div className="task-empty">議題はまだありません</div>
-            )}
-            <div className="task-items">{pending.map(renderAgendaItem)}</div>
-            {discussed.length > 0 && (
-              <div className="task-done-section">
-                <div className="task-done-toggle" style={{ cursor: 'default' }}>議論済み {discussed.length}件</div>
-                <div className="task-items done">{discussed.map(renderAgendaItem)}</div>
+      {/* 会議一覧（日付・新しい順） */}
+      {loading ? <div className="loading">読み込み中...</div> : rows.length === 0 ? (
+        <p className="empty-text">まだ会議がありません。上の「この日の会議を開く」から始めてください。</p>
+      ) : (
+        <div className="card-list">
+          {rows.map(r => (
+            <Link to={`/meeting/date/${r.date}`} key={r.date} className="card meeting-row">
+              <div className="meeting-row-head">
+                <Users size={16} className="icon-blue" />
+                <span className="meeting-row-date">{formatMeetingDate(r.date)}</span>
+                <ChevronRight size={16} className="meeting-row-chev" />
               </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* 議事録 */}
-      <div className="detail-section-card">
-        <div className="task-list-header">
-          <div className="task-list-title">
-            <FileText size={16} />
-            議事録
-            <span className="task-count">{visibleMinutes.length}件</span>
-          </div>
-          <Link to="/meeting/minutes/new" className="task-add-btn">
-            <Plus size={16} /> アップ
-          </Link>
+              <div className="meeting-row-counts">
+                <span><MessageSquare size={13} /> 議題 {r.agenda}</span>
+                <span><FileText size={13} /> 議事録 {r.minutes}</span>
+              </div>
+            </Link>
+          ))}
         </div>
-
-        {loading ? (
-          <div className="task-loading">読み込み中...</div>
-        ) : visibleMinutes.length === 0 ? (
-          <div className="task-empty">議事録はまだありません</div>
-        ) : (
-          <div className="card-list">
-            {visibleMinutes.map(n => {
-              const confirmed = n.confirmed_by?.length ?? 0
-              const unseen = MEMBER_COUNT - confirmed
-              return (
-                <Link to={`/meeting/minutes/${n.id}`} key={n.id} className="card notice-card">
-                  <div className="notice-card-header">
-                    {n.date && <span className="notice-date">{n.date}</span>}
-                    {n.office && <span className="notice-loc">{n.office}</span>}
-                    {n.poster && <span className="notice-poster">{n.poster}</span>}
-                    <span className={`notice-unseen${unseen === 0 ? ' done' : ''}`}>
-                      <Users size={12} /> {unseen === 0 ? '全員確認済' : `未確認 ${unseen}名`}
-                    </span>
-                  </div>
-                  <div className="notice-card-title">{n.title}</div>
-                  {n.content && <div className="notice-card-preview">{n.content}</div>}
-                </Link>
-              )
-            })}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   )
 }

@@ -2711,3 +2711,143 @@ input, select, textarea { font: inherit; }
 .attach-chip-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text); min-width: 0; }
 .attach-chip-name { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .attach-chip-del { position: absolute; }
+
+/* ── 会議（金曜会議）── */
+.meeting-open-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.meeting-open-row .task-date { flex: 1; }
+.meeting-open-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+.meeting-row { display: block; }
+.meeting-row-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.meeting-row-date {
+  font-size: 15px;
+  font-weight: 700;
+  flex: 1;
+}
+.meeting-row-chev { color: var(--text-sub); }
+.meeting-row-counts {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+.meeting-row-counts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 会議フォームの複数フィールド行 */
+.meeting-field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.meeting-field-label {
+  font-size: 12px;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+.meeting-field-row .task-date { flex: 1; min-width: 130px; }
+.task-input.flex1 { flex: 1; min-width: 90px; }
+.task-input.flex2 { flex: 2; min-width: 120px; }
+
+/* カレンダー登録ボタン */
+.meeting-cal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  background: #fff;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.meeting-cal-btn:disabled {
+  border-color: #16a34a;
+  color: #16a34a;
+  background: #f0fdf4;
+}
+.meeting-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  justify-content: flex-end;
+}
+
+/* 車検一覧 */
+.vehicle-row {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #fff;
+}
+.vehicle-row.soon { background: #fefce8; border-color: #fde047; }
+.vehicle-row.over { background: #fef2f2; border-color: #fca5a5; }
+.vehicle-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.vehicle-plate {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--gray-light);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.vehicle-model { font-weight: 600; font-size: 14px; }
+.vehicle-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+.vehicle-date { font-weight: 600; }
+.vehicle-date.soon { color: #b45309; }
+.vehicle-date.over { color: #dc2626; }
+.vehicle-note { color: var(--text-sub); }
+
+/* 資格試験一覧 */
+.qual-row {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #fff;
+}
+.qual-main {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.qual-name { font-weight: 600; font-size: 14px; }
+.qual-date { font-size: 12px; font-weight: 600; color: var(--blue); }
+.qual-detail {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-sub);
+  white-space: pre-wrap;
+}

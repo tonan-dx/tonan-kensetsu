@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import type { Assignee } from '../types'
 import { useOfficeFilter } from '../lib/office'
@@ -15,11 +15,14 @@ export default function NoticeForm({ kind = 'notice' }: { kind?: 'notice' | 'min
   const isMinutes = kind === 'minutes'
   const basePath = isMinutes ? '/meeting/minutes' : '/notices'
   const label = isMinutes ? '議事録' : 'お知らせ'
+  const [searchParams] = useSearchParams()
+  // 会議から作成したときは会議日を初期日付に引き継ぐ
+  const initialDate = searchParams.get('date') || new Date().toISOString().slice(0, 10)
 
   const [form, setForm] = useState({
     title: '',
     content: '',
-    date: new Date().toISOString().slice(0, 10),
+    date: initialDate,
     poster: '' as string,
     office: loc === 'all' ? '' : loc,
   })
@@ -62,7 +65,8 @@ export default function NoticeForm({ kind = 'notice' }: { kind?: 'notice' | 'min
         const res = await fetch(`/api/notices${isMinutes ? '?kind=minutes' : ''}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         if (!res.ok) { const e = await res.json(); throw new Error(e.error || `HTTP ${res.status}`) }
         const created = await res.json()
-        navigate(`${basePath}/${created.id}`)
+        // 作成フォームを履歴に残さない（詳細から戻ると会議画面へ戻れる）
+        navigate(`${basePath}/${created.id}`, { replace: true })
       }
     } catch (e) {
       setError(String(e))
