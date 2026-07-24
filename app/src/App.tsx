@@ -13,6 +13,7 @@ import EstimateForm from './pages/EstimateForm'
 import Calendar from './pages/Calendar'
 import Meeting from './pages/Meeting'
 import MeetingDetail from './pages/MeetingDetail'
+import Haichi from './pages/Haichi'
 import Safety from './pages/Safety'
 import SafetyDetail from './pages/SafetyDetail'
 import SafetyForm from './pages/SafetyForm'
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/projects/:id/edit" element={<ProjectForm />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/haichi" element={<Haichi />} />
           <Route path="/meeting" element={<Meeting />} />
           <Route path="/meeting/date/:date" element={<MeetingDetail />} />
           <Route path="/meeting/minutes/new" element={<NoticeForm kind="minutes" />} />

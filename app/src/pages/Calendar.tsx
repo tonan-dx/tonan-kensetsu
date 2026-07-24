@@ -10,6 +10,7 @@ import type { Project, DailyReport, Notice, Estimate, SafetyRecord, Contact, Tas
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { isLeave, isCompanyLeave, parseLeave, leaveLabel } from '../lib/leave'
 import { isPlan, planLabel } from '../lib/plan'
+import { CONTAINER_REFS } from '../lib/haichi'
 import LeaveModal from '../components/LeaveModal'
 import PlanModal from '../components/PlanModal'
 
@@ -109,6 +110,8 @@ function buildEvents(data: {
       push(t.id, 'plan', t.due_date, planLabel(t.name, t.ref_id, t.assignee), null, t.office)
       continue
     }
+    // 配置・メモ・議題・資格・車検は内部データ。カレンダーのToDoには出さない
+    if (CONTAINER_REFS.has(t.ref_type ?? '')) continue
     if (t.done) continue
     const route = t.ref_type ? TASK_REF_ROUTE[t.ref_type] : undefined
     const link = route && t.ref_id ? `/${route}/${t.ref_id}` : null
