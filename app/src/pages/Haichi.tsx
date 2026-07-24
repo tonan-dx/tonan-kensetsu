@@ -213,6 +213,7 @@ export default function Haichi() {
         {brush && <button className="btn-ghost" onClick={() => setBrush(null)}>選択解除</button>}
       </div>
 
+      <div className="haichi-cols">
       <div className="haichi-palette">
         <div className="hp-title">工事一覧（進行中）<span className="hp-cnt">{projects.length}件</span></div>
         <div className="hp-list">
@@ -290,6 +291,7 @@ export default function Haichi() {
           </div>
         </div>
       )}
+      </div>
       <p className="haichi-foot">配置は日付ごとに保存されます。週を戻せば過去の配置も見られます。「会社休み」はカレンダーの休みと共有です。</p>
     </div>
   )

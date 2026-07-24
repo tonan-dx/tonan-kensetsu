@@ -3066,3 +3066,31 @@ table.hgrid { border-collapse:separate; border-spacing:0; width:max-content; min
 .haichi-board.focus .komacell.job.hit {
   box-shadow: inset 0 0 0 2px var(--jc), 0 0 0 3px color-mix(in srgb, var(--jc) 26%, transparent);
 }
+
+/* ── 配置表：左=工事一覧 / 右=盤面 の2カラム ── */
+.haichi-cols {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.haichi-cols .haichi-palette {
+  position: sticky;
+  top: 60px;
+  margin-bottom: 0;
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
+}
+.haichi-cols .hp-list {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 7px;
+}
+.haichi-cols .hp-card { width: 100%; }
+.haichi-cols .hp-name { flex: 1; text-align: left; }
+.haichi-cols .haichi-board { min-width: 0; }
+@media (max-width: 860px) {
+  .haichi-cols { grid-template-columns: 1fr; }
+  .haichi-cols .haichi-palette { position: static; max-height: none; overflow: visible; }
+  .haichi-cols .hp-list { flex-direction: row; flex-wrap: wrap; }
+}
