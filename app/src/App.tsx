@@ -32,6 +32,8 @@ export default function App() {
     <OfficeProvider>
     <BrowserRouter>
       <Routes>
+        {/* 配置表はPC用の独立全画面（モバイル枠・下メニューなし） */}
+        <Route path="/haichi" element={<Haichi />} />
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
@@ -39,7 +41,6 @@ export default function App() {
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/projects/:id/edit" element={<ProjectForm />} />
           <Route path="/calendar" element={<Calendar />} />
-          <Route path="/haichi" element={<Haichi />} />
           <Route path="/meeting" element={<Meeting />} />
           <Route path="/meeting/date/:date" element={<MeetingDetail />} />
           <Route path="/meeting/minutes/new" element={<NoticeForm kind="minutes" />} />

@@ -76,9 +76,9 @@ function ProjectProgress({ p, onUpdated }: { p: Project; onUpdated: (u: Project)
   )
 }
 
-// フィルタ用ステータス（お金の流れ順）。「請求済み」は派生（請求待ち＋請求日あり）、
+// フィルタ用ステータス（お金の流れ順）。「請求済」は派生（請求待ち＋請求日あり）、displayStatus と完全一致必須。
 // 「入金済み」はこのタブを選んだときだけ表示（普段は隠す）。
-const STATUSES = ['すべて', '着工前', '進行中', '請求待ち', '請求済み', '入金済み'] as const
+const STATUSES = ['すべて', '着工前', '進行中', '請求待ち', '請求済', '入金済み'] as const
 type StatusFilter = typeof STATUSES[number]
 const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
 const DIVISIONS = ['民間', '公共', '下請', '積水ハウス', '修繕']
