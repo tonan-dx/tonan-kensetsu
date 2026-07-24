@@ -16,12 +16,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (ref_id) filters.push({ property: '関連先ID', rich_text: { equals: String(ref_id) } })
         if (ref_type) filters.push({ property: '関連先タイプ', select: { equals: String(ref_type) } })
         if (assignee) filters.push({ property: '担当者', select: { equals: String(assignee) } })
-        const response = await notion.databases.query({
-          database_id: TASKS_DB,
-          filter: filters.length === 0 ? undefined : filters.length === 1 ? filters[0] : { and: filters },
-          sorts: [{ property: '完了', direction: 'ascending' }, { timestamp: 'created_time', direction: 'ascending' }],
-        })
-        return res.json(response.results.map(p => toTask(p)).filter(Boolean))
+        // Notionは1ページ最大100件。配置など件数が多いので全ページ取得する。
+        const results: any[] = []
+        let cursor: string | undefined = undefined
+        do {
+          const response: any = await notion.databases.query({
+            database_id: TASKS_DB,
+            filter: filters.length === 0 ? undefined : filters.length === 1 ? filters[0] : { and: filters },
+            sorts: [{ property: '完了', direction: 'ascending' }, { timestamp: 'created_time', direction: 'ascending' }],
+            start_cursor: cursor,
+            page_size: 100,
+          })
+          results.push(...response.results)
+          cursor = response.has_more ? response.next_cursor : undefined
+        } while (cursor)
+        return res.json(results.map(p => toTask(p)).filter(Boolean))
       }
       if (req.method === 'POST') {
         const { name, assignee, due_date, notes, ref_id, ref_type, office } = req.body
