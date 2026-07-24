@@ -8,7 +8,7 @@ import {
 } from 'date-fns'
 import type { Project, DailyReport, Notice, Estimate, SafetyRecord, Contact, Task } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
-import { isLeave, parseLeave, leaveLabel } from '../lib/leave'
+import { isLeave, isCompanyLeave, parseLeave, leaveLabel } from '../lib/leave'
 import { isPlan, planLabel } from '../lib/plan'
 import LeaveModal from '../components/LeaveModal'
 import PlanModal from '../components/PlanModal'
@@ -97,8 +97,12 @@ function buildEvents(data: {
   }
   for (const t of data.tasks) {
     if (isLeave(t)) {
-      const { half } = parseLeave(t.ref_id)
-      push(t.id, 'leave', t.due_date, leaveLabel(t.assignee ?? '', half), null, t.office)
+      if (isCompanyLeave(t)) {
+        push(t.id, 'leave', t.due_date, '会社休み（全体）', null, t.office)
+      } else {
+        const { half } = parseLeave(t.ref_id)
+        push(t.id, 'leave', t.due_date, leaveLabel(t.assignee ?? '', half), null, t.office)
+      }
       continue
     }
     if (isPlan(t)) {

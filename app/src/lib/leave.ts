@@ -15,6 +15,12 @@ export function isLeave(t: Pick<Task, 'ref_type'>): boolean {
   return t.ref_type === LEAVE_REF
 }
 
+/** 会社全体の休み（全体休み）。ref_type='休み' + ref_id='会社休み'（対象者なし）で表す。 */
+export const COMPANY_LEAVE = '会社休み'
+export function isCompanyLeave(t: Pick<Task, 'ref_type' | 'ref_id'>): boolean {
+  return isLeave(t) && t.ref_id === COMPANY_LEAVE
+}
+
 export function encodeLeave(kind: LeaveKind, half: LeaveHalf): string {
   return `${kind}|${half}`
 }
