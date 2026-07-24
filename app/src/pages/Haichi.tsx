@@ -17,6 +17,13 @@ const PALETTE = ['#16a34a', '#0d9488', '#0891b2', '#0284c7', '#2563eb', '#7c3aed
 const DAYS = 14
 const kk = (person: string, date: string) => `${person} ${date}`
 const ERASE = '__erase__'
+// 進行中の工事に無い現場は「現場ラベル」コマとして notes に 'L:現場名' で保存
+const FREE = 'L:'
+function labelColor(s: string): string {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+  return PALETTE[h % PALETTE.length]
+}
 
 interface Rec { id: string; val: string }
 
@@ -36,6 +43,23 @@ export default function Haichi() {
 
   const projMap = useMemo(() => new Map(projects.map(p => [p.id, { name: p.name, color: p.color }])), [projects])
   const projMapRef = useRef(projMap); useEffect(() => { projMapRef.current = projMap }, [projMap])
+
+  // コマ1つ分の表示（進行中の工事 または 現場ラベル）
+  const valMeta = (val: string): { name: string; color: string } =>
+    val.startsWith(FREE) ? { name: val.slice(2), color: labelColor(val.slice(2)) }
+      : (projMap.get(val) ?? { name: '（終了した工事）', color: '#64748b' })
+
+  // 配置に使われている現場ラベルを拾って、コマ置き場に出す
+  const freeLabels = useMemo(() => {
+    const m = new Map<string, { key: string; name: string; color: string }>()
+    assign.forEach(r => { if (r.val.startsWith(FREE) && !m.has(r.val)) m.set(r.val, { key: r.val, name: r.val.slice(2), color: labelColor(r.val.slice(2)) }) })
+    return [...m.values()].sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+  }, [assign])
+
+  const paletteItems = [
+    ...projects.map(p => ({ key: p.id, name: p.name, color: p.color, kind: p.kind })),
+    ...freeLabels.map(l => ({ key: l.key, name: l.name, color: l.color, kind: '現場' as string | null })),
+  ]
 
   const load = () => {
     Promise.all([
@@ -80,7 +104,7 @@ export default function Haichi() {
       fetch(`/api/checklist/${rec.id}`, { method: 'DELETE' }).catch(() => {})
       return
     }
-    const label = val === REST_VAL ? '休み' : (projMapRef.current.get(val)?.name ?? 'コマ')
+    const label = val === REST_VAL ? '休み' : val.startsWith(FREE) ? val.slice(2) : (projMapRef.current.get(val)?.name ?? 'コマ')
     if (rec) {
       setAssign(prev => { const n = new Map(prev); n.set(k, { id: rec.id, val }); return n })
       fetch(`/api/checklist/${rec.id}`, {
@@ -147,8 +171,9 @@ export default function Haichi() {
     await upsertCell(from.person, from.date, toVal)
   }
 
-  const brushLabel = brush === REST_VAL ? '休み' : brush === ERASE ? '消す' : brush ? (projMap.get(brush)?.name ?? '') : '（工事を選んでください）'
-  const brushColor = brush === REST_VAL ? '#e11d48' : brush === ERASE ? '#94a3b8' : brush ? (projMap.get(brush)?.color ?? '#94a3b8') : '#cbd5e1'
+  const brushMeta = brush && brush !== REST_VAL && brush !== ERASE ? valMeta(brush) : null
+  const brushLabel = brush === REST_VAL ? '休み' : brush === ERASE ? '消す' : brushMeta ? brushMeta.name : '（工事を選んでください）'
+  const brushColor = brush === REST_VAL ? '#e11d48' : brush === ERASE ? '#94a3b8' : brushMeta ? brushMeta.color : '#cbd5e1'
 
   return (
     <div className="page haichi-page">
@@ -171,12 +196,12 @@ export default function Haichi() {
       <div className="haichi-palette">
         <div className="hp-title">工事一覧（進行中）<span className="hp-cnt">{projects.length}件</span></div>
         <div className="hp-list">
-          {projects.length === 0 && !loading && <span className="hp-empty">「進行中」の工事がありません（工事一覧でステータスを進行中にすると出ます）</span>}
-          {projects.map(p => (
-            <button key={p.id}
-              className={`hp-card${brush === p.id ? ' active' : ''}`}
+          {paletteItems.length === 0 && !loading && <span className="hp-empty">「進行中」の工事がありません（工事一覧でステータスを進行中にすると出ます）</span>}
+          {paletteItems.map(p => (
+            <button key={p.key}
+              className={`hp-card${brush === p.key ? ' active' : ''}`}
               style={{ '--jc': p.color } as React.CSSProperties}
-              onClick={() => setBrush(brush === p.id ? null : p.id)}>
+              onClick={() => setBrush(brush === p.key ? null : p.key)}>
               <span className="hp-dot" />
               <span className="hp-name">{p.name}</span>
               {p.kind && <span className="hp-kind">{p.kind}</span>}
@@ -228,9 +253,9 @@ export default function Haichi() {
                             ) : (
                               <span className="komacell job" draggable
                                 onDragStart={() => { dragRef.current = { person, date: d } }}
-                                style={{ '--jc': projMap.get(rec.val)?.color ?? '#64748b' } as React.CSSProperties}
-                                title={projMap.get(rec.val)?.name ?? ''}>
-                                {projMap.get(rec.val)?.name ?? '（終了した工事）'}
+                                style={{ '--jc': valMeta(rec.val).color } as React.CSSProperties}
+                                title={valMeta(rec.val).name}>
+                                {valMeta(rec.val).name}
                               </span>
                             )
                           ) : null}
