@@ -1,10 +1,80 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Search, CalendarDays } from 'lucide-react'
+import { Plus, Search, CalendarDays, Check, X, Pencil } from 'lucide-react'
 import type { Project, ProjectCategory } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 import { STATUS_COLORS, displayStatus } from '../lib/projectStatus'
+
+function todayLocal(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// 工事一覧カード内の進捗（詳細を開かず、その場で日付＋％を入力できる）
+function ProjectProgress({ p, onUpdated }: { p: Project; onUpdated: (u: Project) => void }) {
+  const [editing, setEditing] = useState(false)
+  const [val, setVal] = useState(p.progress != null ? String(p.progress) : '')
+  const [date, setDate] = useState(p.progress_date ?? todayLocal())
+  const [saving, setSaving] = useState(false)
+
+  // Linkの中にあるので、操作時のカード遷移を止める
+  const stop = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation() }
+
+  const openEdit = (e: React.MouseEvent) => {
+    stop(e)
+    setVal(p.progress != null ? String(p.progress) : '')
+    setDate(p.progress_date ?? todayLocal())
+    setEditing(true)
+  }
+
+  const save = async (e: React.MouseEvent) => {
+    stop(e)
+    if (saving) return
+    setSaving(true)
+    const progress = val === '' ? null : Math.max(1, Math.min(100, Number(val)))
+    const updated = await fetch(`/api/projects/${p.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ progress, progress_date: progress == null ? null : (date || null) }),
+    }).then(r => r.ok ? r.json() : null).catch(() => null)
+    setSaving(false)
+    if (updated) { onUpdated(updated); setEditing(false) }
+    else alert('保存に失敗しました。もう一度お試しください。')
+  }
+
+  if (editing) {
+    return (
+      <div className="proj-prog-edit" onClick={stop}>
+        <input type="number" className="proj-prog-num" min={1} max={100} step={1} placeholder="％"
+          value={val} autoFocus
+          onChange={e => setVal(e.target.value === '' ? '' : String(Math.max(1, Math.min(100, Number(e.target.value)))))} />
+        <span className="proj-prog-pct">%</span>
+        <input type="date" className="proj-prog-date" value={date} onChange={e => setDate(e.target.value)} />
+        <button className="proj-prog-save" onClick={save} disabled={saving} title="保存"><Check size={15} /></button>
+        <button className="proj-prog-cancel" onClick={e => { stop(e); setEditing(false) }} title="キャンセル"><X size={15} /></button>
+      </div>
+    )
+  }
+
+  if (p.progress == null) {
+    return (
+      <button className="proj-prog-add" onClick={openEdit}>
+        <Plus size={13} /> 進捗を入力
+      </button>
+    )
+  }
+
+  return (
+    <div className="proj-prog-view" onClick={openEdit}>
+      <span className="progress-bar-track">
+        <span className="progress-bar-fill" style={{ width: `${p.progress}%` }} />
+      </span>
+      <span className="progress-bar-label">{p.progress}%</span>
+      {p.progress_date && <span className="proj-prog-date-label">{p.progress_date.replace(/-/g, '/').slice(5)}時点</span>}
+      <Pencil size={12} className="proj-prog-pencil" />
+    </div>
+  )
+}
 
 // フィルタ用ステータス（お金の流れ順）。「請求済み」は派生（請求待ち＋請求日あり）、
 // 「入金済み」はこのタブを選んだときだけ表示（普段は隠す）。
@@ -61,6 +131,7 @@ export default function Projects() {
       setLoading(false)
     })
   }
+  const updateProject = (u: Project) => setProjects(prev => prev.map(p => p.id === u.id ? u : p))
   useEffect(() => { load() }, [])
   useRefetchOnFocus(load)
 
@@ -210,20 +281,14 @@ export default function Projects() {
                 {p.division && <span className="badge badge-division">{p.division}</span>}
                 {p.category && <span className="badge badge-category">{p.category}</span>}
               </div>
+              {/* 件名の直下：進捗バー＋その場入力 */}
+              <ProjectProgress p={p} onUpdated={updateProject} />
               <div className="project-row-sub">
                 {p.client_name && <span>{p.client_name}</span>}
                 {p.contract_date && <span className="project-row-date">契約 {p.contract_date.replace(/-/g, '/').slice(0, 10)}</span>}
                 {p.assignee && <span>{p.assignee}</span>}
                 {p.contract_amount != null && <span className="project-row-amount">¥{p.contract_amount.toLocaleString()}</span>}
               </div>
-              {p.progress != null && (
-                <div className="project-row-progress">
-                  <span className="progress-bar-track">
-                    <span className="progress-bar-fill" style={{ width: `${p.progress}%` }} />
-                  </span>
-                  <span className="progress-bar-label">{p.progress}%</span>
-                </div>
-              )}
             </Link>
           ))}
         </div>

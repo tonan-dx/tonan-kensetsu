@@ -55,6 +55,7 @@ export default function ProjectForm() {
     payment_date: '',
     notes: '',
     progress: '',
+    progress_date: '',
   })
   const [saving, setSaving] = useState(false)
 
@@ -82,6 +83,7 @@ export default function ProjectForm() {
         payment_date: d.payment_date ?? '',
         notes: d.notes ?? '',
         progress: d.progress != null ? String(d.progress) : '',
+        progress_date: d.progress_date ?? '',
       })
     })
   }, [id, isEdit])
@@ -113,8 +115,9 @@ export default function ProjectForm() {
       billing_date: form.billing_date || undefined,
       payment_date: form.payment_date || undefined,
       notes: form.notes || undefined,
-      // 進行率：未入力は null（クリア）、入力ありは 0〜100 の数値
+      // 進行率：未入力は null（クリア）、入力ありは 1〜100 の数値
       progress: form.progress !== '' ? Number(form.progress) : null,
+      progress_date: form.progress_date || null,
     }
     const url = isEdit ? `/api/projects/${id}` : '/api/projects'
     const method = isEdit ? 'PATCH' : 'POST'
@@ -183,23 +186,44 @@ export default function ProjectForm() {
           </p>
         </div>
 
-        {/* 進行率（工事の進み具合・0〜100%） */}
+        {/* 進行率（工事の進み具合・1〜100%・1%刻み） */}
         <div className="form-group">
           <label className="form-label">
             進行率
             <span className="progress-value">{form.progress !== '' ? `${form.progress}%` : '未入力'}</span>
           </label>
-          <input
-            type="range"
-            className="progress-range"
-            min={0}
-            max={100}
-            step={5}
-            value={form.progress === '' ? 0 : Number(form.progress)}
-            onChange={e => set('progress', e.target.value)}
-          />
+          <div className="progress-input-row">
+            <input
+              type="range"
+              className="progress-range"
+              min={1}
+              max={100}
+              step={1}
+              value={form.progress === '' ? 1 : Number(form.progress)}
+              onChange={e => set('progress', e.target.value)}
+            />
+            <input
+              type="number"
+              className="progress-number"
+              min={1}
+              max={100}
+              step={1}
+              placeholder="―"
+              value={form.progress}
+              onChange={e => {
+                const v = e.target.value === '' ? '' : String(Math.max(1, Math.min(100, Number(e.target.value))))
+                set('progress', v)
+              }}
+            />
+            <span className="progress-pct">%</span>
+          </div>
+          <div className="progress-date-row">
+            <label className="meeting-field-label">進捗の日付</label>
+            <input type="date" className="form-input progress-date-input" value={form.progress_date}
+              onChange={e => set('progress_date', e.target.value)} />
+          </div>
           {form.progress !== '' && (
-            <button type="button" className="progress-clear" onClick={() => set('progress', '')}>
+            <button type="button" className="progress-clear" onClick={() => { set('progress', ''); set('progress_date', '') }}>
               進行率をクリア
             </button>
           )}

@@ -1074,10 +1074,31 @@ input, select, textarea { font: inherit; }
   font-weight: 700;
   color: var(--blue, #2563eb);
 }
+.progress-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .progress-range {
-  width: 100%;
+  flex: 1;
   accent-color: var(--blue, #2563eb);
 }
+.progress-number {
+  width: 68px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 15px;
+  text-align: right;
+}
+.progress-pct { color: var(--text-sub); font-size: 14px; }
+.progress-date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.progress-date-input { flex: 1; }
 .progress-clear {
   margin-top: 6px;
   background: none;
@@ -1088,6 +1109,68 @@ input, select, textarea { font: inherit; }
   cursor: pointer;
   padding: 0;
 }
+
+/* ── 工事一覧カード内の進捗（その場入力） ── */
+.proj-prog-view {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 2px;
+}
+.proj-prog-date-label {
+  font-size: 11px;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+.proj-prog-pencil { color: var(--text-sub); flex-shrink: 0; }
+.proj-prog-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin: 6px 0 2px;
+  padding: 3px 8px;
+  font-size: 12px;
+  color: var(--blue, #1d6fd8);
+  background: #eef4fd;
+  border: 1px dashed var(--blue, #1d6fd8);
+  border-radius: 6px;
+}
+.proj-prog-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 2px;
+  flex-wrap: wrap;
+}
+.proj-prog-num {
+  width: 56px;
+  padding: 5px 6px;
+  border: 1px solid var(--blue, #1d6fd8);
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: right;
+}
+.proj-prog-pct { font-size: 13px; color: var(--text-sub); }
+.proj-prog-date {
+  padding: 5px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  flex: 1;
+  min-width: 120px;
+}
+.proj-prog-save, .proj-prog-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.proj-prog-save { background: var(--blue, #1d6fd8); color: #fff; }
+.proj-prog-save:disabled { opacity: 0.6; }
+.proj-prog-cancel { background: #f1f5f9; color: var(--text-sub); }
 
 .form-calculated {
   padding: 10px 14px;

@@ -136,6 +136,7 @@ export default function ProjectDetail() {
                 <span className="progress-bar-fill" style={{ width: `${project.progress}%` }} />
               </span>
               <span className="progress-bar-label">{project.progress}%</span>
+              {project.progress_date && <span className="proj-prog-date-label">{project.progress_date.replace(/-/g, '/').slice(5)}時点</span>}
             </span>
           </div>
         )}

@@ -57,6 +57,7 @@ export function toProject(page: any) {
     notes: getText(p['備考']) || null,
     // Notionは百分率を0〜1で保持（50%=0.5）。フロントは0〜100で扱うため×100して返す。
     progress: p['進行率']?.number != null ? Math.round(p['進行率'].number * 100) : null,
+    progress_date: p['進捗更新日']?.date?.start ?? null,
     office: getSelect(p['拠点']) || null,
     created_at: page.created_time,
   }

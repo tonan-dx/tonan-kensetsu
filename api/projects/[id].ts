@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'PATCH') {
-    const { name, client_name, location, status, start_date, end_date, contract_amount, type, assignee, category, division, contract_date, contact, change_amount, billing_date, payment_date, notes, progress, office } = req.body
+    const { name, client_name, location, status, start_date, end_date, contract_amount, type, assignee, category, division, contract_date, contact, change_amount, billing_date, payment_date, notes, progress, progress_date, office } = req.body
     const props: any = {}
     if (name) props['工事名'] = { title: [{ text: { content: name } }] }
     if (client_name != null) props['お客様名'] = { rich_text: [{ text: { content: client_name } }] }
@@ -33,6 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (notes !== undefined) props['備考'] = { rich_text: notes ? [{ text: { content: notes } }] : [] }
     // 進行率(0〜100%)はNotionでは0〜1で保持するため÷100して保存
     if (progress !== undefined) props['進行率'] = progress != null ? { number: progress / 100 } : { number: null }
+    if (progress_date !== undefined) props['進捗更新日'] = progress_date ? { date: { start: progress_date } } : { date: null }
     if (office !== undefined) props['拠点'] = office ? { select: { name: office } } : { select: null }
     const page = await notion.pages.update({ page_id: id, properties: props })
     return res.json(toProject(page))

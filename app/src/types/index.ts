@@ -72,6 +72,7 @@ export interface Project {
   payment_date: string | null
   notes: string | null
   progress: number | null
+  progress_date: string | null
   office: string | null
   created_at: string
 }
