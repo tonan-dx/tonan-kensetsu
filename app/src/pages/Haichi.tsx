@@ -177,8 +177,10 @@ export default function Haichi() {
 
   return (
     <div className="page haichi-page">
-      <div className="page-header">
-        <button className="btn-back" onClick={() => navigate('/')}><ArrowLeft size={20} /></button>
+      <div className="page-header haichi-header">
+        <button className="btn-back haichi-back" onClick={() => navigate('/')}>
+          <ArrowLeft size={18} /> 戻る
+        </button>
         <h1 className="page-title">現場配置表</h1>
       </div>
 

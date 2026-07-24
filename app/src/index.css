@@ -3006,3 +3006,32 @@ table.hgrid { border-collapse:separate; border-spacing:0; width:max-content; min
   .haichi-page .hgrid tbody td { min-width: 92px; height: 44px; }
   .haichi-page .komacell { max-width: 120px; font-size: 12px; }
 }
+
+/* ── 配置表：戻るボタンを上部に固定（PC全幅でも迷子にならない）── */
+.haichi-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--white);
+  padding: 8px 0 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.haichi-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: auto;
+  padding: 7px 14px 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--white);
+  color: var(--blue);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.haichi-back:hover { background: var(--gray-light); }
