@@ -3034,3 +3034,35 @@ table.hgrid { border-collapse:separate; border-spacing:0; width:max-content; min
   cursor: pointer;
 }
 .haichi-back:hover { background: var(--gray-light); }
+
+/* ── 配置表：サンプル寄せの装飾 ── */
+.haichi-note {
+  margin: 0 0 14px;
+  padding: 11px 14px;
+  border-radius: 11px;
+  font-size: 13px;
+  line-height: 1.7;
+  background: color-mix(in srgb, var(--blue) 8%, var(--white));
+  border: 1px solid color-mix(in srgb, var(--blue) 22%, transparent);
+}
+.haichi-note b { color: var(--blue); }
+
+/* 工事コマ：人日カウント＋区分色 */
+.hp-card { position: relative; padding-right: 10px; }
+.hp-count {
+  font-size: 11px; font-weight: 800; color: var(--jc);
+  background: color-mix(in srgb, var(--jc) 15%, transparent);
+  border-radius: 999px; padding: 2px 8px; min-width: 22px; text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.hp-kind { color: #fff; }
+.hp-kind.k-pub  { background: #16a34a; }
+.hp-kind.k-priv { background: #2563eb; }
+.hp-kind.k-sub  { background: #ea580c; }
+.hp-kind.k-site { background: var(--text-sub); }
+
+/* 工事フォーカス：選択中の工事のコマだけ強調、他は減光 */
+.haichi-board.focus .komacell.job:not(.hit) { opacity: .28; filter: grayscale(.4); }
+.haichi-board.focus .komacell.job.hit {
+  box-shadow: inset 0 0 0 2px var(--jc), 0 0 0 3px color-mix(in srgb, var(--jc) 26%, transparent);
+}

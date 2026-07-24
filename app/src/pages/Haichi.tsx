@@ -94,6 +94,18 @@ export default function Haichi() {
   const dates = useMemo(() => windowDates(start, DAYS), [start])
   const rangeLabel = `${shortDate(dates[0][0])} 〜 ${shortDate(dates[DAYS - 1][0])}`
 
+  // この2週間で各コマ（工事/現場）が何人日入っているか
+  const countByVal = useMemo(() => {
+    const winSet = new Set(dates.map(d => d[0]))
+    const m = new Map<string, number>()
+    assign.forEach((r, k) => {
+      const date = k.slice(k.lastIndexOf(' ') + 1)
+      if (winSet.has(date)) m.set(r.val, (m.get(r.val) ?? 0) + 1)
+    })
+    return m
+  }, [assign, dates])
+  const kindClass = (kind: string | null) => kind === '公共' ? 'k-pub' : kind === '民間' ? 'k-priv' : kind === '下請' ? 'k-sub' : 'k-site'
+
   // ── 1コマ = 1レコードの書き込み ──
   const upsertCell = async (person: string, date: string, val: string | null) => {
     const k = kk(person, date)
@@ -184,6 +196,12 @@ export default function Haichi() {
         <h1 className="page-title">現場配置表</h1>
       </div>
 
+      <div className="haichi-note">
+        左の <b>工事一覧（進行中）</b> の現場コマを、人 × 日のマスに置きます。工事を選んでマスをタップ（PCはドラッグで移動）。
+        コマの数字は「その工事に今 何人日入っているか」。<b>工事を選ぶと、その工事のコマだけ光ります</b>。
+        日付見出しタップ＝全体休み／工事を選んでからタップ＝その現場だけ休み。
+      </div>
+
       <div className="haichi-toolbar">
         <div className="period">
           <button onClick={() => setWeekOff(w => w - 1)} aria-label="前の週へ"><ChevronLeft size={18} /></button>
@@ -206,7 +224,8 @@ export default function Haichi() {
               onClick={() => setBrush(brush === p.key ? null : p.key)}>
               <span className="hp-dot" />
               <span className="hp-name">{p.name}</span>
-              {p.kind && <span className="hp-kind">{p.kind}</span>}
+              {p.kind && <span className={`hp-kind ${kindClass(p.kind)}`}>{p.kind}</span>}
+              <span className="hp-count">{countByVal.get(p.key) ?? 0}</span>
             </button>
           ))}
         </div>
@@ -218,7 +237,7 @@ export default function Haichi() {
       </div>
 
       {loading ? <div className="loading">読み込み中...</div> : (
-        <div className="haichi-board">
+        <div className={`haichi-board${brushMeta ? ' focus' : ''}`}>
           <div className="scroll">
             <table className="hgrid">
               <thead>
@@ -253,7 +272,7 @@ export default function Haichi() {
                             rec.val === REST_VAL ? (
                               <span className="komacell rest" draggable onDragStart={() => { dragRef.current = { person, date: d } }}>休み</span>
                             ) : (
-                              <span className="komacell job" draggable
+                              <span className={`komacell job${brush === rec.val ? ' hit' : ''}`} draggable
                                 onDragStart={() => { dragRef.current = { person, date: d } }}
                                 style={{ '--jc': valMeta(rec.val).color } as React.CSSProperties}
                                 title={valMeta(rec.val).name}>
