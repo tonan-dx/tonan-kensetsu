@@ -191,6 +191,7 @@ export default function Haichi() {
     if (!el) { el = document.createElement('style'); el.id = PRINT_STYLE; document.head.appendChild(el) }
     el.textContent = `@page { size: ${size} landscape; margin: 8mm; }`
     const cls = size === 'A4' ? 'print-a4' : 'print-a3'
+    document.body.classList.remove('print-a4', 'print-a3') // 前回の指定が残っていても混ざらないように
     document.body.classList.add(cls)
     const done = () => { document.body.classList.remove(cls); window.removeEventListener('afterprint', done) }
     window.addEventListener('afterprint', done)
