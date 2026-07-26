@@ -3094,3 +3094,61 @@ table.hgrid { border-collapse:separate; border-spacing:0; width:max-content; min
   .haichi-cols .haichi-palette { position: static; max-height: none; overflow: visible; }
   .haichi-cols .hp-list { flex-direction: row; flex-wrap: wrap; }
 }
+
+/* ── 配置表：印刷（A4／A3 横で表示中の2週間を1枚に）── */
+.haichi-toolbar .print-btns { display: inline-flex; gap: 7px; margin-left: auto; }
+.btn-print {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 1px solid var(--border); background: var(--white); color: var(--blue);
+  font-size: 12.5px; font-weight: 700; border-radius: 9px; padding: 6px 12px; cursor: pointer;
+}
+.btn-print:hover { background: color-mix(in srgb, var(--blue) 10%, var(--white)); }
+.haichi-print-head { display: none; }
+
+@media print {
+  /* 盤面だけを刷る（操作UIは落とす） */
+  .haichi-header, .haichi-note, .haichi-toolbar, .haichi-palette, .haichi-foot { display: none !important; }
+
+  html, body { background: #fff; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  .haichi-print-head {
+    display: flex; align-items: baseline; gap: 14px;
+    margin: 0 0 6px; color: #000; font-weight: 800;
+  }
+  .haichi-print-head .pr-range { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .haichi-page { min-height: 0; max-width: none; margin: 0; padding: 0; background: #fff; }
+  .haichi-cols { display: block; }
+  .haichi-board { border: none; border-radius: 0; overflow: visible; }
+  .haichi-board .scroll { overflow: visible; }
+  /* 工事を選んだままでも、印刷は全コマを同じ濃さで出す */
+  .haichi-board.focus .komacell.job:not(.hit) { opacity: 1; filter: none; }
+  .haichi-board.focus .komacell.job.hit { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--jc) 34%, transparent); }
+
+  table.hgrid { width: 100%; min-width: 0; table-layout: fixed; }
+  .hgrid thead { display: table-header-group; }
+  .hgrid tr { break-inside: avoid; }
+  .hgrid th, .hgrid td { border-right: 1px solid #94a3b8; border-bottom: 1px solid #94a3b8; }
+  .hgrid thead th { border-top: 1px solid #94a3b8; }
+  .hgrid thead th, .hgrid th.hname, .hgrid td.hname { position: static; box-shadow: none; }
+  .hgrid th.hname, .hgrid td.hname { border-left: 1px solid #94a3b8; width: 12%; min-width: 0; }
+  .hgrid thead th { color: #000; }
+  .hgrid tbody td { min-width: 0; padding: 1px; }
+  /* 印刷は列が細いので、工事名は折り返して全部見せる（画面は1行＋…のまま） */
+  .komacell { max-width: none; width: 100%; white-space: normal; overflow: visible; word-break: break-all; line-height: 1.15; padding: 2px 1px; }
+
+  body.print-a4 .haichi-print-head { font-size: 12pt; }
+  body.print-a4 .hgrid thead th { font-size: 7.5pt; padding: 3px 1px; }
+  body.print-a4 .hgrid thead th .dh-w { font-size: 6pt; }
+  body.print-a4 .hgrid th.hname, body.print-a4 .hgrid td.hname { font-size: 7.5pt; padding: 0 4px; }
+  body.print-a4 .hgrid tbody td { height: 26px; }
+  body.print-a4 .komacell { font-size: 6.5pt; }
+
+  body.print-a3 .haichi-print-head { font-size: 15pt; }
+  body.print-a3 .hgrid thead th { font-size: 10pt; padding: 5px 2px; }
+  body.print-a3 .hgrid thead th .dh-w { font-size: 8pt; }
+  body.print-a3 .hgrid th.hname, body.print-a3 .hgrid td.hname { font-size: 10pt; padding: 0 7px; }
+  body.print-a3 .hgrid tbody td { height: 38px; }
+  body.print-a3 .komacell { font-size: 9pt; }
+}

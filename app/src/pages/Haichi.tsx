@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Printer } from 'lucide-react'
 import type { Project, Task } from '../types'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 import {
@@ -17,6 +17,7 @@ const PALETTE = ['#16a34a', '#0d9488', '#0891b2', '#0284c7', '#2563eb', '#7c3aed
 const DAYS = 14
 const kk = (person: string, date: string) => `${person} ${date}`
 const ERASE = '__erase__'
+const PRINT_STYLE = 'haichi-print-size'
 // 進行中の工事に無い現場は「現場ラベル」コマとして notes に 'L:現場名' で保存
 const FREE = 'L:'
 function labelColor(s: string): string {
@@ -183,6 +184,23 @@ export default function Haichi() {
     await upsertCell(from.person, from.date, toVal)
   }
 
+  // ── 印刷（表示中の2週間をA4/A3横で1枚に）──
+  // 用紙サイズは @page でしか指定できないので、都度 style を差し替えてから印刷ダイアログを開く
+  const printSheet = (size: 'A4' | 'A3') => {
+    let el = document.getElementById(PRINT_STYLE) as HTMLStyleElement | null
+    if (!el) { el = document.createElement('style'); el.id = PRINT_STYLE; document.head.appendChild(el) }
+    el.textContent = `@page { size: ${size} landscape; margin: 8mm; }`
+    const cls = size === 'A4' ? 'print-a4' : 'print-a3'
+    document.body.classList.add(cls)
+    const done = () => { document.body.classList.remove(cls); window.removeEventListener('afterprint', done) }
+    window.addEventListener('afterprint', done)
+    window.print()
+  }
+  useEffect(() => () => {
+    document.getElementById(PRINT_STYLE)?.remove()
+    document.body.classList.remove('print-a4', 'print-a3')
+  }, [])
+
   const brushMeta = brush && brush !== REST_VAL && brush !== ERASE ? valMeta(brush) : null
   const brushLabel = brush === REST_VAL ? '休み' : brush === ERASE ? '消す' : brushMeta ? brushMeta.name : '（工事を選んでください）'
   const brushColor = brush === REST_VAL ? '#e11d48' : brush === ERASE ? '#94a3b8' : brushMeta ? brushMeta.color : '#cbd5e1'
@@ -211,6 +229,20 @@ export default function Haichi() {
         </div>
         <span className="brush-now"><span className="swatch" style={{ background: brushColor }} />いま置く：<b>{brushLabel}</b></span>
         {brush && <button className="btn-ghost" onClick={() => setBrush(null)}>選択解除</button>}
+        <span className="print-btns">
+          <button className="btn-print" onClick={() => printSheet('A4')} title="表示中の2週間をA4横で印刷">
+            <Printer size={15} />A4で印刷
+          </button>
+          <button className="btn-print" onClick={() => printSheet('A3')} title="表示中の2週間をA3横で印刷">
+            <Printer size={15} />A3で印刷
+          </button>
+        </span>
+      </div>
+
+      {/* 印刷時だけ出る見出し（画面では非表示） */}
+      <div className="haichi-print-head">
+        <span className="pr-title">現場配置表</span>
+        <span className="pr-range">{rangeLabel}</span>
       </div>
 
       <div className="haichi-cols">
