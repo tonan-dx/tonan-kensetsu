@@ -82,6 +82,8 @@ function buildEvents(data: {
     push(r.id, 'report', r.report_date, r.project?.name ?? r.title, `/reports/${r.id}`, r.office)
   }
   for (const n of data.notices) {
+    // 「電話」を含むお知らせ（電話があった旨の記録）は、日付があってもカレンダーに出さない
+    if (`${n.title ?? ''}\n${n.content ?? ''}`.includes('電話')) continue
     push(n.id, 'notice', n.date, n.title, `/notices/${n.id}`, n.office)
   }
   for (const e of data.estimates) {
