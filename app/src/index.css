@@ -2536,6 +2536,24 @@ input, select, textarea { font: inherit; }
 }
 .circulation-unseen-label { font-weight: 700; color: var(--text); }
 
+/* お知らせ一覧：まだ見ていない人の名前 */
+.notice-unseen-names {
+  margin-top: 8px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: var(--red-light);
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.notice-unseen-names .lbl {
+  font-weight: 800;
+  margin-right: 6px;
+  padding-right: 6px;
+  border-right: 1px solid color-mix(in srgb, var(--red) 30%, transparent);
+}
+
 /* 担当者ビューの未確認ステータス */
 .assignee-inline-status.unread,
 .assignee-item-sub.unread {

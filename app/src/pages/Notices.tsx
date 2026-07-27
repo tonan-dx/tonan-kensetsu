@@ -4,8 +4,7 @@ import { Plus, Bell, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Notice } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
-
-const MEMBER_COUNT = 16
+import { MEMBERS } from '../lib/leave'
 
 export default function Notices() {
   const { loc } = useOfficeFilter()
@@ -23,9 +22,13 @@ export default function Notices() {
   useRefetchOnFocus(load)
 
   const visible = notices.filter(n => matchesOffice(n.office, loc))
-  const unseenOf = (n: Notice) => MEMBER_COUNT - (n.confirmed_by?.length ?? 0)
-  const active = visible.filter(n => unseenOf(n) > 0)
-  const done = visible.filter(n => unseenOf(n) === 0)
+  // まだ回覧を確認していない人（名前で出して、誰が見ていないかをはっきりさせる）
+  const unseenOf = (n: Notice) => {
+    const confirmed = n.confirmed_by ?? []
+    return MEMBERS.filter(m => !confirmed.includes(m))
+  }
+  const active = visible.filter(n => unseenOf(n).length > 0)
+  const done = visible.filter(n => unseenOf(n).length === 0)
 
   const renderCard = (n: Notice) => {
     const unseen = unseenOf(n)
@@ -35,12 +38,17 @@ export default function Notices() {
           {n.date && <span className="notice-date">{n.date}</span>}
           {n.office && <span className="notice-loc">{n.office}</span>}
           {n.poster && <span className="notice-poster">{n.poster}</span>}
-          {unseen > 0
-            ? <span className="notice-unseen">未確認 {unseen}名</span>
+          {unseen.length > 0
+            ? <span className="notice-unseen">未確認 {unseen.length}名</span>
             : <span className="notice-unseen done">全員確認済</span>}
         </div>
         <div className="notice-card-title">{n.title}</div>
         {n.content && <div className="notice-card-preview">{n.content}</div>}
+        {unseen.length > 0 && (
+          <div className="notice-unseen-names">
+            <span className="lbl">見ていない人</span>{unseen.join('、')}
+          </div>
+        )}
       </Link>
     )
   }
