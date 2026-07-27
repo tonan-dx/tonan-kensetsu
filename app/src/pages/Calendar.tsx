@@ -57,6 +57,10 @@ const TASK_REF_ROUTE: Record<string, string> = {
   safety: 'safety',
 }
 
+// 電話でのやりとりの記録は「予定」ではないため、カレンダーの集約対象から外す
+const hasPhoneKeyword = (...texts: (string | null | undefined)[]) =>
+  texts.some(t => (t ?? '').includes('電話'))
+
 function buildEvents(data: {
   projects: Project[]; reports: DailyReport[]; notices: Notice[]
   estimates: Estimate[]; safety: SafetyRecord[]; contacts: Contact[]; tasks: Task[]
@@ -82,8 +86,7 @@ function buildEvents(data: {
     push(r.id, 'report', r.report_date, r.project?.name ?? r.title, `/reports/${r.id}`, r.office)
   }
   for (const n of data.notices) {
-    // 「電話」を含むお知らせ（電話があった旨の記録）は、日付があってもカレンダーに出さない
-    if (`${n.title ?? ''}\n${n.content ?? ''}`.includes('電話')) continue
+    if (hasPhoneKeyword(n.title, n.content)) continue
     push(n.id, 'notice', n.date, n.title, `/notices/${n.id}`, n.office)
   }
   for (const e of data.estimates) {
@@ -96,6 +99,8 @@ function buildEvents(data: {
     push(s.id, 'safety', s.date, s.title, `/safety/${s.id}`, s.office)
   }
   for (const c of data.contacts) {
+    // 電話でのやりとりは予定ではないので、日付があってもカレンダーに出さない
+    if (hasPhoneKeyword(c.subject, c.content)) continue
     push(c.id, 'contact', c.date, c.subject, `/contacts/${c.id}`, c.office)
   }
   for (const t of data.tasks) {
