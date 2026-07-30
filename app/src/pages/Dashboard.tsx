@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Building2, ClipboardList, FileText, HardHat, ChevronRight, AlertTriangle, Bell, ShieldAlert, Send, CheckSquare, CalendarDays, LayoutGrid } from 'lucide-react'
+import { Building2, ClipboardList, FileText, HardHat, ChevronRight, AlertTriangle, Bell, ShieldAlert, Send, CheckSquare, CalendarDays, LayoutGrid, Car } from 'lucide-react'
 import type { Project, DailyReport, Estimate, SafetyRecord, Notice, Assignee, Task, Contact } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 import { isLeave } from '../lib/leave'
 import { isPlan } from '../lib/plan'
-import { isMeetingItem } from '../lib/meeting'
+import { isMeetingItem, isVehicle, vehicleTitle, daysUntil, countdownLabel, VEHICLE_SOON_DAYS } from '../lib/meeting'
 
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 const MEMBER_COUNT = ASSIGNEES.length
@@ -98,6 +98,13 @@ export default function Dashboard() {
 
   // 連絡
   const unconfirmedContacts = contacts.filter(c => !c.confirmed).length
+
+  // 車検が近い車両（VEHICLE_SOON_DAYS 以内＋超過分）。拠点なしの車両は全社共通なので常に出す。
+  const vehiclesSoon = tasksRaw
+    .filter(t => isVehicle(t) && (!t.office || loc === 'all' || t.office === loc))
+    .map(t => ({ t, days: daysUntil(t.due_date) }))
+    .filter((v): v is { t: Task; days: number } => v.days != null && v.days <= VEHICLE_SOON_DAYS)
+    .sort((a, b) => a.days - b.days)
 
   if (loading) return <div className="loading">読み込み中...</div>
 
@@ -292,6 +299,26 @@ export default function Dashboard() {
         </Link>
 
       </div>
+
+      {/* 車検が近い車両（該当がある時だけ表示） */}
+      {vehiclesSoon.length > 0 && (
+        <Link to="/meeting" className="home-vehicle-card">
+          <div className="home-vehicle-head">
+            <Car size={16} /> 車検が近い車両
+            <span className="home-vehicle-count">{vehiclesSoon.length}件</span>
+            <ChevronRight size={18} className="home-tile-arrow" />
+          </div>
+          <div className="home-vehicle-list">
+            {vehiclesSoon.map(({ t, days }) => (
+              <div key={t.id} className={`home-vehicle-row${days < 0 ? ' over' : ''}`}>
+                <span className="home-vehicle-name">{vehicleTitle(t)}</span>
+                <span className="home-vehicle-date">{t.due_date?.replace(/-/g, '/')}</span>
+                <span className="home-vehicle-days">{countdownLabel(days)}</span>
+              </div>
+            ))}
+          </div>
+        </Link>
+      )}
 
       {/* 担当者ボタン */}
       <div className="assignee-bar">

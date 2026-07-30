@@ -2930,6 +2930,62 @@ input, select, textarea { font: inherit; }
 .vehicle-date.over { color: #dc2626; }
 .vehicle-note { color: var(--text-sub); }
 
+.vehicle-hint {
+  font-size: 11px;
+  color: var(--text-sub);
+  margin: -2px 0 8px;
+}
+
+/* ホームの「車検が近い車両」 */
+.home-vehicle-card {
+  display: block;
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+.home-vehicle-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #0369a1;
+  margin-bottom: 8px;
+}
+.home-vehicle-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-sub);
+  background: var(--gray-light);
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+.home-vehicle-head .home-tile-arrow { margin-left: auto; color: var(--text-sub); }
+.home-vehicle-list { display: flex; flex-direction: column; gap: 6px; }
+.home-vehicle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 6px 10px;
+  background: #fefce8;
+  border: 1px solid #fde047;
+  border-radius: 8px;
+}
+.home-vehicle-row.over { background: #fef2f2; border-color: #fca5a5; }
+.home-vehicle-name { font-weight: 600; }
+.home-vehicle-date {
+  color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+.home-vehicle-days { font-weight: 700; color: #b45309; }
+.home-vehicle-row.over .home-vehicle-days { color: #dc2626; }
+
 /* 資格試験一覧 */
 .qual-row {
   padding: 10px 12px;

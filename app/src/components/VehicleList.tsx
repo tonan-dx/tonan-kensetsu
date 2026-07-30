@@ -1,17 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Car, Plus, Trash2, Pencil, CalendarPlus, Check } from 'lucide-react'
+import { Car, Plus, Trash2, Pencil } from 'lucide-react'
 import type { Task } from '../types'
 import { useOfficeFilter } from '../lib/office'
-import { VEHICLE_REF, addToCalendar, localYMD } from '../lib/meeting'
-
-// 車検日が近い/超過を判定（60日以内=近い、過去=超過）
-const SOON_DAYS = 60
-function daysUntil(ymd: string | null): number | null {
-  if (!ymd) return null
-  const today = new Date(localYMD(new Date()))
-  const target = new Date(ymd)
-  return Math.round((target.getTime() - today.getTime()) / 86400000)
-}
+import { VEHICLE_REF, VEHICLE_SOON_DAYS, daysUntil, countdownLabel } from '../lib/meeting'
 
 interface Draft { plate: string; model: string; date: string; note: string; office: string }
 const EMPTY: Draft = { plate: '', model: '', date: '', note: '', office: '' }
@@ -25,7 +16,6 @@ export default function VehicleList() {
   const [saving, setSaving] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [edit, setEdit] = useState<Draft>(EMPTY)
-  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
 
   const load = () => {
     fetch(`/api/checklist?ref_type=${encodeURIComponent(VEHICLE_REF)}`)
@@ -82,12 +72,6 @@ export default function VehicleList() {
     setItems(prev => prev.filter(t => t.id !== id))
   }
 
-  const toCalendar = async (t: Task) => {
-    if (!t.due_date) return
-    const ok = await addToCalendar({ name: `車検：${t.name}${t.ref_id ? `（${t.ref_id}）` : ''}`, date: t.due_date, office: t.office })
-    if (ok) setAddedIds(prev => new Set(prev).add(t.id))
-  }
-
   const startEdit = (t: Task) => {
     setEditId(t.id)
     setEdit({ plate: t.ref_id ?? '', model: t.name ?? '', date: t.due_date ?? '', note: t.notes ?? '', office: t.office ?? '' })
@@ -99,6 +83,7 @@ export default function VehicleList() {
         <div className="task-list-title"><Car size={16} /> 車検一覧 <span className="task-count">{visible.length}件</span></div>
         <button className="task-add-btn" onClick={() => setAdding(a => !a)}><Plus size={16} /> 追加</button>
       </div>
+      <div className="vehicle-hint">車検日を入れると、カレンダーにも自動で表示されます</div>
 
       {adding && (
         <div className="task-add-form">
@@ -146,7 +131,7 @@ export default function VehicleList() {
               )
             }
             const du = daysUntil(t.due_date)
-            const soon = du != null && du <= SOON_DAYS
+            const soon = du != null && du <= VEHICLE_SOON_DAYS
             const over = du != null && du < 0
             return (
               <div key={t.id} className={`vehicle-row${soon ? ' soon' : ''}${over ? ' over' : ''}`}>
@@ -156,15 +141,10 @@ export default function VehicleList() {
                   {t.office && <span className="badge badge-gray">{t.office}</span>}
                 </div>
                 <div className="vehicle-sub">
-                  {t.due_date && <span className={`vehicle-date${over ? ' over' : soon ? ' soon' : ''}`}>車検 {t.due_date.replace(/-/g, '/')}{du != null && (over ? `（${-du}日超過）` : soon ? `（あと${du}日）` : '')}</span>}
+                  {t.due_date && <span className={`vehicle-date${over ? ' over' : soon ? ' soon' : ''}`}>車検 {t.due_date.replace(/-/g, '/')}{du != null && `（${countdownLabel(du)}）`}</span>}
                   {t.notes && <span className="vehicle-note">{t.notes}</span>}
                 </div>
                 <div className="meeting-row-actions">
-                  {t.due_date && (
-                    <button className="meeting-cal-btn" onClick={() => toCalendar(t)} disabled={addedIds.has(t.id)} title="カレンダーに登録">
-                      {addedIds.has(t.id) ? <Check size={14} /> : <CalendarPlus size={14} />}
-                    </button>
-                  )}
                   <button className="task-edit" onClick={() => startEdit(t)} title="編集"><Pencil size={13} /></button>
                   <button className="task-delete" onClick={() => remove(t.id)}><Trash2 size={14} /></button>
                 </div>
