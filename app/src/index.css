@@ -2977,13 +2977,14 @@ input, select, textarea { font: inherit; }
   border-radius: 8px;
 }
 .home-vehicle-row.over { background: #fef2f2; border-color: #fca5a5; }
-.home-vehicle-name { font-weight: 600; }
+.home-vehicle-name { font-weight: 600; min-width: 0; }
 .home-vehicle-date {
   color: var(--text-sub);
   font-variant-numeric: tabular-nums;
   margin-left: auto;
+  white-space: nowrap;
 }
-.home-vehicle-days { font-weight: 700; color: #b45309; }
+.home-vehicle-days { font-weight: 700; color: #b45309; white-space: nowrap; }
 .home-vehicle-row.over .home-vehicle-days { color: #dc2626; }
 
 /* 資格試験一覧 */
