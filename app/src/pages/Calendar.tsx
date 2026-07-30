@@ -10,6 +10,7 @@ import type { Project, DailyReport, Notice, Estimate, SafetyRecord, Contact, Tas
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { isLeave, isCompanyLeave, parseLeave, leaveLabel } from '../lib/leave'
 import { isPlan, planLabel } from '../lib/plan'
+import { isVehicle, vehicleTitle, daysUntil, countdownLabel } from '../lib/meeting'
 import { CONTAINER_REFS } from '../lib/haichi'
 import LeaveModal from '../components/LeaveModal'
 import PlanModal from '../components/PlanModal'
@@ -28,6 +29,7 @@ const TYPE_META = {
   task:     { label: 'ToDo',     color: '#64748b' },
   leave:    { label: '休み',     color: '#e11d48' },
   plan:     { label: '予定',     color: '#4338ca' },
+  vehicle:  { label: '車検',     color: '#0369a1' },
 } as const
 
 type EventKind = keyof typeof TYPE_META
@@ -40,6 +42,7 @@ interface CalEvent {
   title: string
   link: string | null
   office: string | null
+  always?: boolean  // 拠点フィルターを無視して常に表示（拠点なしの共通データ用）
 }
 
 type ViewMode = 'month' | 'week' | 'day'
@@ -68,11 +71,11 @@ function buildEvents(data: {
   const events: CalEvent[] = []
   const push = (
     id: string, kind: EventKind, date: string | null | undefined,
-    title: string, link: string | null, office: string | null,
+    title: string, link: string | null, office: string | null, always = false,
   ) => {
     const dateKey = toKey(date)
     if (!dateKey) return
-    events.push({ key: `${kind}-${id}`, dateKey, kind, title, link, office })
+    events.push({ key: `${kind}-${id}`, dateKey, kind, title, link, office, always })
   }
 
   for (const p of data.projects) {
@@ -117,7 +120,15 @@ function buildEvents(data: {
       push(t.id, 'plan', t.due_date, planLabel(t.name, t.ref_id, t.assignee), null, t.office)
       continue
     }
-    // 配置・メモ・議題・資格・車検は内部データ。カレンダーのToDoには出さない
+    // 車検は車検日をそのまま予定として表示（車検一覧で日付を直せばカレンダーも追従する）
+    if (isVehicle(t)) {
+      const d = daysUntil(t.due_date)
+      const title = `${vehicleTitle(t)}${d != null ? `（${countdownLabel(d)}）` : ''}`
+      // 拠点なしの車両は全社共通なので、本社/釜石を選んでいても表示する
+      push(t.id, 'vehicle', t.due_date, title, '/meeting', t.office, !t.office)
+      continue
+    }
+    // 配置・メモ・議題・資格は内部データ。カレンダーのToDoには出さない
     if (CONTAINER_REFS.has(t.ref_type ?? '')) continue
     if (t.done) continue
     const route = t.ref_type ? TASK_REF_ROUTE[t.ref_type] : undefined
@@ -156,7 +167,7 @@ export default function Calendar() {
   const eventsByKey = useMemo(() => {
     const map: Record<string, CalEvent[]> = {}
     for (const e of events) {
-      if (!matchesOffice(e.office, loc)) continue
+      if (!e.always && !matchesOffice(e.office, loc)) continue
       ;(map[e.dateKey] ??= []).push(e)
     }
     for (const k of Object.keys(map)) {
