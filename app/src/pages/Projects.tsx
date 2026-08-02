@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Plus, Search, CalendarDays, Check, X, Pencil } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { Plus, Search, CalendarDays, Check, X, Pencil, MapPin } from 'lucide-react'
 import type { Project, ProjectCategory } from '../types'
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
@@ -118,12 +118,29 @@ function projectFiscalYear(p: Project): number | null {
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [filterStatus, setFilterStatus] = useState<StatusFilter>('すべて')
-  const [filterYear, setFilterYear] = useState<number | 'すべて'>(currentFiscalYear())
-  const [filterCategory, setFilterCategory] = useState<ProjectCategory | null>(null)
-  const [filterDivision, setFilterDivision] = useState<string | null>(null)
   const { loc } = useOfficeFilter()
+
+  // 絞り込み・検索は URL に持たせる。工事詳細から「戻る」で選んだ状態がそのまま復元される。
+  const [params, setParams] = useSearchParams()
+  const search = params.get('q') ?? ''
+  const filterStatus: StatusFilter =
+    (STATUSES as readonly string[]).includes(params.get('status') ?? '') ? params.get('status') as StatusFilter : 'すべて'
+  const yearParam = params.get('year')
+  const filterYear: number | 'すべて' =
+    yearParam === 'すべて' ? 'すべて'
+    : yearParam && !Number.isNaN(Number(yearParam)) ? Number(yearParam)
+    : currentFiscalYear()
+  const filterCategory: ProjectCategory | null =
+    (CATEGORIES as string[]).includes(params.get('cat') ?? '') ? params.get('cat') as ProjectCategory : null
+  const filterDivision: string | null =
+    DIVISIONS.includes(params.get('div') ?? '') ? params.get('div') : null
+
+  // 履歴を増やさない（replace）。増やすと「戻る」で絞り込み操作を1つずつ遡ってしまう。
+  const setParam = (patch: Record<string, string | null>) => {
+    const next = new URLSearchParams(params)
+    Object.entries(patch).forEach(([k, v]) => { if (v == null || v === '') next.delete(k); else next.set(k, v) })
+    setParams(next, { replace: true })
+  }
 
   const load = () => {
     fetch('/api/projects').then(r => r.json()).then(data => {
@@ -140,8 +157,16 @@ export default function Projects() {
     new Set([currentFiscalYear(), ...projects.map(p => projectFiscalYear(p))].filter((y): y is number => y !== null))
   ).sort((a, b) => b - a)
 
+  // 検索中は「絞り込み（区分・分類・年度・状態）も拠点も無視して全工事から探す」。
+  // 以前は絞り込みとAND だったため、入金済み・別年度・別拠点の工事が検索に出てこなかった。
+  const q = search.trim().toLowerCase()
+  const searching = q !== ''
+
   const filtered = projects.filter(p => {
-    const matchSearch = p.name.includes(search) || p.client_name.includes(search) || p.location.includes(search)
+    if (searching) {
+      return [p.name, p.client_name, p.location, p.assignee]
+        .filter(Boolean).join(' ').toLowerCase().includes(q)
+    }
     // 表示用ステータス（請求待ち＋請求日→請求済み）で絞り込み
     const matchStatus = filterStatus === 'すべて' || displayStatus(p) === filterStatus
     const matchYear = filterYear === 'すべて' || projectFiscalYear(p) === filterYear
@@ -149,7 +174,7 @@ export default function Projects() {
     const matchDivision = !filterDivision || p.division === filterDivision
     // 入金済み（完了案件）は既定で隠す。「入金済み」タブ選択時・分類/区分での絞り込み中は表示。
     const matchPaid = filterStatus === '入金済み' || !!filterCategory || !!filterDivision || p.status !== '入金済み'
-    return matchSearch && matchStatus && matchYear && matchCategory && matchDivision && matchPaid && matchesOffice(p.office, loc)
+    return matchStatus && matchYear && matchCategory && matchDivision && matchPaid && matchesOffice(p.office, loc)
   }).sort((a, b) => {
     // 着工日の若い順（早い日付が上）。着工日なしは末尾。
     if (!a.start_date && !b.start_date) return 0
@@ -194,76 +219,89 @@ export default function Projects() {
           className="search-input"
           placeholder="工事名・お客様名で検索"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={e => setParam({ q: e.target.value })}
         />
+        {search && (
+          <button className="search-clear" onClick={() => setParam({ q: null })} title="検索をやめる">
+            <X size={16} />
+          </button>
+        )}
       </div>
 
-      {/* 工事区分タグ（民間/公共/下請/積水ハウス/修繕） */}
-      <div className="filter-tabs">
-        {DIVISIONS.map(d => (
-          <button
-            key={d}
-            className={`filter-tab ${filterDivision === d ? 'active' : ''}`}
-            onClick={() => setFilterDivision(filterDivision === d ? null : d)}
-          >
-            {d}
-          </button>
-        ))}
-      </div>
+      {/* 検索中は絞り込みタブを隠す（検索は絞り込みを無視して全件から探すため、選択中の表示と食い違わせない） */}
+      {!searching && (
+        <>
+          {/* 工事区分タグ（民間/公共/下請/積水ハウス/修繕） */}
+          <div className="filter-tabs">
+            {DIVISIONS.map(d => (
+              <button
+                key={d}
+                className={`filter-tab ${filterDivision === d ? 'active' : ''}`}
+                onClick={() => setParam({ div: filterDivision === d ? null : d })}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
 
-      {/* 工事分類タグ（クリックで未入金のみ表示） */}
-      <div className="filter-tabs">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat}
-            className={`filter-tab ${filterCategory === cat ? 'active' : ''}`}
-            onClick={() => {
-              setFilterCategory(filterCategory === cat ? null : cat)
-              if (filterCategory !== cat) setFilterStatus('すべて')
-            }}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+          {/* 工事分類タグ（クリックで未入金のみ表示） */}
+          <div className="filter-tabs">
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                className={`filter-tab ${filterCategory === cat ? 'active' : ''}`}
+                onClick={() => setParam(filterCategory === cat ? { cat: null } : { cat, status: null })}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
 
-      {/* 年度タブ */}
-      {fiscalYears.length > 0 && (
-        <div className="filter-tabs">
-          <button
-            className={`filter-tab ${filterYear === 'すべて' ? 'active' : ''}`}
-            onClick={() => setFilterYear('すべて')}
-          >
-            すべて
-          </button>
-          {fiscalYears.map(fy => (
-            <button
-              key={fy}
-              className={`filter-tab ${filterYear === fy ? 'active' : ''}`}
-              onClick={() => setFilterYear(fy)}
-            >
-              {fiscalYearLabel(fy)}
-            </button>
-          ))}
-        </div>
+          {/* 年度タブ */}
+          {fiscalYears.length > 0 && (
+            <div className="filter-tabs">
+              <button
+                className={`filter-tab ${filterYear === 'すべて' ? 'active' : ''}`}
+                onClick={() => setParam({ year: 'すべて' })}
+              >
+                すべて
+              </button>
+              {fiscalYears.map(fy => (
+                <button
+                  key={fy}
+                  className={`filter-tab ${filterYear === fy ? 'active' : ''}`}
+                  onClick={() => setParam({ year: String(fy) })}
+                >
+                  {fiscalYearLabel(fy)}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* ステータスタブ（お金の流れ順・折り返しで全部表示。分類タグ選択中は無効化） */}
+          {!filterCategory && (
+            <div className="filter-tabs filter-tabs-wrap">
+              {STATUSES.map(s => (
+                <button
+                  key={s}
+                  className={`filter-tab ${filterStatus === s ? 'active' : ''}`}
+                  onClick={() => setParam({ status: s === 'すべて' ? null : s })}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
-      {/* ステータスタブ（お金の流れ順・折り返しで全部表示。分類タグ選択中は無効化） */}
-      {!filterCategory && (
-        <div className="filter-tabs filter-tabs-wrap">
-          {STATUSES.map(s => (
-            <button
-              key={s}
-              className={`filter-tab ${filterStatus === s ? 'active' : ''}`}
-              onClick={() => setFilterStatus(s)}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
+      {searching && (
+        <p className="filter-notice">
+          「{search}」の検索結果 — {filtered.length}件（すべての年度・状態・拠点から検索中）
+        </p>
       )}
 
-      {filterCategory && (
+      {!searching && filterCategory && (
         <p className="filter-notice">
           「{filterCategory}」の未入金工事を表示中 — {filtered.length}件
         </p>
@@ -281,6 +319,13 @@ export default function Projects() {
                 {p.division && <span className="badge badge-division">{p.division}</span>}
                 {p.category && <span className="badge badge-category">{p.category}</span>}
               </div>
+              {/* 工事場所（住所）。件名のすぐ下に出すと現場が一目で分かる */}
+              {p.location && (
+                <div className="project-row-loc">
+                  <MapPin size={13} />
+                  <span>{p.location}</span>
+                </div>
+              )}
               {/* 件名の直下：進捗バー＋その場入力 */}
               <ProjectProgress p={p} onUpdated={updateProject} />
               <div className="project-row-sub">
@@ -294,7 +339,7 @@ export default function Projects() {
         </div>
       )}
 
-      {summaryYears.length > 0 && (
+      {!searching && summaryYears.length > 0 && (
         <div className="proj-summary">
           <div className="proj-summary-title">
             年度別 完工高（区分別）

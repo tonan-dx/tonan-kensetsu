@@ -406,12 +406,31 @@ input, select, textarea { font: inherit; }
 
 .search-input {
   width: 100%;
-  padding: 10px 12px 10px 36px;
+  padding: 10px 40px 10px 36px; /* 右は「検索をやめる（×）」のぶん空ける */
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--white);
   font-size: 14px;
 }
+
+/* 検索をやめる（×）。入力欄の右端に重ねる */
+.search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-sub);
+  cursor: pointer;
+}
+.search-clear:active { background: var(--bg); }
 
 .filter-row {
   position: relative;
@@ -1010,6 +1029,27 @@ input, select, textarea { font: inherit; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* 工事場所（住所）。件名の下に控えめに置き、長い住所は2行までで省略する */
+.project-row-loc {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-sub);
+}
+.project-row-loc svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.project-row-loc span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .project-row-sub {
