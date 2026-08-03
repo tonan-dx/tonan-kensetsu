@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import type { Assignee, EstimateStatus, ProjectCategory } from '../types'
 import { useOfficeFilter } from '../lib/office'
 
-const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
+const ASSIGNEES: Assignee[] = ['佐藤', '鈴木', '高橋', '田中', '伊藤', '渡辺', '山本', '中村', '小林', '加藤']
 const STATUSES: EstimateStatus[] = ['見積書作成前', '見積書作成中', '社長チェック', 'お客様へ提出', '着工決定', 'ボツ／失注']
 const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
 
@@ -116,7 +116,7 @@ export default function EstimateForm() {
           <select className="form-select" value={form.office} onChange={e => set('office', e.target.value)}>
             <option value="">未設定</option>
             <option value="本社">本社</option>
-            <option value="釜石">釜石</option>
+            <option value="北支店">北支店</option>
           </select>
         </div>
 

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { notion, PROJECTS_DB, toProject, cors } from './_lib'
+import { notion, PROJECTS_DB, toProject, cors , statusValue } from './_lib'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   cors(res)
@@ -20,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     if (client_name) props['お客様名'] = { rich_text: [{ text: { content: client_name } }] }
     if (location) props['現場住所'] = { rich_text: [{ text: { content: location } }] }
-    if (status) props['工事ステータス'] = { status: { name: status } }
+    if (status) props['工事ステータス'] = statusValue(status)
     if (start_date) props['工期'] = { date: { start: start_date, end: end_date ?? null } }
     if (contract_amount != null) props['契約金額'] = { number: contract_amount }
     if (type) props['工事種別'] = { select: { name: type } }

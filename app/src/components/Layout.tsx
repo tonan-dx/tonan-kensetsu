@@ -6,7 +6,7 @@ import type { OfficeFilter } from '../lib/office'
 const LOC_OPTIONS: { key: OfficeFilter; label: string }[] = [
   { key: 'all', label: '全社' },
   { key: '本社', label: '本社' },
-  { key: '釜石', label: '釜石' },
+  { key: '北支店', label: '北支店' },
 ]
 
 export default function Layout() {
@@ -17,7 +17,7 @@ export default function Layout() {
         <div className="header-inner">
           <div className="logo">
             <Building2 size={22} />
-            <span>都南建設 工事管理</span>
+            <span>みらい建設 工事管理</span>
           </div>
           <div className="loc-switch">
             {LOC_OPTIONS.map(o => (

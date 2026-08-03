@@ -83,7 +83,7 @@ export default function SafetyForm() {
           <select className="form-select" value={form.office} onChange={e => set('office', e.target.value)}>
             <option value="">未設定</option>
             <option value="本社">本社</option>
-            <option value="釜石">釜石</option>
+            <option value="北支店">北支店</option>
           </select>
         </div>
         <div className="form-row">

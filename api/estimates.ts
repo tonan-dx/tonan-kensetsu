@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { notion, ESTIMATES_DB, toEstimate, cors } from './_lib'
+import { notion, ESTIMATES_DB, toEstimate, cors , statusValue } from './_lib'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   cors(res)
@@ -7,18 +7,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'GET') {
     const showAll = req.query.show_all === 'true'
-    const filter: any = showAll ? {} : {
-      filter: {
-        property: 'ステータス',
-        status: { does_not_equal: 'ボツ／失注' },
-      },
-    }
+    // 絞り込みは取得後に行う。Notionのフィルタはプロパティ型(status/select)に依存するため、
+    // デモ環境のDBでも同じコードが動くようにJS側で除外する。
     const response = await notion.databases.query({
       database_id: ESTIMATES_DB,
       sorts: [{ property: '見積期限', direction: 'ascending' }],
-      ...filter,
     })
-    return res.json(response.results.map(toEstimate).filter(Boolean))
+    const all = response.results.map(toEstimate).filter(Boolean) as any[]
+    return res.json(showAll ? all : all.filter(e => e.status !== 'ボツ／失注'))
   }
 
   if (req.method === 'POST') {
@@ -33,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (estimate_amount != null) props['見積金額'] = { number: estimate_amount }
     if (cost_estimate != null) props['原価予定'] = { number: cost_estimate }
     if (gross_profit != null) props['粗利予定'] = { number: gross_profit }
-    if (status) props['ステータス'] = { status: { name: status } }
+    if (status) props['ステータス'] = statusValue(status)
     if (request_content) props['依頼内容'] = { rich_text: [{ text: { content: request_content } }] }
     if (notes) props['メモ'] = { rich_text: [{ text: { content: notes } }] }
     if (contact) props['連絡先'] = { phone_number: contact }

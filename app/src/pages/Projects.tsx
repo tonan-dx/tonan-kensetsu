@@ -91,7 +91,7 @@ function ProjectProgress({ p, onUpdated }: { p: Project; onUpdated: (u: Project)
 const STATUSES = ['すべて', '着工前', '進行中', '請求待ち', '請求済', '入金済み'] as const
 type StatusFilter = typeof STATUSES[number]
 const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
-const DIVISIONS = ['民間', '公共', '下請', '積水ハウス', '修繕']
+const DIVISIONS = ['民間', '公共', '下請', 'ハウスメーカー', '修繕']
 
 // 7月始まりの年度を返す（例: 2024年7月〜2025年6月 → 2024）
 function getFiscalYear(dateStr: string | null): number | null {
@@ -243,7 +243,7 @@ export default function Projects() {
       {/* 検索中は絞り込みタブを隠す（検索は絞り込みを無視して全件から探すため、選択中の表示と食い違わせない） */}
       {!searching && (
         <>
-          {/* 工事区分タグ（民間/公共/下請/積水ハウス/修繕） */}
+          {/* 工事区分タグ（民間/公共/下請/ハウスメーカー/修繕） */}
           <div className="filter-tabs">
             {DIVISIONS.map(d => (
               <button

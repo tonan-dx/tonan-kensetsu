@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { notion, REPORTS_DB, toReport, buildProjectMap, cors } from './_lib'
+import { notion, REPORTS_DB, toReport, buildProjectMap, cors , statusValue } from './_lib'
 import { isFullPage } from '@notionhq/client'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (notes != null) props['社長・担当者への確認事項'] = { rich_text: [{ text: { content: notes } }] }
       if (trouble != null) props['トラブル'] = { checkbox: trouble }
       if (assignee) props['担当者'] = { select: { name: assignee } }
-      if (check_status) props['確認ステータス'] = { status: { name: check_status } }
+      if (check_status) props['確認ステータス'] = statusValue(check_status)
       if (project_id !== undefined) props['関連工事'] = project_id ? { relation: [{ id: project_id }] } : { relation: [] }
       if (office !== undefined) props['拠点'] = office ? { select: { name: office } } : { select: null }
       const page = await notion.pages.update({ page_id: id, properties: props })

@@ -4,7 +4,7 @@ import { ArrowLeft, Pencil, Trash2, Send, Paperclip, X, Loader, Check, CheckCirc
 import type { Contact, ContactReply, Attachment } from '../types'
 import { AttachmentView, uploadAttachment } from '../components/AttachmentBox'
 
-const MEMBERS = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
+const MEMBERS = ['佐藤', '鈴木', '高橋', '田中', '伊藤', '渡辺', '山本', '中村', '小林', '加藤']
 const ME_KEY = 'tonan-chat-me'
 const AVATAR_COLORS = ['#f97316', '#0ea5e9', '#8b5cf6', '#ec4899', '#14b8a6', '#eab308', '#ef4444', '#22c55e', '#6366f1', '#f43f5e']
 

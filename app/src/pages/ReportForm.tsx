@@ -5,7 +5,7 @@ import type { Project, Weather, Assignee } from '../types'
 import { useOfficeFilter } from '../lib/office'
 
 const WEATHERS: Weather[] = ['晴れ', 'くもり', '雨', '雪']
-const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
+const ASSIGNEES: Assignee[] = ['佐藤', '鈴木', '高橋', '田中', '伊藤', '渡辺', '山本', '中村', '小林', '加藤']
 
 export default function ReportForm() {
   const { id } = useParams()
@@ -100,7 +100,7 @@ export default function ReportForm() {
             onChange={e => setForm({ ...form, office: e.target.value })}>
             <option value="">未設定</option>
             <option value="本社">本社</option>
-            <option value="釜石">釜石</option>
+            <option value="北支店">北支店</option>
           </select>
         </div>
         <div className="form-row">

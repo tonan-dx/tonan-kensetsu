@@ -2422,7 +2422,7 @@ input, select, textarea { font: inherit; }
   font-weight: 700;
 }
 
-/* ── 拠点スイッチ（ヘッダー：全社/本社/釜石） ── */
+/* ── 拠点スイッチ（ヘッダー：全社/本社/北支店） ── */
 .loc-switch {
   margin-left: auto;
   display: flex;

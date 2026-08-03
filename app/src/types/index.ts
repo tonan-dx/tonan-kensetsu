@@ -1,4 +1,4 @@
-export type Office = '本社' | '釜石'
+export type Office = '本社' | '北支店'
 
 export interface Notice {
   id: string
@@ -48,7 +48,7 @@ export type PresidentCheckStatus = '未依頼' | '依頼済' | '確認中' | '�
 export type EstimateResult = '未確定' | '着工決定' | '失注'
 export type WorkType = '新築' | 'リフォーム・改修' | '修繕' | '解体' | '土木・外構' | 'その他'
 export type ProjectCategory = '管工事' | '土木工事' | '水道施設' | '舗装' | 'とび・土工'
-export type Assignee = '長澤' | '坂井' | '高橋' | '五十嵐' | '堀合' | '櫻川' | '竹田' | '千葉' | '水間' | '晴山' | '山崎' | '幹子' | '佐野' | '上野' | '岩洞' | '小笠原'
+export type Assignee = '佐藤' | '鈴木' | '高橋' | '田中' | '伊藤' | '渡辺' | '山本' | '中村' | '小林' | '加藤'
 export type Weather = '晴れ' | 'くもり' | '雨' | '雪'
 export type CheckStatus = '未確認' | '確認中' | '差し戻し' | '確認済み'
 

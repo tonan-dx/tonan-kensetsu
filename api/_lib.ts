@@ -33,6 +33,15 @@ export function getStatus(prop: any): string {
   // 同じ意味を持つ両方の型から読めるようにしておく（本番の挙動は変わらない）。
   return prop?.status?.name ?? prop?.select?.name ?? ''
 }
+/**
+ * ステータス系プロパティへ書き込む値を作る。
+ * 本番のDBは status 型だが、デモ環境のDBは API 作成の都合で select 型になる。
+ * NOTION_STATUS_AS_SELECT=1 のときだけ select として書き込む。
+ */
+export function statusValue(name: string): any {
+  return process.env.NOTION_STATUS_AS_SELECT === '1' ? { select: { name } } : { status: { name } }
+}
+
 export function getPhone(prop: any): string | null {
   return prop?.phone_number ?? null
 }

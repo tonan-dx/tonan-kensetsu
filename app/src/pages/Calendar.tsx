@@ -124,7 +124,7 @@ function buildEvents(data: {
     if (isVehicle(t)) {
       const d = daysUntil(t.due_date)
       const title = `${vehicleTitle(t)}${d != null ? `（${countdownLabel(d)}）` : ''}`
-      // 拠点なしの車両は全社共通なので、本社/釜石を選んでいても表示する
+      // 拠点なしの車両は全社共通なので、本社/北支店を選んでいても表示する
       push(t.id, 'vehicle', t.due_date, title, '/meeting', t.office, !t.office)
       continue
     }

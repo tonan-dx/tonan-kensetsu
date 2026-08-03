@@ -8,7 +8,7 @@ import { isLeave } from '../lib/leave'
 import { isPlan } from '../lib/plan'
 import { isMeetingItem, isVehicle, vehicleTitle, daysUntil, countdownLabel, VEHICLE_SOON_DAYS } from '../lib/meeting'
 
-const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
+const ASSIGNEES: Assignee[] = ['佐藤', '鈴木', '高橋', '田中', '伊藤', '渡辺', '山本', '中村', '小林', '加藤']
 const MEMBER_COUNT = ASSIGNEES.length
 
 const today = new Date().toISOString().slice(0, 10)

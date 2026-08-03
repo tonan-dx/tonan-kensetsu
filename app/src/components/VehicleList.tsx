@@ -95,7 +95,7 @@ export default function VehicleList() {
             <label className="meeting-field-label">車検日</label>
             <input type="date" className="task-date" value={draft.date} onChange={e => setDraft(d => ({ ...d, date: e.target.value }))} />
             <select className="task-select" value={draft.office} onChange={e => setDraft(d => ({ ...d, office: e.target.value }))}>
-              <option value="">拠点なし</option><option value="本社">本社</option><option value="釜石">釜石</option>
+              <option value="">拠点なし</option><option value="本社">本社</option><option value="北支店">北支店</option>
             </select>
           </div>
           <input className="task-input" placeholder="備考（例：ダンプ切替修理完了）" value={draft.note} onChange={e => setDraft(d => ({ ...d, note: e.target.value }))} />
@@ -119,7 +119,7 @@ export default function VehicleList() {
                     <label className="meeting-field-label">車検日</label>
                     <input type="date" className="task-date" value={edit.date} onChange={e => setEdit(d => ({ ...d, date: e.target.value }))} />
                     <select className="task-select" value={edit.office} onChange={e => setEdit(d => ({ ...d, office: e.target.value }))}>
-                      <option value="">拠点なし</option><option value="本社">本社</option><option value="釜石">釜石</option>
+                      <option value="">拠点なし</option><option value="本社">本社</option><option value="北支店">北支店</option>
                     </select>
                   </div>
                   <input className="task-input" value={edit.note} onChange={e => setEdit(d => ({ ...d, note: e.target.value }))} placeholder="備考" />

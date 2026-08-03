@@ -6,8 +6,8 @@ import { useOfficeFilter } from '../lib/office'
 
 const STATUSES: ProjectStatus[] = ['着工前', '進行中', '確認待ち', '完了', '請求待ち', '入金済み']
 const CATEGORIES: ProjectCategory[] = ['管工事', '土木工事', '水道施設', '舗装', 'とび・土工']
-const DIVISIONS = ['民間', '公共', '下請', '積水ハウス', '修繕']
-const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
+const DIVISIONS = ['民間', '公共', '下請', 'ハウスメーカー', '修繕']
+const ASSIGNEES: Assignee[] = ['佐藤', '鈴木', '高橋', '田中', '伊藤', '渡辺', '山本', '中村', '小林', '加藤']
 
 /** タップで選ぶチップ式セレクタ。activeを再タップで解除（allowClear時）。 */
 function ChipGroup({ options, value, onSelect, allowClear = true }: {
@@ -144,7 +144,7 @@ export default function ProjectForm() {
         {/* 拠点 */}
         <div className="form-group">
           <label className="form-label">拠点</label>
-          <ChipGroup options={['本社', '釜石']} value={form.office} onSelect={v => set('office', v)} />
+          <ChipGroup options={['本社', '北支店']} value={form.office} onSelect={v => set('office', v)} />
         </div>
 
         {/* 担当者 */}
@@ -166,7 +166,7 @@ export default function ProjectForm() {
           <ChipGroup options={CATEGORIES} value={form.category} onSelect={v => set('category', v)} />
         </div>
 
-        {/* 工事区分（民間/公共/下請/積水ハウス/修繕） */}
+        {/* 工事区分（民間/公共/下請/ハウスメーカー/修繕） */}
         <div className="form-group">
           <label className="form-label">工事区分</label>
           <ChipGroup options={DIVISIONS} value={form.division} onSelect={v => set('division', v)} />
