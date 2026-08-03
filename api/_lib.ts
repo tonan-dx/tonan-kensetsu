@@ -2,14 +2,16 @@ import { Client, isFullPage } from '@notionhq/client'
 
 export const notion = new Client({ auth: process.env.NOTION_TOKEN })
 
-export const PROJECTS_DB          = '4e8426e7a4d1480f8efa956b3643cdb2'
-export const REPORTS_DB           = 'a5f67b8bb359497c989cf397d8eb345a'
-export const ESTIMATES_DB         = '9d7c1e35-7039-4452-acb0-c83a5d2fd799'
-export const PROCESSES_DB         = '79dcabf6-0b5a-495e-8e4a-7a2e859f4245'
-export const SAFETY_DB            = '8c6634ec-9ec7-41a5-a796-c5b13c6ceac4'
-export const TASKS_DB             = '9b42effe-3601-46e1-978c-9ebb8fc6fc0d'
-export const NOTICES_DB           = '5e990df0-0082-4d72-9b02-e75615bf76e9'
-export const ESTIMATE_REVISIONS_DB = 'b024cd6dd0354eb98eb6dac2ca2ae80e'
+// 接続先DBは環境変数で差し替え可能（営業デモ環境を別データで動かすため）。
+// 未設定なら従来どおり本番のDBを見るので、都南建設の稼働には影響しない。
+export const PROJECTS_DB          = process.env.NOTION_PROJECTS_DB           ?? '4e8426e7a4d1480f8efa956b3643cdb2'
+export const REPORTS_DB           = process.env.NOTION_REPORTS_DB            ?? 'a5f67b8bb359497c989cf397d8eb345a'
+export const ESTIMATES_DB         = process.env.NOTION_ESTIMATES_DB          ?? '9d7c1e35-7039-4452-acb0-c83a5d2fd799'
+export const PROCESSES_DB         = process.env.NOTION_PROCESSES_DB          ?? '79dcabf6-0b5a-495e-8e4a-7a2e859f4245'
+export const SAFETY_DB            = process.env.NOTION_SAFETY_DB             ?? '8c6634ec-9ec7-41a5-a796-c5b13c6ceac4'
+export const TASKS_DB             = process.env.NOTION_TASKS_DB              ?? '9b42effe-3601-46e1-978c-9ebb8fc6fc0d'
+export const NOTICES_DB           = process.env.NOTION_NOTICES_DB            ?? '5e990df0-0082-4d72-9b02-e75615bf76e9'
+export const ESTIMATE_REVISIONS_DB = process.env.NOTION_ESTIMATE_REVISIONS_DB ?? 'b024cd6dd0354eb98eb6dac2ca2ae80e'
 
 export function getTitle(prop: any): string {
   return prop?.title?.map((t: any) => t.plain_text).join('') ?? ''
@@ -27,7 +29,9 @@ export function getPerson(prop: any): string {
   return prop?.people?.[0]?.name ?? ''
 }
 export function getStatus(prop: any): string {
-  return prop?.status?.name ?? ''
+  // 本番は status 型。デモ環境のDBは API で作成する都合上 select 型になるため、
+  // 同じ意味を持つ両方の型から読めるようにしておく（本番の挙動は変わらない）。
+  return prop?.status?.name ?? prop?.select?.name ?? ''
 }
 export function getPhone(prop: any): string | null {
   return prop?.phone_number ?? null
