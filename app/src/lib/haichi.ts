@@ -11,6 +11,18 @@ import type { Task } from '../types'
 export const HAICHI_REF = '配置'
 export const REST_VAL = '__rest__'
 
+/**
+ * 「左の一覧から隠した工事」の印。配置レコードと同じ ref_type='配置' に相乗りし、
+ * ref_id をこの値にして notes に工事IDを入れる（担当者名は入らないので配置コマとは混ざらない）。
+ * 工事一覧のステータスは変えない ＝ 隠しても工事は「進行中」のまま。
+ */
+export const HIDDEN_REF_ID = '__hidden__'
+
+/** 配置表のメモは「表示中の2週間」ごと。週の起点日をIDにして ref_type='メモ' に保存する。 */
+export function haichiMemoRefId(startYmd: string): string {
+  return `配置:${startYmd}`
+}
+
 export function isHaichi(t: Pick<Task, 'ref_type'>): boolean {
   return t.ref_type === HAICHI_REF
 }

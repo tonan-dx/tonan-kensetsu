@@ -4,9 +4,10 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Printer } from 'lucide-react'
 import type { Project, Task } from '../types'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 import {
-  HAICHI_REF, REST_VAL, mondayOf, windowDates, shortDate, weekdayOf,
+  HAICHI_REF, REST_VAL, HIDDEN_REF_ID, haichiMemoRefId, mondayOf, windowDates, shortDate, weekdayOf,
 } from '../lib/haichi'
 import { LEAVE_REF, COMPANY_LEAVE, isCompanyLeave } from '../lib/leave'
+import MemoList from '../components/MemoList'
 
 // 配置表の名簿（元スプレッドシート準拠。変更は依頼で調整）
 const PEOPLE = [
@@ -18,7 +19,7 @@ const DAYS = 14
 const kk = (person: string, date: string) => `${person} ${date}`
 const ERASE = '__erase__'
 const PRINT_STYLE = 'haichi-print-size'
-// 進行中の工事に無い現場は「現場ラベル」コマとして notes に 'L:現場名' で保存
+// 現場でない日（事務所・研修・病院など）や、工事DBに無い現場は「ラベル」コマとして notes に 'L:名前' で保存
 const FREE = 'L:'
 function labelColor(s: string): string {
   let h = 0
@@ -27,10 +28,16 @@ function labelColor(s: string): string {
 }
 
 interface Rec { id: string; val: string }
+interface Proj { id: string; name: string; color: string; kind: string | null; active: boolean }
 
 export default function Haichi() {
   const navigate = useNavigate()
-  const [projects, setProjects] = useState<{ id: string; name: string; color: string; kind: string | null }[]>([])
+  // 工事は「全件」持つ。左に出すのは進行中だけだが、過去のコマの工事名を出すために完了した工事も必要。
+  const [projects, setProjects] = useState<Proj[]>([])
+  const [hidden, setHidden] = useState<Map<string, string>>(new Map())  // 工事ID → 印レコードID
+  const [showHidden, setShowHidden] = useState(false)
+  const [freeInput, setFreeInput] = useState('')
+  const [extraLabels, setExtraLabels] = useState<string[]>([])          // 追加直後（まだ未配置）のラベル
   const [assign, setAssign] = useState<Map<string, Rec>>(new Map())
   const [comp, setComp] = useState<Map<string, string[]>>(new Map())
   const [loading, setLoading] = useState(true)
@@ -45,22 +52,30 @@ export default function Haichi() {
   const projMap = useMemo(() => new Map(projects.map(p => [p.id, { name: p.name, color: p.color }])), [projects])
   const projMapRef = useRef(projMap); useEffect(() => { projMapRef.current = projMap }, [projMap])
 
-  // コマ1つ分の表示（進行中の工事 または 現場ラベル）
+  // コマ1つ分の表示。工事が完了しても名前を出し続ける（週を戻して見返すため）。
   const valMeta = (val: string): { name: string; color: string } =>
     val.startsWith(FREE) ? { name: val.slice(2), color: labelColor(val.slice(2)) }
-      : (projMap.get(val) ?? { name: '（終了した工事）', color: '#64748b' })
+      : (projMap.get(val) ?? { name: '（削除された工事）', color: '#64748b' })
 
-  // 配置に使われている現場ラベルを拾って、コマ置き場に出す
+  // 配置に使われているラベル＋追加直後のラベルを、コマ置き場に出す
   const freeLabels = useMemo(() => {
     const m = new Map<string, { key: string; name: string; color: string }>()
-    assign.forEach(r => { if (r.val.startsWith(FREE) && !m.has(r.val)) m.set(r.val, { key: r.val, name: r.val.slice(2), color: labelColor(r.val.slice(2)) }) })
+    const put = (val: string) => { if (!m.has(val)) m.set(val, { key: val, name: val.slice(2), color: labelColor(val.slice(2)) }) }
+    assign.forEach(r => { if (r.val.startsWith(FREE)) put(r.val) })
+    extraLabels.forEach(put)
     return [...m.values()].sort((a, b) => a.name.localeCompare(b.name, 'ja'))
-  }, [assign])
+  }, [assign, extraLabels])
 
+  // 左に出すのは「進行中」かつ「隠していない」工事だけ
   const paletteItems = [
-    ...projects.map(p => ({ key: p.id, name: p.name, color: p.color, kind: p.kind })),
-    ...freeLabels.map(l => ({ key: l.key, name: l.name, color: l.color, kind: '現場' as string | null })),
+    ...projects.filter(p => p.active && !hidden.has(p.id))
+      .map(p => ({ key: p.id, name: p.name, color: p.color, kind: p.kind, hideable: true })),
+    ...freeLabels.map(l => ({ key: l.key, name: l.name, color: l.color, kind: 'その他' as string | null, hideable: false })),
   ]
+
+  const hiddenList = [...hidden.keys()]
+    .map(id => ({ id, name: projMap.get(id)?.name ?? '（削除された工事）' }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
 
   const load = () => {
     Promise.all([
@@ -68,15 +83,21 @@ export default function Haichi() {
       fetch(`/api/checklist?ref_type=${encodeURIComponent(HAICHI_REF)}`).then(r => r.json()).catch(() => []),
       fetch(`/api/checklist?ref_type=${encodeURIComponent(LEAVE_REF)}`).then(r => r.json()).catch(() => []),
     ]).then(([pj, ha, lv]: [Project[], Task[], Task[]]) => {
-      const active = (Array.isArray(pj) ? pj : []).filter(p => p.status === '進行中')
-      setProjects(active.map((p, i) => ({ id: p.id, name: p.name, color: PALETTE[i % PALETTE.length], kind: p.division })))
+      // 色は工事IDから決める（一覧の並びで色が変わらないので、印刷済みの表と食い違わない）
+      setProjects((Array.isArray(pj) ? pj : []).map(p => ({
+        id: p.id, name: p.name, color: labelColor(p.id), kind: p.division, active: p.status === '進行中',
+      })))
 
       const am = new Map<string, Rec>()
+      const hm = new Map<string, string>()
       ;(Array.isArray(ha) ? ha : []).forEach(t => {
+        // 「左から隠した工事」の印は担当者・日付を持たない別物なので先に振り分ける
+        if (t.ref_id === HIDDEN_REF_ID) { if (t.notes) hm.set(t.notes, t.id); return }
         const person = t.ref_id, date = (t.due_date ?? '').slice(0, 10), val = t.notes
         if (person && date && val) am.set(kk(person, date), { id: t.id, val })
       })
       setAssign(am)
+      setHidden(hm)
 
       const cm = new Map<string, string[]>()
       ;(Array.isArray(lv) ? lv : []).forEach(t => {
@@ -138,6 +159,37 @@ export default function Haichi() {
         return n
       })
     }
+  }
+
+  // ── 左の一覧から隠す／戻す（工事一覧のステータスは変えない）──
+  const hideProject = async (id: string) => {
+    if (brush === id) setBrush(null)
+    setHidden(prev => new Map(prev).set(id, 'tmp'))
+    const c = await fetch('/api/checklist', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: '配置表で非表示', notes: id, ref_id: HIDDEN_REF_ID, ref_type: HAICHI_REF, office: null }),
+    }).then(r => r.ok ? r.json() : null).catch(() => null)
+    setHidden(prev => {
+      const n = new Map(prev)
+      if (c && c.id) n.set(id, c.id); else n.delete(id)   // 保存できなければ元に戻す
+      return n
+    })
+  }
+
+  const unhideProject = (id: string) => {
+    const recId = hidden.get(id)
+    setHidden(prev => { const n = new Map(prev); n.delete(id); return n })
+    if (recId && recId !== 'tmp') fetch(`/api/checklist/${recId}`, { method: 'DELETE' }).catch(() => {})
+  }
+
+  // ── 現場でない日（事務所・研修・病院など）を自分で足す ──
+  const addFreeLabel = () => {
+    const name = freeInput.trim()
+    if (!name) return
+    const val = FREE + name
+    setExtraLabels(prev => prev.includes(val) ? prev : [...prev, val])
+    setBrush(val)          // 追加したらそのまま置ける状態にする
+    setFreeInput('')
   }
 
   const applyBrushToCell = (person: string, date: string) => {
@@ -219,6 +271,8 @@ export default function Haichi() {
         左の <b>工事一覧（進行中）</b> の現場コマを、人 × 日のマスに置きます。工事を選んでマスをタップ（PCはドラッグで移動）。
         コマの数字は「その工事に今 何人日入っているか」。<b>工事を選ぶと、その工事のコマだけ光ります</b>。
         日付見出しタップ＝全体休み／工事を選んでからタップ＝その現場だけ休み。
+        現場でない日（事務所・研修など）は左下の<b>「現場以外を足す」</b>で名前を足してから置きます。
+        終わった工事は<b>「隠す」</b>で左から消せます（工事一覧の状態は変わりません）。
       </div>
 
       <div className="haichi-toolbar">
@@ -248,25 +302,66 @@ export default function Haichi() {
 
       <div className="haichi-cols">
       <div className="haichi-palette">
-        <div className="hp-title">工事一覧（進行中）<span className="hp-cnt">{projects.length}件</span></div>
+        <div className="hp-title">工事一覧（進行中）<span className="hp-cnt">{paletteItems.filter(p => p.hideable).length}件</span></div>
         <div className="hp-list">
           {paletteItems.length === 0 && !loading && <span className="hp-empty">「進行中」の工事がありません（工事一覧でステータスを進行中にすると出ます）</span>}
           {paletteItems.map(p => (
-            <button key={p.key}
-              className={`hp-card${brush === p.key ? ' active' : ''}`}
-              style={{ '--jc': p.color } as React.CSSProperties}
-              onClick={() => setBrush(brush === p.key ? null : p.key)}>
-              <span className="hp-dot" />
-              <span className="hp-name">{p.name}</span>
-              {p.kind && <span className={`hp-kind ${kindClass(p.kind)}`}>{p.kind}</span>}
-              <span className="hp-count">{countByVal.get(p.key) ?? 0}</span>
-            </button>
+            <div key={p.key} className="hp-row" style={{ '--jc': p.color } as React.CSSProperties}>
+              <button
+                className={`hp-card${brush === p.key ? ' active' : ''}`}
+                onClick={() => setBrush(brush === p.key ? null : p.key)}>
+                <span className="hp-dot" />
+                <span className="hp-name">{p.name}</span>
+                {p.kind && <span className={`hp-kind ${kindClass(p.kind)}`}>{p.kind}</span>}
+                <span className="hp-count">{countByVal.get(p.key) ?? 0}</span>
+              </button>
+              {p.hideable && (
+                <button className="hp-hide" onClick={() => hideProject(p.key)}
+                  title="この工事を左から隠す（工事一覧の状態は変わりません・置いた分はそのまま残ります）">
+                  隠す
+                </button>
+              )}
+            </div>
           ))}
         </div>
+
+        {/* 現場でない日（事務所・研修・病院など）は、ここで名前を足してから置く */}
+        <div className="hp-free">
+          <label className="hp-free-label">現場以外を足す（事務所・研修・病院など）</label>
+          <div className="hp-free-row">
+            <input
+              className="hp-free-input"
+              placeholder="例：事務所"
+              value={freeInput}
+              onChange={e => setFreeInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addFreeLabel() } }}
+            />
+            <button className="hp-free-add" onClick={addFreeLabel} disabled={!freeInput.trim()}>追加</button>
+          </div>
+        </div>
+
         <div className="hp-tools">
           <button className={`hp-tool rest${brush === REST_VAL ? ' active' : ''}`} onClick={() => setBrush(brush === REST_VAL ? null : REST_VAL)}>休み</button>
           <button className={`hp-tool erase${brush === ERASE ? ' active' : ''}`} onClick={() => setBrush(brush === ERASE ? null : ERASE)}>消す</button>
         </div>
+
+        {hidden.size > 0 && (
+          <div className="hp-hidden">
+            <button className="hp-hidden-head" onClick={() => setShowHidden(v => !v)}>
+              隠した工事 {hidden.size}件 {showHidden ? '▲' : '▼'}
+            </button>
+            {showHidden && (
+              <div className="hp-hidden-list">
+                {hiddenList.map(h => (
+                  <div key={h.id} className="hp-hidden-item">
+                    <span className="hp-hidden-name">{h.name}</span>
+                    <button className="hp-hide back" onClick={() => unhideProject(h.id)}>戻す</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <p className="hp-tip">工事を選んでマスをタップ→配置（PCはコマをドラッグで移動）。日付見出しタップ＝全体休み／工事を選んでからタップ＝その現場だけ休み。</p>
       </div>
 
@@ -325,6 +420,13 @@ export default function Haichi() {
         </div>
       )}
       </div>
+
+      {/* 表示中の2週間のメモ。週を切り替えるとその週のメモに入れ替わる。印刷にも出る。 */}
+      <div className="haichi-memo">
+        <div className="hm-head">この2週間のメモ<span className="hm-range">{rangeLabel}</span></div>
+        <MemoList refId={haichiMemoRefId(dates[0][0])} />
+      </div>
+
       <p className="haichi-foot">配置は日付ごとに保存されます。週を戻せば過去の配置も見られます。「会社休み」はカレンダーの休みと共有です。</p>
     </div>
   )

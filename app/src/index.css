@@ -3201,8 +3201,54 @@ table.hgrid { border-collapse:separate; border-spacing:0; width:max-content; min
   flex-wrap: nowrap;
   gap: 7px;
 }
-.haichi-cols .hp-card { width: 100%; }
+.haichi-cols .hp-row { width: 100%; }
+.haichi-cols .hp-card { flex: 1; min-width: 0; }
 .haichi-cols .hp-name { flex: 1; text-align: left; }
+
+/* 工事コマ＋「隠す」ボタンの並び */
+.hp-row { display: inline-flex; align-items: center; gap: 5px; }
+.hp-row .hp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hp-hide {
+  flex: none; border: 1px solid var(--border); background: var(--white); color: var(--text-sub);
+  font-size: 11px; font-weight: 700; border-radius: 7px; padding: 5px 7px; cursor: pointer; line-height: 1;
+}
+.hp-hide:hover { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+.hp-hide.back:hover { background: color-mix(in srgb, var(--blue) 12%, var(--white)); border-color: var(--blue); color: var(--blue); }
+
+/* 現場以外（事務所・研修など）の追加 */
+.hp-free { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.hp-free-label { display: block; font-size: 11.5px; color: var(--text-sub); font-weight: 700; margin-bottom: 5px; }
+.hp-free-row { display: flex; gap: 5px; }
+.hp-free-input {
+  flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 8px;
+  padding: 6px 9px; font-size: 13px; font-family: inherit;
+}
+.hp-free-add {
+  flex: none; border: 1px solid var(--blue); background: var(--blue); color: #fff;
+  font-size: 12px; font-weight: 700; border-radius: 8px; padding: 6px 11px; cursor: pointer;
+}
+.hp-free-add:disabled { opacity: .4; cursor: default; }
+
+/* 隠した工事 */
+.hp-hidden { margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--border); }
+.hp-hidden-head {
+  width: 100%; text-align: left; border: 0; background: none; cursor: pointer;
+  font-size: 12px; font-weight: 700; color: var(--text-sub); padding: 2px 0;
+}
+.hp-hidden-list { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+.hp-hidden-item { display: flex; align-items: center; gap: 6px; }
+.hp-hidden-name {
+  flex: 1; min-width: 0; font-size: 12px; color: var(--text-sub);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* 2週間ごとのメモ */
+.haichi-memo { margin-top: 16px; }
+.hm-head {
+  display: flex; align-items: baseline; gap: 9px;
+  font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 7px;
+}
+.hm-head .hm-range { font-size: 12px; font-variant-numeric: tabular-nums; }
 .haichi-cols .haichi-board { min-width: 0; }
 @media (max-width: 860px) {
   .haichi-cols { grid-template-columns: 1fr; }
@@ -3223,6 +3269,16 @@ table.hgrid { border-collapse:separate; border-spacing:0; width:max-content; min
 @media print {
   /* 盤面だけを刷る（操作UIは落とす） */
   .haichi-header, .haichi-note, .haichi-toolbar, .haichi-palette, .haichi-foot { display: none !important; }
+
+  /* メモは盤面の下に一緒に刷る（操作ボタンは落とす） */
+  .haichi-memo .task-add-btn, .haichi-memo .task-add-form, .haichi-memo .task-delete { display: none !important; }
+  .haichi-memo { margin-top: 6mm; break-inside: avoid; }
+  .haichi-memo .hm-head { color: #000; font-size: 9pt; }
+  .haichi-memo .task-list-section { border: 1px solid #999; border-radius: 0; padding: 3mm; }
+  .haichi-memo .memo-item { border-bottom: 1px dotted #bbb; }
+  .haichi-memo .memo-text { color: #000; font-size: 8.5pt; }
+  .haichi-memo .memo-foot { font-size: 7pt; color: #555; }
+  .haichi-memo .task-empty { display: none !important; }
 
   html, body { background: #fff; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
