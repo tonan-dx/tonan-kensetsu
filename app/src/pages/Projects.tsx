@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Plus, Search, CalendarDays, Check, X, Pencil, MapPin } from 'lucide-react'
 import type { Project, ProjectCategory } from '../types'
@@ -16,9 +16,38 @@ function normalizeForSearch(s: string): string {
     .toLowerCase()
 }
 
-function todayLocal(): string {
-  const d = new Date()
+function ymd(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function todayLocal(): string {
+  return ymd(new Date())
+}
+
+/** 今週（月曜〜日曜）の範囲。月曜になるとリセットされ、先週の入金は隠れる。 */
+function thisWeekRange(): { from: string; to: string } {
+  const mon = new Date()
+  mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7))  // 日曜(0)は6日戻す
+  const sun = new Date(mon)
+  sun.setDate(sun.getDate() + 6)
+  return { from: ymd(mon), to: ymd(sun) }
+}
+
+/** その日付が今週（月〜日）に入っているか。日付なしは false（＝今週分ではない）。 */
+function isThisWeek(date: string | null): boolean {
+  if (!date) return false
+  const { from, to } = thisWeekRange()
+  return date >= from && date <= to
+}
+
+/** 今週の範囲ラベル（例: 7/28〜8/3） */
+function weekRangeLabel(): string {
+  const { from, to } = thisWeekRange()
+  const short = (s: string) => {
+    const [, m, d] = s.split('-')
+    return `${Number(m)}/${Number(d)}`
+  }
+  return `${short(from)}〜${short(to)}`
 }
 
 // 工事一覧カード内の進捗（詳細を開かず、その場で日付＋％を入力できる）
@@ -144,6 +173,19 @@ export default function Projects() {
     (CATEGORIES as string[]).includes(params.get('cat') ?? '') ? params.get('cat') as ProjectCategory : null
   const filterDivision: string | null =
     DIVISIONS.includes(params.get('div') ?? '') ? params.get('div') : null
+  // 入金済みは既定で「今週入金分」だけ。過去の入金も見たいときだけ true。
+  const paidAll = params.get('paid') === 'all'
+
+  // 検索欄の文字は手元の state で持つ（URL を直接 value にすると、日本語の変換中に
+  // 再描画で入力が横取りされ、文字が重複・入れ替わる）。確定した文字だけ URL に送る。
+  const [searchInput, setSearchInput] = useState(search)
+  const composing = useRef(false)
+  useEffect(() => { setSearchInput(search) }, [search])  // 「戻る」等で URL 側が変わったら追従
+
+  const onSearchInput = (v: string) => {
+    setSearchInput(v)
+    if (!composing.current) setParam({ q: v })  // 変換中は送らない（確定時にまとめて送る）
+  }
 
   // 履歴を増やさない（replace）。増やすと「戻る」で絞り込み操作を1つずつ遡ってしまう。
   const setParam = (patch: Record<string, string | null>) => {
@@ -186,7 +228,9 @@ export default function Projects() {
     const matchDivision = !filterDivision || p.division === filterDivision
     // 入金済み（完了案件）は既定で隠す。「入金済み」タブ選択時・分類/区分での絞り込み中は表示。
     const matchPaid = filterStatus === '入金済み' || !!filterCategory || !!filterDivision || p.status !== '入金済み'
-    return matchStatus && matchYear && matchCategory && matchDivision && matchPaid && matchesOffice(p.office, loc)
+    // 表示する入金済みは「今週(月〜日)に入金された分」だけ。過去分は「すべて表示」で見られる。
+    const matchPaidWeek = paidAll || p.status !== '入金済み' || isThisWeek(p.payment_date)
+    return matchStatus && matchYear && matchCategory && matchDivision && matchPaid && matchPaidWeek && matchesOffice(p.office, loc)
   }).sort((a, b) => {
     // 着工日の若い順（早い日付が上）。着工日なしは末尾。
     if (!a.start_date && !b.start_date) return 0
@@ -230,11 +274,13 @@ export default function Projects() {
         <input
           className="search-input"
           placeholder="工事名・お客様名・住所・担当者で検索"
-          value={search}
-          onChange={e => setParam({ q: e.target.value })}
+          value={searchInput}
+          onChange={e => onSearchInput(e.target.value)}
+          onCompositionStart={() => { composing.current = true }}
+          onCompositionEnd={e => { composing.current = false; setParam({ q: e.currentTarget.value }) }}
         />
-        {search && (
-          <button className="search-clear" onClick={() => setParam({ q: null })} title="検索をやめる">
+        {searchInput && (
+          <button className="search-clear" onClick={() => { setSearchInput(''); setParam({ q: null }) }} title="検索をやめる">
             <X size={16} />
           </button>
         )}
@@ -316,6 +362,18 @@ export default function Projects() {
       {!searching && filterCategory && (
         <p className="filter-notice">
           「{filterCategory}」の未入金工事を表示中 — {filtered.length}件
+        </p>
+      )}
+
+      {/* 入金済みタブ：既定は今週入金分だけ。過去の入金も見たいときは切り替えられる。 */}
+      {!searching && !filterCategory && filterStatus === '入金済み' && (
+        <p className="filter-notice">
+          {paidAll ? '入金済みをすべて表示中' : `今週（${weekRangeLabel()}）に入金された工事 — ${filtered.length}件`}
+          <button
+            className="filter-btn"
+            onClick={() => setParam({ paid: paidAll ? null : 'all' })}
+            style={{ marginLeft: 8, fontSize: 12, color: '#6b7280' }}
+          >{paidAll ? '今週の入金だけ表示' : 'すべての入金済みを表示'}</button>
         </p>
       )}
 

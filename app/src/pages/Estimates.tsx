@@ -20,6 +20,12 @@ const STATUS_ORDER: EstimateStatus[] = [
   '見積書作成前', '見積書作成中', '社長チェック', 'お客様へ提出', '着工決定', 'ボツ／失注',
 ]
 
+/**
+ * 見積一覧から既定で隠すステータス（＝見積としての出番が終わったもの）。
+ * 着工決定は工事一覧へ移動済み、ボツ／失注は流れた案件。「着工決定・ボツも表示」で見られる。
+ */
+const CLOSED_STATUSES: string[] = ['着工決定', 'ボツ／失注']
+
 export default function Estimates() {
   const [estimates, setEstimates] = useState<Estimate[]>([])
   const [loading, setLoading] = useState(true)
@@ -38,6 +44,8 @@ export default function Estimates() {
   useRefetchOnFocus(() => load(true))
 
   const filtered = estimates
+    // 着工決定（工事一覧へ移動済み）・ボツは既定で隠す。API側はボツしか除外しないためここで揃える。
+    .filter(e => showAll || !CLOSED_STATUSES.includes(e.status ?? ''))
     .filter(e => !filterStatus || e.status === filterStatus)
     .filter(e => !filterAssignee || e.assignee === filterAssignee)
     .filter(e => matchesOffice(e.office, loc))
@@ -58,7 +66,7 @@ export default function Estimates() {
           className={filterStatus === '' ? 'filter-btn active' : 'filter-btn'}
           onClick={() => setFilterStatus('')}
         >すべて</button>
-        {STATUS_ORDER.filter(s => showAll || s !== 'ボツ／失注').map(s => (
+        {STATUS_ORDER.filter(s => showAll || !CLOSED_STATUSES.includes(s)).map(s => (
           <button
             key={s}
             className={filterStatus === s ? 'filter-btn active' : 'filter-btn'}
@@ -70,7 +78,7 @@ export default function Estimates() {
           className="filter-btn"
           onClick={() => { setShowAll(v => !v); setFilterStatus('') }}
           style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}
-        >{showAll ? 'ボツを隠す' : 'ボツも表示'}</button>
+        >{showAll ? '着工決定・ボツを隠す' : '着工決定・ボツも表示'}</button>
       </div>
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
