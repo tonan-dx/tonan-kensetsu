@@ -6,6 +6,16 @@ import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 import { STATUS_COLORS, displayStatus } from '../lib/projectStatus'
 
+// 検索用の表記ゆれ吸収。住所は「1-2-3」「１−２−３」「1‐2‐3」などバラバラに入力されるため、
+// 検索する側・される側の両方をこの形に揃えてから比較する。
+function normalizeForSearch(s: string): string {
+  return s
+    .normalize('NFKC')                 // 全角英数字・半角カナ → 標準形
+    .replace(/[‐‑‒–—―ー−ｰ]/g, '-')     // ハイフン・ダッシュ・長音記号をすべて '-' に統一
+    .replace(/[\s　]+/g, '')            // 空白は無視（「盛岡市 ○○」＝「盛岡市○○」）
+    .toLowerCase()
+}
+
 function todayLocal(): string {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -159,13 +169,15 @@ export default function Projects() {
 
   // 検索中は「絞り込み（区分・分類・年度・状態）も拠点も無視して全工事から探す」。
   // 以前は絞り込みとAND だったため、入金済み・別年度・別拠点の工事が検索に出てこなかった。
-  const q = search.trim().toLowerCase()
-  const searching = q !== ''
+  // スペース区切りは AND（例：「盛岡 外壁」で両方を含む工事）。
+  const terms = search.trim().split(/[\s　]+/).filter(Boolean).map(normalizeForSearch)
+  const searching = terms.length > 0
 
   const filtered = projects.filter(p => {
     if (searching) {
-      return [p.name, p.client_name, p.location, p.assignee]
-        .filter(Boolean).join(' ').toLowerCase().includes(q)
+      // '|' 区切りで連結（正規化で空白が消えるため、区切りが無いと項目をまたいで誤ヒットする）
+      const hay = normalizeForSearch([p.name, p.client_name, p.location, p.assignee].filter(Boolean).join('|'))
+      return terms.every(t => hay.includes(t))
     }
     // 表示用ステータス（請求待ち＋請求日→請求済み）で絞り込み
     const matchStatus = filterStatus === 'すべて' || displayStatus(p) === filterStatus
@@ -217,7 +229,7 @@ export default function Projects() {
         <Search size={16} className="search-icon" />
         <input
           className="search-input"
-          placeholder="工事名・お客様名で検索"
+          placeholder="工事名・お客様名・住所・担当者で検索"
           value={search}
           onChange={e => setParam({ q: e.target.value })}
         />
