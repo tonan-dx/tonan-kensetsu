@@ -7,7 +7,7 @@ import {
   HAICHI_REF, REST_VAL, HIDDEN_REF_ID, haichiMemoRefId, mondayOf, windowDates, shortDate, weekdayOf,
 } from '../lib/haichi'
 import { LEAVE_REF, COMPANY_LEAVE, isCompanyLeave } from '../lib/leave'
-import MemoList from '../components/MemoList'
+import HaichiMemo from '../components/HaichiMemo'
 
 // 配置表の名簿（元スプレッドシート準拠。変更は依頼で調整）
 const PEOPLE = [
@@ -44,6 +44,9 @@ export default function Haichi() {
   const [weekOff, setWeekOff] = useState(0)
   const [brush, setBrush] = useState<string | null>(null)
   const [dropKey, setDropKey] = useState<string | null>(null)
+  const [editing, setEditing] = useState<string | null>(null)   // 直接入力中のマス
+  const [editText, setEditText] = useState('')
+  const composing = useRef(false)                               // 日本語変換中はEnterで確定しない
 
   // 非同期処理から最新値を読むためのミラー（描画には使わない）
   const assignRef = useRef(assign); useEffect(() => { assignRef.current = assign }, [assign])
@@ -197,6 +200,28 @@ export default function Haichi() {
     upsertCell(person, date, brush === ERASE ? null : brush)
   }
 
+  // ── マスに直接入力（研修・イベントの手伝いなど、現場でない日をその場で書く）──
+  // 工事を選んでいないときのタップで開く。選んでいるときは今までどおり置くだけ。
+  const openEdit = (person: string, date: string) => {
+    const cur = assignRef.current.get(kk(person, date))?.val ?? ''
+    setEditText(cur.startsWith(FREE) ? cur.slice(2) : '')
+    setEditing(kk(person, date))
+  }
+
+  const closeEdit = () => { setEditing(null); setEditText('') }
+
+  const commitEdit = (person: string, date: string) => {
+    const k = kk(person, date)
+    if (editing !== k) return
+    const name = editText.trim()
+    const cur = assignRef.current.get(k)?.val ?? null
+    closeEdit()
+    // 空で確定＝書いた文字を消す。工事のコマは消さない（消すときは左の「消す」を使う）
+    if (!name) { if (cur && cur.startsWith(FREE)) upsertCell(person, date, null); return }
+    if (cur === FREE + name) return
+    upsertCell(person, date, FREE + name)
+  }
+
   const toggleCompany = async (date: string) => {
     const ids = compRef.current.get(date) ?? []
     if (ids.length) {
@@ -271,7 +296,7 @@ export default function Haichi() {
         左の <b>工事一覧（進行中）</b> の現場コマを、人 × 日のマスに置きます。工事を選んでマスをタップ（PCはドラッグで移動）。
         コマの数字は「その工事に今 何人日入っているか」。<b>工事を選ぶと、その工事のコマだけ光ります</b>。
         日付見出しタップ＝全体休み／工事を選んでからタップ＝その現場だけ休み。
-        現場でない日（事務所・研修など）は左下の<b>「現場以外を足す」</b>で名前を足してから置きます。
+        研修・イベントの手伝いなど<b>現場でない日は、工事を選んでいない状態でマスをタップ</b>すると、その場に直接書けます（同じ名前を何日も置くときは左下の「現場以外を足す」が便利）。
         終わった工事は<b>「隠す」</b>で左から消せます（工事一覧の状態は変わりません）。
       </div>
 
@@ -362,7 +387,7 @@ export default function Haichi() {
             )}
           </div>
         )}
-        <p className="hp-tip">工事を選んでマスをタップ→配置（PCはコマをドラッグで移動）。日付見出しタップ＝全体休み／工事を選んでからタップ＝その現場だけ休み。</p>
+        <p className="hp-tip">工事を選んでマスをタップ→配置（PCはコマをドラッグで移動）。工事を選んでいないときにマスをタップ→その場に直接書ける。日付見出しタップ＝全体休み／工事を選んでからタップ＝その現場だけ休み。</p>
       </div>
 
       {loading ? <div className="loading">読み込み中...</div> : (
@@ -390,13 +415,31 @@ export default function Haichi() {
                       const k = kk(person, d)
                       return (
                         <td key={d}
-                          className={`hcell${wk ? ' wknd' : ''}${isComp ? ' comp' : ''}${dropKey === k ? ' drop' : ''}`}
-                          onClick={() => !isComp && applyBrushToCell(person, d)}
+                          className={`hcell${wk ? ' wknd' : ''}${isComp ? ' comp' : ''}${dropKey === k ? ' drop' : ''}${editing === k ? ' editing' : ''}`}
+                          onClick={() => {
+                            if (isComp || editing === k) return
+                            if (brush === null) openEdit(person, d); else applyBrushToCell(person, d)
+                          }}
                           onDragOver={e => { if (!isComp) { e.preventDefault(); setDropKey(k) } }}
                           onDragLeave={() => setDropKey(null)}
                           onDrop={e => { e.preventDefault(); if (!isComp) onDrop(person, d) }}>
                           {isComp ? (
                             <span className="komacell rest company">会社休み</span>
+                          ) : editing === k ? (
+                            <input
+                              className="hcell-input"
+                              autoFocus
+                              value={editText}
+                              placeholder="例：研修"
+                              onChange={e => setEditText(e.target.value)}
+                              onBlur={() => commitEdit(person, d)}
+                              onCompositionStart={() => { composing.current = true }}
+                              onCompositionEnd={() => { composing.current = false }}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter' && !composing.current) { e.preventDefault(); commitEdit(person, d) }
+                                else if (e.key === 'Escape') { e.preventDefault(); closeEdit() }
+                              }}
+                            />
                           ) : rec ? (
                             rec.val === REST_VAL ? (
                               <span className="komacell rest" draggable onDragStart={() => { dragRef.current = { person, date: d } }}>休み</span>
@@ -423,8 +466,8 @@ export default function Haichi() {
 
       {/* 表示中の2週間のメモ。週を切り替えるとその週のメモに入れ替わる。印刷にも出る。 */}
       <div className="haichi-memo">
-        <div className="hm-head">この2週間のメモ<span className="hm-range">{rangeLabel}</span></div>
-        <MemoList refId={haichiMemoRefId(dates[0][0])} />
+        <div className="hm-head">メモ<span className="hm-range">{rangeLabel}</span></div>
+        <HaichiMemo refId={haichiMemoRefId(dates[0][0])} />
       </div>
 
       <p className="haichi-foot">配置は日付ごとに保存されます。週を戻せば過去の配置も見られます。「会社休み」はカレンダーの休みと共有です。</p>
