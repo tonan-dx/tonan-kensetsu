@@ -562,6 +562,13 @@ input, select, textarea { font: inherit; }
 }
 
 .detail-row:last-child { border-bottom: none; }
+/* 未入力の日付（請求日・入金日）。空欄と区別がつくように薄く出す */
+.detail-none { color: var(--text-sub); opacity: .8; }
+
+/* 済ませた車検（完了日あり）。急かす色を消して、済んだことが分かる形にする */
+.vehicle-row.finished { opacity: .72; }
+.vehicle-done { color: #16a34a; font-weight: 700; font-size: 12px; }
+.vehicle-done-hint { font-size: 11.5px; color: var(--text-sub); }
 
 .detail-label {
   font-size: 12px;

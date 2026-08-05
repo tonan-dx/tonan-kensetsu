@@ -10,7 +10,7 @@ import type { Project, DailyReport, Notice, Estimate, SafetyRecord, Contact, Tas
 import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { isLeave, isCompanyLeave, parseLeave, leaveLabel } from '../lib/leave'
 import { isPlan, planLabel } from '../lib/plan'
-import { isVehicle, vehicleTitle, daysUntil, countdownLabel } from '../lib/meeting'
+import { isVehicle, isCompleted, vehicleTitle, daysUntil, countdownLabel } from '../lib/meeting'
 import { CONTAINER_REFS } from '../lib/haichi'
 import LeaveModal from '../components/LeaveModal'
 import PlanModal from '../components/PlanModal'
@@ -121,7 +121,9 @@ function buildEvents(data: {
       continue
     }
     // 車検は車検日をそのまま予定として表示（車検一覧で日付を直せばカレンダーも追従する）
+    // 完了日を入れた車検は済んだものなので、カレンダーには出さない
     if (isVehicle(t)) {
+      if (isCompleted(t)) continue
       const d = daysUntil(t.due_date)
       const title = `${vehicleTitle(t)}${d != null ? `（${countdownLabel(d)}）` : ''}`
       // 拠点なしの車両は全社共通なので、本社/釜石を選んでいても表示する

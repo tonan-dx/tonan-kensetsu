@@ -161,6 +161,7 @@ export function toTask(page: any) {
     assignee: getSelect(p['担当者']) || null,
     done: p['完了']?.checkbox ?? false,
     due_date: p['期限']?.date?.start ?? null,
+    completed_date: p['完了日']?.date?.start ?? null,
     notes: getText(p['備考']) || null,
     ref_id: getText(p['関連先ID']) || null,
     ref_type: getSelect(p['関連先タイプ']) || null,

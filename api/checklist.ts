@@ -33,10 +33,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.json(results.map(p => toTask(p)).filter(Boolean))
       }
       if (req.method === 'POST') {
-        const { name, assignee, due_date, notes, ref_id, ref_type, office } = req.body
+        const { name, assignee, due_date, completed_date, notes, ref_id, ref_type, office } = req.body
         const props: any = { 'タスク名': { title: [{ text: { content: name || '' } }] } }
         if (assignee) props['担当者'] = { select: { name: assignee } }
         if (due_date) props['期限'] = { date: { start: due_date } }
+        if (completed_date) props['完了日'] = { date: { start: completed_date } }
         if (notes) props['備考'] = { rich_text: [{ text: { content: notes } }] }
         if (ref_id) props['関連先ID'] = { rich_text: [{ text: { content: ref_id } }] }
         if (ref_type) props['関連先タイプ'] = { select: { name: ref_type } }
@@ -49,12 +50,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // /api/checklist/:id — detail
     if (req.method === 'PATCH') {
-      const { name, assignee, done, due_date, notes, office } = req.body
+      const { name, assignee, done, due_date, completed_date, notes, office } = req.body
       const props: any = {}
       if (name != null) props['タスク名'] = { title: [{ text: { content: name } }] }
       if (assignee !== undefined) props['担当者'] = assignee ? { select: { name: assignee } } : { select: null }
       if (done != null) props['完了'] = { checkbox: done }
       if (due_date !== undefined) props['期限'] = due_date ? { date: { start: due_date } } : { date: null }
+      if (completed_date !== undefined) props['完了日'] = completed_date ? { date: { start: completed_date } } : { date: null }
       if (notes != null) props['備考'] = { rich_text: [{ text: { content: notes } }] }
       if (office !== undefined) props['拠点'] = office ? { select: { name: office } } : { select: null }
       const page = await notion.pages.update({ page_id: id, properties: props })

@@ -128,6 +128,23 @@ export default function ProjectDetail() {
             <span>¥{project.contract_amount.toLocaleString()}</span>
           </div>
         )}
+        {/* お金の段階に入った工事は、編集を開かなくても請求・入金の状況が分かるようにする */}
+        {(BILLING_STATUSES.includes(project.status) || project.billing_date || project.payment_date) && (
+          <>
+            <div className="detail-row">
+              <span className="detail-label">請求日</span>
+              {project.billing_date
+                ? <span>{project.billing_date}</span>
+                : <span className="detail-none">まだ</span>}
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">入金日</span>
+              {project.payment_date
+                ? <span>{project.payment_date}</span>
+                : <span className="detail-none">まだ</span>}
+            </div>
+          </>
+        )}
         {project.progress != null && (
           <div className="detail-row">
             <span className="detail-label">進行率</span>

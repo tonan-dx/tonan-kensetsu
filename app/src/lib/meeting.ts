@@ -15,6 +15,14 @@ export function isAgenda(t: Pick<Task, 'ref_type'>): boolean { return t.ref_type
 export function isQualification(t: Pick<Task, 'ref_type'>): boolean { return t.ref_type === QUALIFICATION_REF }
 export function isVehicle(t: Pick<Task, 'ref_type'>): boolean { return t.ref_type === VEHICLE_REF }
 
+/**
+ * 済ませた車検（完了日が入っている）。
+ * 一覧・カレンダー・ホームの「車検が近い車両」から外す判定はここ1か所に集める。
+ */
+export function isCompleted(t: Pick<Task, 'completed_date'>): boolean {
+  return !!t.completed_date
+}
+
 /** ホーム・担当者別のタスク一覧から除外すべき会議関連アイテムか */
 export function isMeetingItem(t: Pick<Task, 'ref_type'>): boolean {
   return isAgenda(t) || isQualification(t) || isVehicle(t)

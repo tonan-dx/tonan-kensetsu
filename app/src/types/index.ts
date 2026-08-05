@@ -127,6 +127,8 @@ export interface Task {
   assignee: string | null
   done: boolean
   due_date: string | null
+  /** 完了日。車検で「済ませた日」を入れると一覧・カレンダーから外れる */
+  completed_date: string | null
   notes: string | null
   ref_id: string | null
   ref_type: 'project' | 'estimate' | 'safety' | '休み' | '予定' | 'メモ' | '議題' | '資格' | '車検' | '配置' | null

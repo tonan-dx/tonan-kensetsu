@@ -6,7 +6,7 @@ import { useOfficeFilter, matchesOffice } from '../lib/office'
 import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
 import { isLeave } from '../lib/leave'
 import { isPlan } from '../lib/plan'
-import { isMeetingItem, isVehicle, vehicleTitle, daysUntil, countdownLabel, VEHICLE_SOON_DAYS } from '../lib/meeting'
+import { isMeetingItem, isVehicle, isCompleted, vehicleTitle, daysUntil, countdownLabel, VEHICLE_SOON_DAYS } from '../lib/meeting'
 
 const ASSIGNEES: Assignee[] = ['長澤', '坂井', '高橋', '五十嵐', '堀合', '櫻川', '竹田', '千葉', '水間', '晴山', '山崎', '幹子', '佐野', '上野', '岩洞', '小笠原']
 const MEMBER_COUNT = ASSIGNEES.length
@@ -71,7 +71,9 @@ export default function Dashboard() {
   const estimates = estimatesRaw.filter(x => matchesOffice(x.office, loc))
   const safetyRecords = safetyRaw.filter(x => matchesOffice(x.office, loc))
   const notices = noticesRaw.filter(x => matchesOffice(x.office, loc))
-  const tasks = tasksRaw.filter(x => matchesOffice(x.office, loc))
+  // 拠点を決めずに作ったタスクは「全社共通」として常に出す。
+  // （工事詳細で足したタスクは拠点なしで保存されるため、本社/釜石を選ぶと消えてしまっていた）
+  const tasks = tasksRaw.filter(x => !x.office || matchesOffice(x.office, loc))
   const contacts = contactsRaw.filter(x => matchesOffice(x.office, loc))
 
   // 見積
@@ -101,7 +103,7 @@ export default function Dashboard() {
 
   // 車検が近い車両（VEHICLE_SOON_DAYS 以内＋超過分）。拠点なしの車両は全社共通なので常に出す。
   const vehiclesSoon = tasksRaw
-    .filter(t => isVehicle(t) && (!t.office || loc === 'all' || t.office === loc))
+    .filter(t => isVehicle(t) && !isCompleted(t) && (!t.office || loc === 'all' || t.office === loc))
     .map(t => ({ t, days: daysUntil(t.due_date) }))
     .filter((v): v is { t: Task; days: number } => v.days != null && v.days <= VEHICLE_SOON_DAYS)
     .sort((a, b) => a.days - b.days)
